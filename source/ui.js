@@ -52,27 +52,10 @@ if (typeof jQuery !== 'undefined') {
                 };
                 self.status = $('<p class="nes-status">Booting up...</p>').appendTo(self.root);
                 self.root.appendTo(parent);
-        
-                self.romSelect.change(function() {
-                    self.updateStatus("Downloading...");
-                    $.ajax({
-                        url: escape(self.romSelect.val()),
-                        xhr: function() {
-                            var xhr = $.ajaxSettings.xhr();
-                            // Download as binary
-                            xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                            return xhr;
-                        },
-                        success: function(data) {
-                            self.nes.loadRom(data);
-                            self.nes.start();
-                            self.enable();
-                        }
-                    });
-                });
+
         
                 self.buttons.pause.click(function() {
-                    if (self.nes.isRunning) {
+                    if (self.nes.active) {
                         self.nes.stop();
                         self.updateStatus("Paused");
                         self.buttons.pause.attr("value", "resume");
@@ -182,7 +165,7 @@ if (typeof jQuery !== 'undefined') {
                 // Enable and reset UI elements
                 enable: function() {
                     this.buttons.pause.attr("disabled", null);
-                    if (this.nes.isRunning) {
+                    if (this.nes.active) {
                         this.buttons.pause.attr("value", "pause");
                     }
                     else {

@@ -411,7 +411,7 @@ JSNES.Mappers[0].prototype = {
             var ram = this.nes.rom.batteryRam;
             if (ram !== null && ram.length == 0x2000) {
                 // Load Battery RAM into memory:
-                JSNES.Utils.arraycopy(ram, 0, this.nes.cpu.mem, 0x6000, 0x2000);
+                arraycopy(ram, 0, this.nes.cpu.mem, 0x6000, 0x2000);
             }
         }
     },
@@ -421,7 +421,7 @@ JSNES.Mappers[0].prototype = {
         bank %= this.nes.rom.romCount;
         //var data = this.nes.rom.rom[bank];
         //cpuMem.write(address,data,data.length);
-        JSNES.Utils.arraycopy(this.nes.rom.rom[bank], 0, this.nes.cpu.mem, address, 16384);
+        arraycopy(this.nes.rom.rom[bank], 0, this.nes.cpu.mem, address, 16384);
     },
 
     loadVromBank: function(bank, address) {
@@ -430,11 +430,11 @@ JSNES.Mappers[0].prototype = {
         }
         this.nes.ppu.triggerRendering();
     
-        JSNES.Utils.arraycopy(this.nes.rom.vrom[bank % this.nes.rom.vromCount], 
+        arraycopy(this.nes.rom.vrom[bank % this.nes.rom.vromCount], 
             0, this.nes.ppu.vramMem, address, 4096);
     
         var vromTile = this.nes.rom.vromTile[bank % this.nes.rom.vromCount];
-        JSNES.Utils.arraycopy(vromTile, 0, this.nes.ppu.ptTile,address >> 4, 256);
+        arraycopy(vromTile, 0, this.nes.ppu.ptTile,address >> 4, 256);
     },
 
     load32kRomBank: function(bank, address) {
@@ -461,7 +461,7 @@ JSNES.Mappers[0].prototype = {
     
         var bank4k = parseInt(bank1k / 4, 10) % this.nes.rom.vromCount;
         var bankoffset = (bank1k % 4) * 1024;
-        JSNES.Utils.arraycopy(this.nes.rom.vrom[bank4k], 0, 
+        arraycopy(this.nes.rom.vrom[bank4k], 0, 
             this.nes.ppu.vramMem, bankoffset, 1024);
     
         // Update tiles:
@@ -480,7 +480,7 @@ JSNES.Mappers[0].prototype = {
     
         var bank4k = parseInt(bank2k / 2, 10) % this.nes.rom.vromCount;
         var bankoffset = (bank2k % 2) * 2048;
-        JSNES.Utils.arraycopy(this.nes.rom.vrom[bank4k], bankoffset,
+        arraycopy(this.nes.rom.vrom[bank4k], bankoffset,
             this.nes.ppu.vramMem, address, 2048);
     
         // Update tiles:
@@ -496,7 +496,7 @@ JSNES.Mappers[0].prototype = {
         var offset = (bank8k % 2) * 8192;
     
         //this.nes.cpu.mem.write(address,this.nes.rom.rom[bank16k],offset,8192);
-        JSNES.Utils.arraycopy(this.nes.rom.rom[bank16k], offset, 
+        arraycopy(this.nes.rom.rom[bank16k], offset, 
                   this.nes.cpu.mem, address, 8192);
     },
 

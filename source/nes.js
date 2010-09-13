@@ -55,7 +55,7 @@ var JSNES = function(opts) {
 JSNES.VERSION = "<%= version %>";
 
 JSNES.prototype = {
-    isRunning: false,
+    active: false,
     fpsFrameCount: 0,
     limitFrames: true,
     romData: null,
@@ -75,8 +75,8 @@ JSNES.prototype = {
         var self = this;
         
         if (this.rom !== null && this.rom.valid) {
-            if (!this.isRunning) {
-                this.isRunning = true;
+            if (!this.active) {
+                this.active = true;
                 
                 this.frameInterval = setInterval(function() {
                     self.frame();
@@ -177,7 +177,7 @@ JSNES.prototype = {
     stop: function() {
         clearInterval(this.frameInterval);
         clearInterval(this.fpsInterval);
-        this.isRunning = false;
+        this.active = false;
     },
     
     reloadRom: function() {
@@ -186,19 +186,33 @@ JSNES.prototype = {
         }
     },
     
-    // Loads a ROM file into the CPU and PPU.
-    // The ROM file is validated first.
-    loadRom: function(data) {
-        if (this.isRunning) {
+    // Loads a ROM file into the CPU and PPU. The ROM file is validated first.
+    loadRom: function(src) {
+
+        //Stop the emulator if running.
+        if(this.active){
             this.stop();
         }
-        
+
+        //Create a new http request.
+        var request = new XMLHttpRequest();
+        request.open('GET',src,false);
+
+        //Set the mime type to binary.
+        request.overrideMimeType('text/plain; charset=x-user-defined');
+
+        //Send the request.
+        request.send(null);
+
+        //Save the response.
+        var data = request.responseText;
+
         this.ui.updateStatus("Loading ROM...");
-        
+
         // Load ROM file:
         this.rom = new JSNES.ROM(this);
         this.rom.load(data);
-        
+
         if (this.rom.valid) {
             this.reset();
             this.mmap = this.rom.createMapper();
