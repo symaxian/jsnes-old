@@ -16,76 +16,54 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var JSNES = function(opts) {
+JSNES = {};
 
+nes = {
 
-    this.status = '';
+    init:function(){
 
+        this.fps = 0;
+        this.status = '';
 
-                // Canvas
-    
-                this.canvas = document.getElementById('jsnes');
-    
-                this.canvas.width = 256;
-                this.canvas.height = 240;
-    
-                this.canvasContext = this.canvas.getContext('2d');
+                    // Canvas
+        
+                    this.canvas = document.getElementById('jsnes');
+        
+                    this.canvas.width = 256;
+                    this.canvas.height = 240;
+        
+                    this.canvasContext = this.canvas.getContext('2d');
+                    
+                    this.canvasImageData = this.canvasContext.getImageData(0, 0, 256, 240);
+                    this.canvasContext.fillStyle = 'black';
+                    this.canvasContext.fillRect(0, 0, 256, 240); // set alpha to opaque
                 
-                this.canvasImageData = this.canvasContext.getImageData(0, 0, 256, 240);
-                this.canvasContext.fillStyle = 'black';
-                this.canvasContext.fillRect(0, 0, 256, 240); // set alpha to opaque
-            
-                // Set alpha
-                for (var i = 3; i < this.canvasImageData.data.length-3; i+=4) {
-                    this.canvasImageData.data[i] = 0xFF;
-                }
+                    // Set alpha
+                    for (var i = 3; i < this.canvasImageData.data.length-3; i+=4) {
+                        this.canvasImageData.data[i] = 0xFF;
+                    }
 
-                // Sound
-                this.dynamicaudio = new DynamicAudio({
-                    swf:'lib/dynamicaudio.swf'
-                });
+                    // Sound
+                    this.dynamicaudio = new DynamicAudio({
+                        swf:'lib/dynamicaudio.swf'
+                    });
 
 
+        showDisplay = true;
 
-    this.opts = {
+        emulateSound = false;
+
+        this.cpu = new JSNES.CPU(this);
+        this.ppu = new JSNES.PPU(this);
+        this.papu = new JSNES.PAPU(this);
+        this.mmap = null; // set in loadRom()
+        this.keyboard = new JSNES.Keyboard();
         
-        preferredFrameRate: 60,
-        fpsInterval: 500, // Time between updating FPS in ms
-        showDisplay: true,
-
-        emulateSound: false,
-        sampleRate: 44100, // Sound sample rate in hz
-        
-        CPU_FREQ_NTSC: 1789772.5, //1789772.72727272d;
-    };
-
-    if (typeof opts != 'undefined') {
-        var key;
-        for (key in this.opts) {
-            if (typeof opts[key] != 'undefined') {
-                this.opts[key] = opts[key];
-            }
-        }
-    }
+        this.updateStatus("Ready to load a ROM.");
     
-    this.frameTime = 1000 / this.opts.preferredFrameRate;
+    },
 
-    this.cpu = new JSNES.CPU(this);
-    this.ppu = new JSNES.PPU(this);
-    this.papu = new JSNES.PAPU(this);
-    this.mmap = null; // set in loadRom()
-    this.keyboard = new JSNES.Keyboard();
-    
-    this.updateStatus("Ready to load a ROM.");
-};
-
-JSNES.VERSION = "<%= version %>";
-
-JSNES.prototype = {
-
-                updateStatus: function(s) {
-                    this.status = s;
-                },
+                updateStatus:function(){},
             
                 writeAudio: function(samples) {
                     return this.dynamicaudio.writeInt(samples);
@@ -132,15 +110,8 @@ JSNES.prototype = {
         if (this.rom !== null && this.rom.valid) {
             if (!this.active) {
                 this.active = true;
-                
-                this.frameInterval = setInterval(function() {
-                    self.frame();
-                }, this.frameTime / 2);
-                this.resetFps();
-                this.printFps();
-                this.fpsInterval = setInterval(function() {
-                    self.printFps();
-                }, this.opts.fpsInterval);
+                this.fpsInterval = setInterval(function(){document.getElementById('fps').innerHTML=nes.fps;},200);//<fpsUpdateInterval>
+                this.frame();
             }
         }
         else {
@@ -149,90 +120,80 @@ JSNES.prototype = {
     },
     
     frame: function() {
-        this.ppu.startFrame();
-        var cycles = 0;
-        var emulateSound = this.opts.emulateSound;
-        var cpu = this.cpu;
-        var ppu = this.ppu;
-        var papu = this.papu;
-        FRAMELOOP: for (;;) {
-            if (cpu.cyclesToHalt === 0) {
-                // Execute a CPU instruction
-                cycles = cpu.emulate();
-                if (emulateSound) {
-                    papu.clockFrameCounter(cycles);
-                }
-                cycles *= 3;
-            }
-            else {
-                if (cpu.cyclesToHalt > 8) {
-                    cycles = 24;
+        if(this.active){
+            this.ppu.startFrame();
+            var cycles = 0;
+            var emulateSound = false;
+            var cpu = this.cpu;
+            var ppu = this.ppu;
+            var papu = this.papu;
+            FRAMELOOP: for (;;) {
+                if (cpu.cyclesToHalt === 0) {
+                    // Execute a CPU instruction
+                    cycles = cpu.emulate();
                     if (emulateSound) {
-                        papu.clockFrameCounter(8);
+                        papu.clockFrameCounter(cycles);
                     }
-                    cpu.cyclesToHalt -= 8;
+                    cycles *= 3;
                 }
                 else {
-                    cycles = cpu.cyclesToHalt * 3;
-                    if (emulateSound) {
-                        papu.clockFrameCounter(cpu.cyclesToHalt);
+                    if (cpu.cyclesToHalt > 8) {
+                        cycles = 24;
+                        if (emulateSound) {
+                            papu.clockFrameCounter(8);
+                        }
+                        cpu.cyclesToHalt -= 8;
                     }
-                    cpu.cyclesToHalt = 0;
-                }
-            }
-            
-            for (; cycles > 0; cycles--) {
-                if(ppu.curX === ppu.spr0HitX &&
-                        ppu.f_spVisibility === 1 &&
-                        ppu.scanline - 21 === ppu.spr0HitY) {
-                    // Set sprite 0 hit flag:
-                    ppu.setStatusFlag(ppu.STATUS_SPRITE0HIT, true);
-                }
-
-                if (ppu.requestEndFrame) {
-                    ppu.nmiCounter--;
-                    if (ppu.nmiCounter === 0) {
-                        ppu.requestEndFrame = false;
-                        ppu.startVBlank();
-                        break FRAMELOOP;
+                    else {
+                        cycles = cpu.cyclesToHalt * 3;
+                        if (emulateSound) {
+                            papu.clockFrameCounter(cpu.cyclesToHalt);
+                        }
+                        cpu.cyclesToHalt = 0;
                     }
                 }
+                
+                for (; cycles > 0; cycles--) {
+                    if(ppu.curX === ppu.spr0HitX &&
+                            ppu.f_spVisibility === 1 &&
+                            ppu.scanline - 21 === ppu.spr0HitY) {
+                        // Set sprite 0 hit flag:
+                        ppu.setStatusFlag(ppu.STATUS_SPRITE0HIT, true);
+                    }
 
-                ppu.curX++;
-                if (ppu.curX === 341) {
-                    ppu.curX = 0;
-                    ppu.endScanline();
+                    if (ppu.requestEndFrame) {
+                        ppu.nmiCounter--;
+                        if (ppu.nmiCounter === 0) {
+                            ppu.requestEndFrame = false;
+                            ppu.startVBlank();
+                            break FRAMELOOP;
+                        }
+                    }
+
+                    ppu.curX++;
+                    if (ppu.curX === 341) {
+                        ppu.curX = 0;
+                        ppu.endScanline();
+                    }
                 }
             }
+
+            //Calculate the frames per second.
+            var now = new Date().getTime();
+            var frameDifference = this.lastFrameTime - now;
+            this.fps = (-1000/frameDifference).toFixed(2);
+            this.lastFrameTime = now;
+
+            //Set the timeout for the next frame.
+            setTimeout(function(){nes.frame()},20);//<frameRate>
+
         }
-        if (this.limitFrames) {
-            if (this.lastFrameTime) {
-                while (+new Date() - this.lastFrameTime < this.frameTime) {
-                    // twiddle thumbs
-                }
-            }
-        }
-        this.fpsFrameCount++;
-        this.lastFrameTime = +new Date();
+
     },
-    
-    printFps: function() {
-        var now = +new Date();
-        var s = 'Running';
-        if (this.lastFpsTime) {
-            s += ': '+(
-                this.fpsFrameCount / ((now - this.lastFpsTime) / 1000)
-            ).toFixed(2)+' FPS';
-        }
-        this.updateStatus(s);
-        this.fpsFrameCount = 0;
-        this.lastFpsTime = now;
-    },
-    
+
     stop: function() {
-        clearInterval(this.frameInterval);
-        clearInterval(this.fpsInterval);
         this.active = false;
+        clearInterval(this.fpsInterval);
     },
     
     reloadRom: function() {
@@ -294,11 +255,12 @@ JSNES.prototype = {
     setFramerate: function(rate){
         this.nes.opts.preferredFrameRate = rate;
         this.nes.frameTime = 1000 / rate;
-        this.papu.setSampleRate(this.opts.sampleRate, false);
+        this.papu.setSampleRate(44100, false);
     },
     
     setLimitFrames: function(limit) {
         this.limitFrames = limit;
         this.lastFrameTime = null;
     }
+
 };

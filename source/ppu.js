@@ -572,10 +572,8 @@ JSNES.PPU.prototype = {
                 }
             }
         }
-        
-        if (this.nes.opts.showDisplay) {
-            this.nes.writeFrame(buffer, this.prevBuffer);
-        }
+    
+        this.nes.writeFrame(buffer, this.prevBuffer);
     },
     
     updateControlReg1: function(value){

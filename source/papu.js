@@ -118,18 +118,11 @@ JSNES.PAPU = function(nes) {
 
 JSNES.PAPU.prototype = {
     reset: function() {
-        this.sampleRate = this.nes.opts.sampleRate;
-        this.sampleTimerMax = parseInt(
-            (1024.0 * this.nes.opts.CPU_FREQ_NTSC *
-                this.nes.opts.preferredFrameRate) / 
-                (this.sampleRate * 60.0),
-            10
-        );
+        this.sampleRate = 44100;
+        this.frameRate = 60;
+        this.sampleTimerMax = parseInt((1024*1789772.5*this.frameRate)/(this.sampleRate*60),10);
     
-        this.frameTime = parseInt(
-            (14915.0 * this.nes.opts.preferredFrameRate) / 60.0,
-            10
-        );
+        this.frameTime = parseInt((14915*this.frameRate)/60,10);
 
         this.sampleTimer = 0;
         this.bufferIndex = 0;
@@ -635,7 +628,7 @@ JSNES.PAPU.prototype = {
         
         // Write full buffer
         if (this.bufferIndex === this.sampleBuffer.length) {
-            this.nes.ui.writeAudio(this.sampleBuffer);
+            this.nes.writeAudio(this.sampleBuffer);
             this.sampleBuffer = new Array(this.bufferSize*2);
             this.bufferIndex = 0;
         }
