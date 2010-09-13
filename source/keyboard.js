@@ -67,18 +67,15 @@ JSNES.Keyboard.prototype = {
     },
 
     keyDown: function(evt) {
-        if (!this.setKey(evt.keyCode, 0x41) && evt.preventDefault) {
+        if (!nes.keyboard.setKey(evt.keyCode, 0x41) && evt.preventDefault) {
             evt.preventDefault();
         }
     },
     
     keyUp: function(evt) {
-        if (!this.setKey(evt.keyCode, 0x40) && evt.preventDefault) {
+        if (!nes.keyboard.setKey(evt.keyCode, 0x40) && evt.preventDefault) {
             evt.preventDefault();
         }
     },
-    
-    keyPress: function(evt) {
-        evt.preventDefault();
-    }
+
 };

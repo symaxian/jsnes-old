@@ -17,9 +17,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var JSNES = function(opts) {
+
+
+    this.status = '';
+
+
+                // Canvas
+    
+                this.canvas = document.getElementById('jsnes');
+    
+                this.canvas.width = 256;
+                this.canvas.height = 240;
+    
+                this.canvasContext = this.canvas.getContext('2d');
+                
+                this.canvasImageData = this.canvasContext.getImageData(0, 0, 256, 240);
+                this.canvasContext.fillStyle = 'black';
+                this.canvasContext.fillRect(0, 0, 256, 240); // set alpha to opaque
+            
+                // Set alpha
+                for (var i = 3; i < this.canvasImageData.data.length-3; i+=4) {
+                    this.canvasImageData.data[i] = 0xFF;
+                }
+
+                // Sound
+                this.dynamicaudio = new DynamicAudio({
+                    swf:'lib/dynamicaudio.swf'
+                });
+
+
+
     this.opts = {
-        ui: JSNES.DummyUI,
-        swfPath: 'lib/',
         
         preferredFrameRate: 60,
         fpsInterval: 500, // Time between updating FPS in ms
@@ -29,8 +57,8 @@ var JSNES = function(opts) {
         sampleRate: 44100, // Sound sample rate in hz
         
         CPU_FREQ_NTSC: 1789772.5, //1789772.72727272d;
-        CPU_FREQ_PAL: 1773447.4
     };
+
     if (typeof opts != 'undefined') {
         var key;
         for (key in this.opts) {
@@ -41,20 +69,47 @@ var JSNES = function(opts) {
     }
     
     this.frameTime = 1000 / this.opts.preferredFrameRate;
-    
-    this.ui = new this.opts.ui(this);
+
     this.cpu = new JSNES.CPU(this);
     this.ppu = new JSNES.PPU(this);
     this.papu = new JSNES.PAPU(this);
     this.mmap = null; // set in loadRom()
     this.keyboard = new JSNES.Keyboard();
     
-    this.ui.updateStatus("Ready to load a ROM.");
+    this.updateStatus("Ready to load a ROM.");
 };
 
 JSNES.VERSION = "<%= version %>";
 
 JSNES.prototype = {
+
+                updateStatus: function(s) {
+                    this.status = s;
+                },
+            
+                writeAudio: function(samples) {
+                    return this.dynamicaudio.writeInt(samples);
+                },
+            
+                writeFrame: function(buffer, prevBuffer) {
+                    var imageData = this.canvasImageData.data;
+                    var pixel, i, j;
+
+                    for (i=0; i<256*240; i++) {
+                        pixel = buffer[i];
+
+                        if (pixel != prevBuffer[i]) {
+                            j = i*4;
+                            imageData[j] = pixel & 0xFF;
+                            imageData[j+1] = (pixel >> 8) & 0xFF;
+                            imageData[j+2] = (pixel >> 16) & 0xFF;
+                            prevBuffer[i] = pixel;
+                        }
+                    }
+
+                    this.canvasContext.putImageData(this.canvasImageData, 0, 0);
+                },
+
     active: false,
     fpsFrameCount: 0,
     limitFrames: true,
@@ -89,7 +144,7 @@ JSNES.prototype = {
             }
         }
         else {
-            this.ui.updateStatus("There is no ROM loaded, or it is invalid.");
+            this.updateStatus("There is no ROM loaded, or it is invalid.");
         }
     },
     
@@ -169,7 +224,7 @@ JSNES.prototype = {
                 this.fpsFrameCount / ((now - this.lastFpsTime) / 1000)
             ).toFixed(2)+' FPS';
         }
-        this.ui.updateStatus(s);
+        this.updateStatus(s);
         this.fpsFrameCount = 0;
         this.lastFpsTime = now;
     },
@@ -207,7 +262,7 @@ JSNES.prototype = {
         //Save the response.
         var data = request.responseText;
 
-        this.ui.updateStatus("Loading ROM...");
+        this.updateStatus("Loading ROM...");
 
         // Load ROM file:
         this.rom = new JSNES.ROM(this);
@@ -223,10 +278,10 @@ JSNES.prototype = {
             this.ppu.setMirroring(this.rom.getMirroringType());
             this.romData = data;
             
-            this.ui.updateStatus("Successfully loaded. Ready to be started.");
+            this.updateStatus("Successfully loaded. Ready to be started.");
         }
         else {
-            this.ui.updateStatus("Invalid ROM!");
+            this.updateStatus("Invalid ROM!");
         }
         return this.rom.valid;
     },
