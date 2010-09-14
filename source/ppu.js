@@ -336,7 +336,7 @@ JSNES.PPU.prototype = {
     startVBlank: function(){
         
         // Do NMI:
-        this.nes.cpu.requestIrq(this.nes.cpu.IRQ_NMI);
+        this.nes.cpu.requestIrq(1);
         
         // Make sure everything is rendered:
         if (this.lastRenderedScanline < 239) {
@@ -1470,7 +1470,7 @@ JSNES.PPU.prototype = {
         // Set VBlank flag:
         this.setStatusFlag(this.STATUS_VBLANK,true);
         //nes.getCpu().doNonMaskableInterrupt();
-        this.nes.cpu.requestIrq(this.nes.cpu.IRQ_NMI);
+        this.nes.cpu.requestIrq(1);
     }
 };
 

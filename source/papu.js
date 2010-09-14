@@ -426,7 +426,7 @@ JSNES.PAPU.prototype = {
 
         // Frame IRQ handling:
         if (this.frameIrqEnabled && this.frameIrqActive){
-            this.nes.cpu.requestIrq(this.nes.cpu.IRQ_NORMAL);
+            this.nes.cpu.requestIrq(0);
         }
 
         // Clock frame counter at double CPU speed:
@@ -870,7 +870,7 @@ JSNES.PAPU.ChannelDM.prototype = {
         }
     
         if (this.irqGenerated) {
-            this.papu.nes.cpu.requestIrq(this.papu.nes.cpu.IRQ_NORMAL);
+            this.papu.nes.cpu.requestIrq(0);
         }
     
     },

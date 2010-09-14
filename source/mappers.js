@@ -373,7 +373,7 @@ JSNES.Mappers[0].prototype = {
     
         // Reset IRQ:
         //nes.getCpu().doResetInterrupt();
-        this.nes.cpu.requestIrq(this.nes.cpu.IRQ_RESET);
+        this.nes.cpu.requestIrq(2);
     },
 
     loadPRGROM: function() {
@@ -758,7 +758,7 @@ JSNES.Mappers[1].prototype.loadROM = function(rom) {
     this.loadBatteryRam();
 
     // Do Reset-Interrupt:
-    this.nes.cpu.requestIrq(this.nes.cpu.IRQ_RESET);
+    this.nes.cpu.requestIrq(2);
 };
 
 JSNES.Mappers[1].prototype.switchLowHighPrgRom = function(oldSetting) {
@@ -808,7 +808,7 @@ JSNES.Mappers[2].prototype.loadROM = function(rom) {
     this.loadCHRROM();
 
     // Do Reset-Interrupt:
-    this.nes.cpu.requestIrq(this.nes.cpu.IRQ_RESET);
+    this.nes.cpu.requestIrq(2);
 };
 
 
@@ -1045,5 +1045,5 @@ JSNES.Mappers[4].prototype.loadROM = function(rom) {
     this.loadBatteryRam();
 
     // Do Reset-Interrupt:
-    this.nes.cpu.requestIrq(this.nes.cpu.IRQ_RESET);
+    this.nes.cpu.requestIrq(2);
 };
