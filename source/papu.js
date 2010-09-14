@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 JSNES.PAPU = function(nes) {
     this.nes = nes;
     
+    this.active = false;
+    
     this.square1 = new JSNES.PAPU.ChannelSquare(this, true);
     this.square2 = new JSNES.PAPU.ChannelSquare(this, false);
     this.triangle = new JSNES.PAPU.ChannelTriangle(this);

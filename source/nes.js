@@ -24,6 +24,7 @@ nes = {
 
     active:false,
     fps:0,
+    lastFrameTime:0,
     status:'',
     romData:null,
     emulateSound:false,
@@ -31,9 +32,6 @@ nes = {
 //Methods
 
     init:function nes_init(){
-
-        //Initiate the cpu.
-        this.cpu.init();
 
         //Initiate the screen.
         this.screen.init();
@@ -48,105 +46,160 @@ nes = {
         this.papu = new JSNES.PAPU(this);
         this.mmap = null; // set in loadRom()
 
-        this.updateStatus("Ready to load a ROM.");
+        //Reset the system.
+        this.reset();
 
     },
 
-    updateStatus:function(){},
+    reset:function nes_reset(){
 
-    writeAudio:function(samples){
-        return this.dynamicaudio.writeInt(samples);
-    },
+        //Reset the cpu.
+        this.cpu.reset();
 
-    // Resets the system
-    reset: function() {
-        if (this.mmap !== null) {
+        //Reset the ppu.
+        this.ppu.reset();
+
+        //Reset the apu.
+        this.papu.reset();
+
+        //Reset the mmc if its loaded.
+        if(this.mmap !== null){
             this.mmap.reset();
         }
-        
-        this.cpu.reset();
-        this.ppu.reset();
-        this.papu.reset();
+
     },
-    
-    start: function() {
-        var self = this;
-        
-        if (this.rom !== null && this.rom.valid) {
-            if (!this.active) {
-                this.active = true;
-                this.fpsInterval = setInterval(function(){document.getElementById('fps').innerHTML=nes.fps;},200);//<fpsUpdateInterval>
-                this.frame();
-            }
+
+    start:function nes_start(){
+
+        //Check if a valid rom is loaded.
+        if(this.rom !== null && this.rom.valid){
+
+            //Set the nes to active.
+            this.active = true;
+
+            //Start the fps update interval.
+            this.fpsInterval = setInterval(function(){document.getElementById('fps').innerHTML=nes.fps;},200);//<fpsUpdateInterval>
+
+            //Run the first frame.
+            this.frame();
+
         }
-        else {
-            this.updateStatus("There is no ROM loaded, or it is invalid.");
+        else{
+
+            //Else no rom loaded.
+            this.updateStatus('Cannot start, there is no ROM loaded, or it is invalid.');
+
         }
     },
-    
-    frame: function() {
+
+    frame:function nes_frame(){
+
+        //Check if the nes is active.
         if(this.active){
+
+            //Clear the ppu buffer.
             this.ppu.startFrame();
+
+            //Reset the cycle count to 0.
             var cycles = 0;
-            var emulateSound = false;
-            var cpu = this.cpu;
-            var ppu = this.ppu;
-            var papu = this.papu;
-            FRAMELOOP: for (;;) {
-                if (cpu.cyclesToHalt === 0) {
-                    // Execute a CPU instruction
-                    cycles = cpu.emulate();
-                    if (emulateSound) {
-                        papu.clockFrameCounter(cycles);
+
+            //Start the frame loop.
+            FRAMELOOP:for(;;){
+
+                //Check if no cycles are to be halted.
+                if(this.cpu.cyclesToHalt === 0){
+
+                    //Execute a CPU instruction.
+                    cycles = this.cpu.emulate();
+
+                    //Set the cycles to the apu if active.
+                    if(this.papu.active){
+                        this.papu.clockFrameCounter(cycles);
                     }
+
+                    //???
                     cycles *= 3;
+
                 }
-                else {
-                    if (cpu.cyclesToHalt > 8) {
-                        cycles = 24;
-                        if (emulateSound) {
-                            papu.clockFrameCounter(8);
-                        }
-                        cpu.cyclesToHalt -= 8;
-                    }
-                    else {
-                        cycles = cpu.cyclesToHalt * 3;
-                        if (emulateSound) {
-                            papu.clockFrameCounter(cpu.cyclesToHalt);
-                        }
-                        cpu.cyclesToHalt = 0;
-                    }
-                }
-                
-                for (; cycles > 0; cycles--) {
-                    if(ppu.curX === ppu.spr0HitX &&
-                            ppu.f_spVisibility === 1 &&
-                            ppu.scanline - 21 === ppu.spr0HitY) {
-                        // Set sprite 0 hit flag:
-                        ppu.setStatusFlag(ppu.STATUS_SPRITE0HIT, true);
+
+                //Else check if the number of cycles to halt is less than or equal to 8.
+                else if(this.cpu.cyclesToHalt < 9){
+
+                    //???
+                    cycles = this.cpu.cyclesToHalt * 3;
+
+                    //Set the cycles to halt to the apu if active.
+                    if(this.papu.active){
+                        this.papu.clockFrameCounter(this.cpu.cyclesToHalt);
                     }
 
-                    if (ppu.requestEndFrame) {
-                        ppu.nmiCounter--;
-                        if (ppu.nmiCounter === 0) {
-                            ppu.requestEndFrame = false;
-                            ppu.startVBlank();
+                    //Set the cycles to halt to 0.
+                    this.cpu.cyclesToHalt = 0;
+
+                }
+
+                //Else the number of cycles to halt is greater than 8.
+                else{
+
+                    //Set the cycles to 24.
+                    cycles = 24;
+
+                    //Set the cycles to halt to the apu if active.
+                    if(this.papu.active){
+                        this.papu.clockFrameCounter(8);
+                    }
+
+                    //Remove 8 from the cycles to halt counter.
+                    this.cpu.cyclesToHalt -= 8;
+
+                }
+
+                //Loop for every cycle executed by the cpu.
+                for(;cycles>0;cycles--){
+
+                    //Check for a sprite 0 hit, why is this here?
+                    if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
+                        this.ppu.setStatusFlag(this.ppu.STATUS_SPRITE0HIT,true);
+                    }
+
+                    //Check if the ppu is done rendering.
+                    if(this.ppu.requestEndFrame){
+
+                        //Decrement the non-maskable interrupt counter.
+                        this.ppu.nmiCounter--;
+
+                        //???
+                        if(this.ppu.nmiCounter === 0){
+
+                            //Reset the end of frame flag.
+                            this.ppu.requestEndFrame = false;
+
+                            //Start the vBlank period.
+                            this.ppu.startVBlank();
+
+                            //Break the frame loop.
                             break FRAMELOOP;
+
                         }
+
                     }
 
-                    ppu.curX++;
-                    if (ppu.curX === 341) {
-                        ppu.curX = 0;
-                        ppu.endScanline();
+                    //Increment the current x.
+                    this.ppu.curX++;
+
+                    //???
+                    if(this.ppu.curX === 341){
+                        this.ppu.curX = 0;
+                        this.ppu.endScanline();
                     }
+
                 }
             }
 
             //Calculate the frames per second.
             var now = new Date().getTime();
             var frameDifference = this.lastFrameTime - now;
-            this.fps = (-1000/frameDifference).toFixed(2);
+            this.fps = (-1000/frameDifference).toFixed(2);//<fpsPrecision>
             this.lastFrameTime = now;
 
             //Set the timeout for the next frame.
@@ -156,19 +209,30 @@ nes = {
 
     },
 
-    stop: function() {
+    stop:function nes_stop(){
+
+        //Set the active flag to false.
         this.active = false;
+
+        //Clear the fps update interval.
         clearInterval(this.fpsInterval);
+
     },
-    
-    reloadRom: function() {
-        if (this.romData !== null) {
-            this.loadRom(this.romData);
-        }
+
+    restart:function nes_restart(){
+
+        //Stop the nes.
+        this.stop();
+
+        //Reset the nes.
+        this.reset();
+
+        //Start the nes.
+        this.start();
+
     },
-    
-    // Loads a ROM file into the CPU and PPU. The ROM file is validated first.
-    loadRom: function(src) {
+
+    loadRom:function nes_loadRom(src){
 
         //Stop the emulator if running.
         if(this.active){
@@ -185,37 +249,44 @@ nes = {
         //Send the request.
         request.send(null);
 
-        //Save the response.
-        var data = request.responseText;
-
-        this.updateStatus("Loading ROM...");
-
-        // Load ROM file:
+        //Load the rom file.
         this.rom = new JSNES.ROM(this);
-        this.rom.load(data);
+        this.rom.load(request.responseText);
 
-        if (this.rom.valid) {
+        //Check if the rom is valid.
+        if(this.rom.valid){
+
+            //Reset the nes.
             this.reset();
+
+            //Get the mmc needed by the rom.
             this.mmap = this.rom.createMapper();
+
+            //Check if the mmc is valid.
             if (!this.mmap) {
                 return;
             }
+
+            //Load the rom data.
             this.mmap.loadROM();
+
+            //Set the ppu mirroring from the rom.
             this.ppu.setMirroring(this.rom.getMirroringType());
-            this.romData = data;
-            
-            this.updateStatus("Successfully loaded. Ready to be started.");
+
+            //Return true, the rom was succesfully loaded.
+            return true;
+
         }
-        else {
-            this.updateStatus("Invalid ROM!");
-        }
-        return this.rom.valid;
+
+        //Return false, the rom was not valid.
+        return false;
+
     },
 
-    setFramerate: function(rate){
-        this.nes.opts.preferredFrameRate = rate;
-        this.nes.frameTime = 1000 / rate;
-        this.papu.setSampleRate(44100, false);
+    updateStatus:function(){},
+
+    writeAudio:function(samples){
+        return this.dynamicaudio.writeInt(samples);
     },
 
     //============
@@ -338,35 +409,43 @@ nes = {
 
             //Define the key down event handler.
             document.onkeydown = function document_onkeydown(event){
+
                 //Loop through the key codes.
                 for(var i=0;i<nes.controllers.keys1.length;i++){
+
                     //Check the controller 1 code.
                     if(event.keyCode === nes.controllers.keys1[i]){
                         nes.controllers.state1[i] = 65;
                         break;
                     }
+
                     //Else check the controller 2 code.
                     else if(event.keyCode === nes.controllers.keys2[i]){
                         nes.controllers.state2[i] = 65;
                         break;
                     }
+
                 }
             }
 
             //Define the key up event handler.
             document.onkeyup = function document_onkeyup(event){
+
                 //Loop through the key codes.
                 for(var i=0;i<nes.controllers.keys1.length;i++){
+
                     //Check the controller 1 code.
                     if(event.keyCode === nes.controllers.keys1[i]){
                         nes.controllers.state1[i] = 64;
                         break;
                     }
+
                     //Else check the controller 2 code.
                     else if(event.keyCode === nes.controllers.keys2[i]){
                         nes.controllers.state2[i] = 64;
                         break;
                     }
+
                 }
             }
 

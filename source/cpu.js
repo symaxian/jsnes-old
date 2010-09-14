@@ -1,164 +1,128 @@
-/*
-JSNES, based on Jamie Sanders' vNES
-Copyright (C) 2010 Ben Firshman
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+//=============================
+//== Central Processing Unit ==
+//=============================
 
 nes.cpu = {
 
-    // IRQ Types
+//Properties
+
+    //Interrupt Types
     IRQ_NORMAL: 0,
     IRQ_NMI: 1,
     IRQ_RESET: 2,
 
+    //Operation Info
     opInfo:[117506570,100796962,255,255,255,50462754,84017154,255,50397732,33686818,33620994,255,255,67306274,100860674,255,33685769,84020002,255,255,255,67241506,100795906,255,33620493,67307810,255,255,255,67307554,117639170,255,100860700,100796929,255,255,50462726,50462721,84017191,255,67174950,33686785,33621031,255,67306246,67306241,100860711,255,33685767,84019969,255,255,255,67241473,100795943,255,33620524,67307777,255,255,255,67307521,117639207,255,100729385,100796951,255,255,255,50462743,84017184,255,50397731,33686807,33621024,255,50529051,67306263,100860704,255,33685771,84019991,255,255,255,67241495,100795936,255,33620495,67307799,255,255,255,67307543,117639200,255,100729386,100796928,255,255,255,50462720,84017192,255,67174949,33686784,33621032,255,84085787,67306240,100860712,255,33685772,84019968,255,255,255,67241472,100795944,255,33620526,67307776,255,255,255,67307520,117639208,255,255,100796975,255,255,50462769,50462767,50462768,255,33620502,255,33620533,255,67306289,67306287,67306288,255,33685763,100797231,255,255,67241521,67241519,67241776,255,33620535,84085039,33620534,255,255,84084783,255,255,33686815,100796957,33686814,255,50462751,50462749,50462750,255,33620531,33686813,33620530,255,67306271,67306269,67306270,255,33685764,84019997,255,255,67241503,67241501,67241758,255,33620496,67307805,33620532,255,67307551,67307549,67307806,255,33686803,100796945,255,255,50462739,50462737,84017172,255,33620506,33686801,33620501,255,67306259,67306257,100860692,255,33685768,84019985,255,255,255,67241489,100795924,255,33620494,67307793,255,255,255,67307537,117639188,255,33686802,100796971,255,255,50462738,50462763,84017176,255,33620505,33686827,33620513,255,67306258,67306283,100860696,255,33685765,84020011,255,255,255,67241515,100795928,255,33620525,67307819,255,255,255,67307563,117639192,255],
 
-    init:function(){
-        this.mem = null;
-        this.REG_ACC = null;
-        this.REG_X = null;
-        this.REG_Y = null;
-        this.REG_SP = null;
-        this.REG_PC = null;
-        this.REG_PC_NEW = null;
-        this.REG_STATUS = null;
-        this.F_CARRY = null;
-        this.F_DECIMAL = null;
-        this.F_INTERRUPT = null;
-        this.F_INTERRUPT_NEW = null;
-        this.F_OVERFLOW = null;
-        this.F_SIGN = null;
-        this.F_ZERO = null;
-        this.F_NOTUSED = null;
-        this.F_NOTUSED_NEW = null;
-        this.F_BRK = null;
-        this.F_BRK_NEW = null;
-        this.palCnt = null;
-        this.opdata = null;
-        this.cyclesToHalt = null;
-        this.crash = null;
-        this.irqRequested = null;
-        this.irqType = null;
-        
-        this.reset();
-    },
+//Methods
 
-    reset: function() {
-        // Main memory 
+    reset:function nes_cpu_reset(){
+
+        //Reset the memory.
         this.mem = new Array(0x10000);
-        
-        for (var i=0; i < 0x2000; i++) {
+
+        //Set addresses up to 0x2000 to 0xFF.
+        for(var i=0;i<0x2000;i++){
             this.mem[i] = 0xFF;
         }
-        for (var p=0; p < 4; p++) {
-            var i = p*0x800;
-            this.mem[i+0x008] = 0xF7;
-            this.mem[i+0x009] = 0xEF;
-            this.mem[i+0x00A] = 0xDF;
-            this.mem[i+0x00F] = 0xBF;
+
+        //Set some odd addresses to some odd values.
+        for(var i=0;i<4;i++){
+            this.mem[i*0x800+0x008] = 0xF7;
+            this.mem[i*0x800+0x009] = 0xEF;
+            this.mem[i*0x800+0x00A] = 0xDF;
+            this.mem[i*0x800+0x00F] = 0xBF;
         }
-        for (var i=0x2001; i < this.mem.length; i++) {
+
+        //Set every all other addresses to 0.
+        for(var i=0x2001;i<0x10000;i++){
             this.mem[i] = 0;
         }
-        
-        // CPU Registers:
+
+        //Reset the CPU registers.
         this.REG_ACC = 0;
         this.REG_X = 0;
         this.REG_Y = 0;
-        // Reset Stack pointer:
+
+        //Reset the stack pointer.
         this.REG_SP = 0x01FF;
-        // Reset Program counter:
+
+        //Reset the program counter.
         this.REG_PC = 0x8000-1;
         this.REG_PC_NEW = 0x8000-1;
-        // Reset Status register:
-        this.REG_STATUS = 0x28;
-        
-        this.setStatus(0x28);
-        
-        // Set flags:
-        this.F_CARRY = 0;
+
+        //Set the CPU flags.
+        this.F_SIGN = 0;
+        this.F_OVERFLOW = 0;
+        this.F_NOTUSED = 1;
+        this.F_BRK = 1;
         this.F_DECIMAL = 0;
         this.F_INTERRUPT = 1;
-        this.F_INTERRUPT_NEW = 1;
-        this.F_OVERFLOW = 0;
-        this.F_SIGN = 0;
         this.F_ZERO = 1;
+        this.F_CARRY = 0;
 
-        this.F_NOTUSED = 1;
+        //Can probably be removed later.
         this.F_NOTUSED_NEW = 1;
-        this.F_BRK = 1;
         this.F_BRK_NEW = 1;
-        
-        this.palCnt = 0;
+        this.F_INTERRUPT_NEW = 1;
+
+        //Reset the cycles to halt number to 0.
         this.cyclesToHalt = 0;
-        
-        // Reset crash flag:
-        this.crash = false;
-        
-        // Interrupt notification:
+
+        //Reset the interrupt flags.
         this.irqRequested = false;
         this.irqType = null;
 
     },
-    
-    
-    // Emulates a single CPU instruction, returns the number of cycles
-    emulate: function() {
-        var temp;
-        var add;
-        
-        // Check interrupts:
-        if(this.irqRequested){
-            temp =
-                (this.F_CARRY)|
-                ((this.F_ZERO===0?1:0)<<1)|
-                (this.F_INTERRUPT<<2)|
-                (this.F_DECIMAL<<3)|
-                (this.F_BRK<<4)|
-                (this.F_NOTUSED<<5)|
-                (this.F_OVERFLOW<<6)|
-                (this.F_SIGN<<7);
 
+
+    // Emulates a single CPU instruction, returns the number of cycles
+    emulate:function nes_cpu_emulate(){
+
+        //Check if an interrupt was requested.
+        if(this.irqRequested){
+
+            //Cache the cpu status.
+            var temp = this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7);
+
+            //Remove?
             this.REG_PC_NEW = this.REG_PC;
             this.F_INTERRUPT_NEW = this.F_INTERRUPT;
+
+            //Switch between the interrupt types.
             switch(this.irqType){
+
+                //Normal Interrupt
                 case 0: {
-                    // Normal IRQ:
-                    if(this.F_INTERRUPT!=0){
-                        ////System.out.println("Interrupt was masked.");
+                    if(this.F_INTERRUPT !== 0){
                         break;
                     }
                     doIrq(temp);
-                    ////System.out.println("Did normal IRQ. I="+this.F_INTERRUPT);
                     break;
-                }case 1:{
-                    // NMI:
+                }
+
+                //Non-Maskable Interrupt
+                case 1:{
                     this.doNonMaskableInterrupt(temp);
                     break;
+                }
 
-                }case 2:{
-                    // Reset:
+                //Reset Interrupt
+                case 2:{
                     this.doResetInterrupt();
                     break;
                 }
+
             }
 
+            //Remove?
             this.REG_PC = this.REG_PC_NEW;
             this.F_INTERRUPT = this.F_INTERRUPT_NEW;
             this.F_BRK = this.F_BRK_NEW;
+
+            //Reset the interrupt requested flag.
             this.irqRequested = false;
+
         }
 
         var opinf = this.opInfo[nes.mmap.load(this.REG_PC+1)];
@@ -1080,8 +1044,9 @@ nes.cpu = {
 
             }
 
-        }// end of switch
+        }
 
+        //Return the number of cycles.
         return cycleCount;
 
     },
@@ -1097,16 +1062,15 @@ nes.cpu = {
     
     load16bit: function(addr){
         if (addr < 0x1FFF) {
-            return this.mem[addr&0x7FF] 
-                | (this.mem[(addr+1)&0x7FF]<<8);
+            return this.mem[addr&0x7FF] | (this.mem[(addr+1)&0x7FF]<<8);
         }
         else {
             return nes.mmap.load(addr) | (nes.mmap.load(addr+1) << 8);
         }
     },
     
-    write: function(addr, val){
-        if(addr < 0x2000) {
+    write: function(addr,val){
+        if(addr < 0x2000){
             this.mem[addr&0x7FF] = val;
         }
         else {
@@ -1119,7 +1083,6 @@ nes.cpu = {
             if(type == this.IRQ_NORMAL){
                 return;
             }
-            ////System.out.println("too fast irqs. type="+type);
         }
         this.irqRequested = true;
         this.irqType = type;
@@ -1181,24 +1144,18 @@ nes.cpu = {
     },
 
     getStatus: function(){
-        return (this.F_CARRY)
-                |(this.F_ZERO<<1)
-                |(this.F_INTERRUPT<<2)
-                |(this.F_DECIMAL<<3)
-                |(this.F_BRK<<4)
-                |(this.F_NOTUSED<<5)
-                |(this.F_OVERFLOW<<6)
-                |(this.F_SIGN<<7);
+        return this.F_CARRY|(this.F_ZERO<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7);
     },
 
-    setStatus: function(st){
-        this.F_CARRY     = (st   )&1;
-        this.F_ZERO      = (st>>1)&1;
-        this.F_INTERRUPT = (st>>2)&1;
-        this.F_DECIMAL   = (st>>3)&1;
-        this.F_BRK       = (st>>4)&1;
-        this.F_NOTUSED   = (st>>5)&1;
-        this.F_OVERFLOW  = (st>>6)&1;
-        this.F_SIGN      = (st>>7)&1;
-    }
+    setStatus: function(status){
+        this.F_SIGN = (status>>7)&1;
+        this.F_OVERFLOW = (status>>6)&1;
+        this.F_NOTUSED = (status>>5)&1;
+        this.F_BRK = (status>>4)&1;
+        this.F_DECIMAL = (status>>3)&1;
+        this.F_INTERRUPT = (status>>2)&1;
+        this.F_ZERO = (status>>1)&1;
+        this.F_CARRY = status&1;
+    },
+
 };
