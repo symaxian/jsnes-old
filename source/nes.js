@@ -42,16 +42,16 @@ nes = {
         this.papu = new JSNES.PAPU(this);
         this.mmap = null; // set in loadRom()
         this.keyboard = new JSNES.Keyboard();
-        
+
         this.updateStatus("Ready to load a ROM.");
     
     },
 
-                updateStatus:function(){},
-            
-                writeAudio: function(samples) {
-                    return this.dynamicaudio.writeInt(samples);
-                },
+    updateStatus:function(){},
+
+    writeAudio:function(samples){
+        return this.dynamicaudio.writeInt(samples);
+    },
 
     active: false,
     fpsFrameCount: 0,
@@ -231,6 +231,7 @@ nes = {
 
         imageData:null,
         pixelData:null,
+        buffer:null,
 
     //Methods
 
@@ -256,9 +257,12 @@ nes = {
             //Get the pixel data.
             this.pixelData = this.imageData.data;
 
+            //Create the buffer.
+            this.buffer = new Array(61440);
+
         },
 
-        writeFrame:function nes_screen_writeFrame(buffer,prevBuffer){
+        writeFrame:function nes_screen_writeFrame(buffer){
 
             //Loop through each pixel.
             for(var i=0;i<61440;i++){
@@ -267,19 +271,19 @@ nes = {
                 var pixel = buffer[i];
 
                 //Check if the new and old colors are different.
-                if(pixel !== prevBuffer[i]){
+                if(pixel !== this.buffer[i]){
     
                     //Set the red color component.
-                    this.pixelData[i*4] = pixel & 0xFF;
+                    this.pixelData[i*4] = pixel&0xFF;
 
                     //Set the green color component.
-                    this.pixelData[i*4+1] = (pixel >> 8) & 0xFF;
+                    this.pixelData[i*4+1] = (pixel>>8)&0xFF;
 
                     //Set the blue color component.
-                    this.pixelData[i*4+2] = (pixel >> 16) & 0xFF;
+                    this.pixelData[i*4+2] = (pixel>>16)&0xFF;
 
                     //Set the new color in the buffer.
-                    prevBuffer[i] = pixel;
+                    this.buffer[i] = pixel;
 
                 }
             }

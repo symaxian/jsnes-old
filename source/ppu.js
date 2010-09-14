@@ -62,7 +62,6 @@ JSNES.PPU = function(nes) {
     this.curNt = null;
     this.attrib = null;
     this.buffer = null;
-    this.prevBuffer = null;
     this.bgbuffer = null;
     this.pixrendered = null;
     this.spr0dummybuffer = null;
@@ -177,7 +176,6 @@ JSNES.PPU.prototype = {
         // Variables used when rendering:
         this.attrib = new Array(32);
         this.buffer = new Array(256*240);
-        this.prevBuffer = new Array(256*240);
         this.bgbuffer = new Array(256*240);
         this.pixrendered = new Array(256*240);
         this.spr0dummybuffer = new Array(256*240);
@@ -573,7 +571,7 @@ JSNES.PPU.prototype = {
             }
         }
     
-        this.nes.screen.writeFrame(buffer, this.prevBuffer);
+        this.nes.screen.writeFrame(buffer);
     },
     
     updateControlReg1: function(value){
