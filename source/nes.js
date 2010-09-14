@@ -20,28 +20,31 @@ JSNES = {};
 
 nes = {
 
-    init:function(){
+//Properties
 
+    active:false,
+    fps:0,
+    status:'',
+    romData:null,
+    emulateSound:false,
+
+//Methods
+
+    init:function nes_init(){
+
+        //Initiate the screen.
         this.screen.init();
 
-        this.fps = 0;
-        this.status = '';
+        //Initiate the controllers.
+        this.controllers.init();
 
-                    // Sound
-                    this.dynamicaudio = new DynamicAudio({
-                        swf:'lib/dynamicaudio.swf'
-                    });
-
-
-        showDisplay = true;
-
-        emulateSound = false;
+        // Sound
+        this.dynamicaudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
         this.cpu = new JSNES.CPU(this);
         this.ppu = new JSNES.PPU(this);
         this.papu = new JSNES.PAPU(this);
         this.mmap = null; // set in loadRom()
-        this.keyboard = new JSNES.Keyboard();
 
         this.updateStatus("Ready to load a ROM.");
     
@@ -53,11 +56,6 @@ nes = {
         return this.dynamicaudio.writeInt(samples);
     },
 
-    active: false,
-    fpsFrameCount: 0,
-    limitFrames: true,
-    romData: null,
-    
     // Resets the system
     reset: function() {
         if (this.mmap !== null) {
@@ -290,6 +288,85 @@ nes = {
 
             //Place the image data onto the canvas.
             this.context.putImageData(this.imageData,0,0);
+
+        },
+
+    },
+
+    //=================
+    //== Controllers ==
+    //=================
+
+    controllers:{
+
+    //Properties
+
+        //Controller States
+
+        state1:[64,64,64,64,64,64,64,64,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
+        state2:[64,64,64,64,64,64,64,64,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
+
+        //Controller Key Bindings
+
+        keys1:[
+            88,     //A         X
+            90,     //B         Z
+            17,     //Select    Right Ctrl
+            13,     //Start     Enter
+            38,     //Up        Up
+            40,     //Down      Down
+            37,     //Left      Left
+            39,     //Right     Right
+        ],
+
+        keys2:[
+            103,    //A         Numpad-7
+            105,    //B         Numpad-9
+            99,     //Select    Numpad-3
+            97,     //Start     Numpad-1
+            104,    //Up        Numpad-8
+            98,     //Down      Numpad-2
+            100,    //Left      Numpad-4
+            102,    //Right     Numpad-6
+        ],
+
+    //Methods
+
+        init:function nes_controller(){
+
+            //Define the key down event handler.
+            document.onkeydown = function document_onkeydown(event){
+                //Loop through the key codes.
+                for(var i=0;i<nes.controllers.keys1.length;i++){
+                    //Check the controller 1 code.
+                    if(event.keyCode === nes.controllers.keys1[i]){
+                        nes.controllers.state1[i] = 65;
+                        break;
+                    }
+                    //Else check the controller 2 code.
+                    else if(event.keyCode === nes.controllers.keys2[i]){
+                        nes.controllers.state2[i] = 65;
+                        break;
+                    }
+                }
+            }
+
+            //Define the key up event handler.
+            document.onkeyup = function document_onkeyup(event){
+                //Loop through the key codes.
+                for(var i=0;i<nes.controllers.keys1.length;i++){
+                    //Check the controller 1 code.
+                    if(event.keyCode === nes.controllers.keys1[i]){
+                        nes.controllers.state1[i] = 64;
+                        break;
+                    }
+                    //Else check the controller 2 code.
+                    else if(event.keyCode === nes.controllers.keys2[i]){
+                        nes.controllers.state2[i] = 64;
+                        break;
+                    }
+                }
+            }
 
         },
 
