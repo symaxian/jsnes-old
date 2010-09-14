@@ -32,6 +32,9 @@ nes = {
 
     init:function nes_init(){
 
+        //Initiate the cpu.
+        this.cpu.init();
+
         //Initiate the screen.
         this.screen.init();
 
@@ -41,13 +44,12 @@ nes = {
         // Sound
         this.dynamicaudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
-        this.cpu = new JSNES.CPU(this);
         this.ppu = new JSNES.PPU(this);
         this.papu = new JSNES.PAPU(this);
         this.mmap = null; // set in loadRom()
 
         this.updateStatus("Ready to load a ROM.");
-    
+
     },
 
     updateStatus:function(){},
