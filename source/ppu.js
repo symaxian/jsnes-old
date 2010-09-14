@@ -573,7 +573,7 @@ JSNES.PPU.prototype = {
             }
         }
     
-        this.nes.writeFrame(buffer, this.prevBuffer);
+        this.nes.screen.writeFrame(buffer, this.prevBuffer);
     },
     
     updateControlReg1: function(value){

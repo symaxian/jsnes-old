@@ -22,26 +22,10 @@ nes = {
 
     init:function(){
 
+        this.screen.init();
+
         this.fps = 0;
         this.status = '';
-
-                    // Canvas
-        
-                    this.canvas = document.getElementById('jsnes');
-        
-                    this.canvas.width = 256;
-                    this.canvas.height = 240;
-        
-                    this.canvasContext = this.canvas.getContext('2d');
-                    
-                    this.canvasImageData = this.canvasContext.getImageData(0, 0, 256, 240);
-                    this.canvasContext.fillStyle = 'black';
-                    this.canvasContext.fillRect(0, 0, 256, 240); // set alpha to opaque
-                
-                    // Set alpha
-                    for (var i = 3; i < this.canvasImageData.data.length-3; i+=4) {
-                        this.canvasImageData.data[i] = 0xFF;
-                    }
 
                     // Sound
                     this.dynamicaudio = new DynamicAudio({
@@ -67,25 +51,6 @@ nes = {
             
                 writeAudio: function(samples) {
                     return this.dynamicaudio.writeInt(samples);
-                },
-            
-                writeFrame: function(buffer, prevBuffer) {
-                    var imageData = this.canvasImageData.data;
-                    var pixel, i, j;
-
-                    for (i=0; i<256*240; i++) {
-                        pixel = buffer[i];
-
-                        if (pixel != prevBuffer[i]) {
-                            j = i*4;
-                            imageData[j] = pixel & 0xFF;
-                            imageData[j+1] = (pixel >> 8) & 0xFF;
-                            imageData[j+2] = (pixel >> 16) & 0xFF;
-                            prevBuffer[i] = pixel;
-                        }
-                    }
-
-                    this.canvasContext.putImageData(this.canvasImageData, 0, 0);
                 },
 
     active: false,
@@ -246,21 +211,84 @@ nes = {
         }
         return this.rom.valid;
     },
-    
-    resetFps: function() {
-        this.lastFpsTime = null;
-        this.fpsFrameCount = 0;
-    },
-    
+
     setFramerate: function(rate){
         this.nes.opts.preferredFrameRate = rate;
         this.nes.frameTime = 1000 / rate;
         this.papu.setSampleRate(44100, false);
     },
+
+    //============
+    //== Screen ==
+    //============
+
+    screen:{
+
+    //Properties
+
+        canvas:null,
+        context:null,
+
+        imageData:null,
+        pixelData:null,
+
+    //Methods
+
+        init:function nes_screen_init(){
+
+            //Get the canvas element.
+            this.canvas = document.getElementById('jsnes');
+
+            //Set the width and height.
+            this.canvas.width = 256;
+            this.canvas.height = 240;
+
+            //Get the canvas context.
+            this.context = this.canvas.getContext('2d');
+
+            //Fill the canvas black.
+            this.context.fillStyle = 'black';
+            this.context.fillRect(0,0,256,240);
+
+            //Get the image data.
+            this.imageData = this.context.getImageData(0,0,256,240);
+
+            //Get the pixel data.
+            this.pixelData = this.imageData.data;
+
+        },
+
+        writeFrame:function nes_screen_writeFrame(buffer,prevBuffer){
+
+            //Loop through each pixel.
+            for(var i=0;i<61440;i++){
+
+                //Cache the new color.
+                var pixel = buffer[i];
+
+                //Check if the new and old colors are different.
+                if(pixel !== prevBuffer[i]){
     
-    setLimitFrames: function(limit) {
-        this.limitFrames = limit;
-        this.lastFrameTime = null;
-    }
+                    //Set the red color component.
+                    this.pixelData[i*4] = pixel & 0xFF;
+
+                    //Set the green color component.
+                    this.pixelData[i*4+1] = (pixel >> 8) & 0xFF;
+
+                    //Set the blue color component.
+                    this.pixelData[i*4+2] = (pixel >> 16) & 0xFF;
+
+                    //Set the new color in the buffer.
+                    prevBuffer[i] = pixel;
+
+                }
+            }
+
+            //Place the image data onto the canvas.
+            this.context.putImageData(this.imageData,0,0);
+
+        },
+
+    },
 
 };
