@@ -209,7 +209,7 @@ JSNES.PPU.prototype = {
         // Create pattern table tile buffers:
         this.ptTile = new Array(512);
         for (i=0; i<512; i++) {
-            this.ptTile[i] = new JSNES.PPU.Tile();
+            this.ptTile[i] = new Tile();
         }
         
         // Create nametable buffers:
@@ -1516,6 +1516,8 @@ JSNES.PPU.NameTable.prototype = {
 };
 
 
+
+
 JSNES.PPU.PaletteTable = function() {
     this.curTable = new Array(64);
     this.emphTable = new Array(8);
@@ -1673,7 +1675,11 @@ JSNES.PPU.PaletteTable.prototype = {
     }
 };
 
-JSNES.PPU.Tile = function() {
+//==========
+//== Tile ==
+//==========
+
+Tile = function() {
     // Tile data:
     this.pix = new Array(64);
     
@@ -1691,8 +1697,8 @@ JSNES.PPU.Tile = function() {
     this.initialized = false;
     this.opaque = new Array(8);
 };
-    
-JSNES.PPU.Tile.prototype = {
+
+Tile.prototype = {
     setBuffer: function(scanline){
         for (this.y=0;this.y<8;this.y++) {
             this.setScanline(this.y,scanline[this.y],scanline[this.y+8]);
