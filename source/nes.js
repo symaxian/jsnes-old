@@ -2,7 +2,7 @@
 //== Nintendo Entertainment System ==
 //===================================
 
-JSNES = {};
+JSNES = {PAPU:{}};
 
 nes = {
 
@@ -27,7 +27,6 @@ nes = {
         this.dynamicaudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
         this.ppu = new JSNES.PPU(this);
-        this.papu = new JSNES.PAPU(this);
         this.mmap = null;
 
         //Reset the system.
@@ -44,7 +43,7 @@ nes = {
         this.ppu.reset();
 
         //Reset the apu.
-        this.papu.reset();
+        this.apu.reset();
 
         //Reset the mmc if its loaded.
         if(this.mmap !== null){
@@ -97,8 +96,8 @@ nes = {
                     cycles = this.cpu.emulate();
 
                     //Set the cycles to the apu if active.
-                    if(this.papu.active){
-                        this.papu.clockFrameCounter(cycles);
+                    if(this.apu.active){
+                        this.apu.clockFrameCounter(cycles);
                     }
 
                     //???
@@ -113,8 +112,8 @@ nes = {
                     cycles = this.cpu.cyclesToHalt * 3;
 
                     //Set the cycles to halt to the apu if active.
-                    if(this.papu.active){
-                        this.papu.clockFrameCounter(this.cpu.cyclesToHalt);
+                    if(this.apu.active){
+                        this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
                     }
 
                     //Set the cycles to halt to 0.
@@ -129,8 +128,8 @@ nes = {
                     cycles = 24;
 
                     //Set the cycles to halt to the apu if active.
-                    if(this.papu.active){
-                        this.papu.clockFrameCounter(8);
+                    if(this.apu.active){
+                        this.apu.clockFrameCounter(8);
                     }
 
                     //Remove 8 from the cycles to halt counter.
