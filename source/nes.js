@@ -2,20 +2,29 @@
 //== Nintendo Entertainment System ==
 //===================================
 
-JSNES = {PAPU:{}};
+JSNES = {};
 
 nes = {
 
 //Properties
 
     active:false,
+    romData:null,
+
     fps:0,
     lastFrameTime:0,
-    romData:null,
 
 //Methods
 
     init:function nes_init(){
+
+        //Get the fps display.
+        this.fpsDisplay = document.getElementById('fps');
+
+        //Replace the fps display with a placeholder if its null.
+        if(this.fpsDisplay === null){
+            this.fpsDisplay = {innerHTML:''};
+        }
 
         //Initiate the screen.
         this.screen.init();
@@ -23,8 +32,8 @@ nes = {
         //Initiate the controllers.
         this.controllers.init();
 
-        // Sound
-        this.dynamicaudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
+        //Initiate the audio wrapper, FIXME
+        //this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
         this.ppu = new JSNES.PPU(this);
         this.mmap = null;
@@ -42,8 +51,8 @@ nes = {
         //Reset the ppu.
         this.ppu.reset();
 
-        //Reset the apu.
-        this.apu.reset();
+        //Reset the apu, FIXME.
+        //this.apu.reset(true);
 
         //Reset the mmc if its loaded.
         if(this.mmap !== null){
@@ -61,7 +70,7 @@ nes = {
             this.active = true;
 
             //Start the fps update interval.
-            this.fpsInterval = setInterval(function(){document.getElementById('fps').innerHTML=nes.fps;},200);//<fpsUpdateInterval>
+            this.fpsInterval = setInterval(function(){nes.fpsDisplay.innerHTML=nes.fps;},200);//<fpsUpdateInterval>
 
             //Run the first frame.
             this.frame();
@@ -95,10 +104,8 @@ nes = {
                     //Execute a CPU instruction.
                     cycles = this.cpu.emulate();
 
-                    //Set the cycles to the apu if active.
-                    if(this.apu.active){
-                        this.apu.clockFrameCounter(cycles);
-                    }
+                    //Set the cycles to the apu if active, FIXME.
+                    //this.apu.clockFrameCounter(cycles);
 
                     //???
                     cycles *= 3;
@@ -111,10 +118,8 @@ nes = {
                     //???
                     cycles = this.cpu.cyclesToHalt * 3;
 
-                    //Set the cycles to halt to the apu if active.
-                    if(this.apu.active){
-                        this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
-                    }
+                    //Set the cycles to halt to the apu if active, FIXME.
+                    //this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
 
                     //Set the cycles to halt to 0.
                     this.cpu.cyclesToHalt = 0;
@@ -127,10 +132,8 @@ nes = {
                     //Set the cycles to 24.
                     cycles = 24;
 
-                    //Set the cycles to halt to the apu if active.
-                    if(this.apu.active){
-                        this.apu.clockFrameCounter(8);
-                    }
+                    //Set the cycles to halt to the apu if active, FIXME.
+                    //this.apu.clockFrameCounter(8);
 
                     //Remove 8 from the cycles to halt counter.
                     this.cpu.cyclesToHalt -= 8;
@@ -269,7 +272,10 @@ nes = {
     updateStatus:function(){},
 
     writeAudio:function(samples){
-        return this.dynamicaudio.writeInt(samples);
+
+        //Write the samples to the audio wrapper, FIXME.
+        return this.dynamicAudio.writeInt(samples);
+
     },
 
     //============

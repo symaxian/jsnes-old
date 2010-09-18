@@ -2,11 +2,11 @@
 //== Audio Processing Unit ==
 //===========================
 
+JSNES.PAPU = {};
+
 nes.apu = {
 
 //Properties
-
-    active:false,
 
     frameIrqCounter:null,
     frameIrqCounterMax:4,
@@ -27,8 +27,6 @@ nes.apu = {
     frameIrqEnabled:false,
     frameIrqActive:null,
     frameClockNow:null,
-    startedPlaying:false,
-    recordOutput:false,
     initingHardware:false,
 
     masterFrameCounter:null,
@@ -40,26 +38,11 @@ nes.apu = {
     sampleCount:null,
     triValue:0,
 
-    smpSquare1:null,
-    smpSquare2:null,
-    smpTriangle:null,
-    smpDmc:null,
-    accCount:null,
-
-    // DC removal vars:
-    prevSampleL:0,
-    prevSampleR:0,
-    smpAccumL:0,
-    smpAccumR:0,
-
     // DAC range:
     dacRange:0,
     dcValue:0,
 
-    // Master volume:
-    masterVolume:256,
-
-    // Stereo positioning:
+    //Stereo positioning
     stereoPosLSquare1:null,
     stereoPosLSquare2:null,
     stereoPosLTriangle:null,
@@ -73,46 +56,45 @@ nes.apu = {
 
     extraCycles:null,
 
-    maxSample:null,
-    minSample:null,
-
 //Methods
 
-    reset:function(){
+    reset:function(active){
 
+        //Set the active flag.
+        this.active = active;
+
+        //Set the 5 sound channels.
         this.square1 = new JSNES.PAPU.ChannelSquare(this,true);
         this.square2 = new JSNES.PAPU.ChannelSquare(this,false);
         this.triangle = new JSNES.PAPU.ChannelTriangle(this);
         this.noise = new JSNES.PAPU.ChannelNoise(this);
         this.dmc = new JSNES.PAPU.ChannelDM(this);
 
-        // Panning:
-        this.setPanning([80, 170, 100, 150, 128]);
-        // Initialize lookup tables:
+        //Set the panning.
+        this.setPanning([80,170,100,150,128]);
+
+        //Initialize lookup tables, FIXME, precompile tables.
         this.initLengthLookup();
         this.initDmcFrequencyLookup();
         this.initNoiseWavelengthLookup();
         this.initDACtables();
 
-        // Init sound registers:
-        for (var i = 0; i < 0x14; i++) {
-            if (i === 0x10){
-                this.writeReg(0x4010, 0x10);
-            }
-            else {
-                this.writeReg(0x4000 + i, 0);
-            }
+        //Init sound registers.
+        for(var i=0;i<0x14;i++){
+            this.writeReg(0x4000+i,0);
         }
+        this.writeReg(0x4010,0x10);
 
+        //Initialize some more variables.
         this.sampleRate = 44100;
         this.frameRate = 60;
         this.sampleTimerMax = parseInt((1024*1789772.5*this.frameRate)/(this.sampleRate*60),10);
-    
+
         this.frameTime = parseInt((14915*this.frameRate)/60,10);
 
         this.sampleTimer = 0;
         this.bufferIndex = 0;
-    
+
         this.updateChannelEnable(0);
         this.masterFrameCounter = 0;
         this.derivedFrameCounter = 0;
@@ -122,8 +104,10 @@ nes.apu = {
         this.frameIrqEnabled = false;
         this.initingHardware = false;
 
-        this.resetCounter();
+        //Reset the counter.
+        this.derivedFrameCounter = 4;
 
+        //Reset the 5 channels.
         this.square1.reset();
         this.square2.reset();
         this.triangle.reset();
@@ -141,17 +125,21 @@ nes.apu = {
         this.frameIrqCounterMax = 4;
 
         this.channelEnableValue = 0xFF;
-        this.startedPlaying = false;
         this.prevSampleL = 0;
         this.prevSampleR = 0;
         this.smpAccumL = 0;
         this.smpAccumR = 0;
-    
+
+        //Set the maximum volume.
+        this.maxVolume = 256;
+
+        //Set the sample range.
         this.maxSample = -500000;
         this.minSample = 500000;
+
     },
 
-    readReg: function(address){
+    readReg:function(address){
         // Read 0x4015:
         var tmp = 0;
         tmp |= (this.square1.getLengthStatus()   );
@@ -237,14 +225,6 @@ nes.apu = {
                 this.derivedFrameCounter = 0;
                 this.frameCounterTick();
             }
-        }
-    },
-
-    resetCounter: function(){
-        if (this.countSequence === 0) {
-            this.derivedFrameCounter = 4;
-        }else{
-            this.derivedFrameCounter = 0;
         }
     },
 

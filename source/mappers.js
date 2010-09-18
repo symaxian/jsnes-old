@@ -156,7 +156,7 @@ JSNES.Mappers[0].prototype = {
                     case 0:
                         // 0x4015:
                         // Sound channel enable, DMC Status
-                        return this.nes.apu.readReg(address);
+                        return //nes.apu.readReg(address);
                     
                     case 1:
                         // 0x4016:
@@ -245,7 +245,7 @@ JSNES.Mappers[0].prototype = {
             
             case 0x4015:
                 // Sound Channel Switch, DMC Status
-                this.nes.apu.writeReg(address, value);
+                //nes.apu.writeReg(address, value);
                 break;
             
             case 0x4016:
@@ -259,14 +259,14 @@ JSNES.Mappers[0].prototype = {
             
             case 0x4017:
                 // Sound channel frame sequencer:
-                this.nes.apu.writeReg(address, value);
+                //nes.apu.writeReg(address, value);
                 break;
             
             default:
                 // Sound registers
                 ////System.out.println("write to sound reg");
                 if (address >= 0x4000 && address <= 0x4017) {
-                    this.nes.apu.writeReg(address,value);
+                    //nes.apu.writeReg(address,value);
                 }
                 
         }
