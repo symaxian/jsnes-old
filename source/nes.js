@@ -9,10 +9,10 @@ nes = {
 //Properties
 
     active:false,
-    romData:null,
 
     fps:0,
     lastFrameTime:0,
+    fpsDisplay:null,
 
 //Methods
 
@@ -82,6 +82,7 @@ nes = {
             this.updateStatus('Cannot start, there is no ROM loaded, or it is invalid.');
 
         }
+    
     },
 
     frame:function nes_frame(){
@@ -116,7 +117,7 @@ nes = {
                 else if(this.cpu.cyclesToHalt < 9){
 
                     //???
-                    cycles = this.cpu.cyclesToHalt * 3;
+                    cycles = this.cpu.cyclesToHalt*3;
 
                     //Set the cycles to halt to the apu if active, FIXME.
                     //this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
@@ -143,7 +144,7 @@ nes = {
                 //Loop for every cycle executed by the cpu.
                 for(;cycles>0;cycles--){
 
-                    //Check for a sprite 0 hit, why is this here?
+                    //Check for a sprite 0 hit.
                     if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
                         this.ppu.setStatusFlag(this.ppu.STATUS_SPRITE0HIT,true);
                     }

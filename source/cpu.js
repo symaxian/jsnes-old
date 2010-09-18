@@ -50,7 +50,7 @@ nes.cpu = {
         this.REG_SP = 0x01FF;
 
         //Reset the program counter.
-        this.REG_PC = 0x8000-1;
+        this.REG_PC = 0x7FFF;
 
         //Set the CPU flags.
         this.F_SIGN = 0;
@@ -83,18 +83,6 @@ nes.cpu = {
 
     },
 
-    load16bit:function nes_cpu_load(addr){
-
-        //Check if the address is in the cpu memory.
-        if(addr < 0x1FFF){
-            return this.mem[addr&0x7FF]|(this.mem[(addr+1)&0x7FF]<<8);
-        }
-
-        //Else load the address from the mmc.
-        return nes.mmap.load(addr)|(nes.mmap.load(addr+1)<<8);
-
-    },
-
     write:function nes_cpu_write(addr,val){
 
         //Check if the address is in the cpu memory.
@@ -106,6 +94,18 @@ nes.cpu = {
         else{
             nes.mmap.write(addr,val);
         }
+
+    },
+
+    load16bit:function nes_cpu_load(addr){
+
+        //Check if the address is in the cpu memory.
+        if(addr < 0x1FFF){
+            return this.mem[addr&0x7FF]|(this.mem[(addr+1)&0x7FF]<<8);
+        }
+
+        //Else load the address from the mmc.
+        return nes.mmap.load(addr)|(nes.mmap.load(addr+1)<<8);
 
     },
 
@@ -139,13 +139,6 @@ nes.cpu = {
 
         //Return the address at the stack pointer.
         return nes.mmap.load(this.REG_SP);
-
-    },
-
-    pageCrossed:function nes_cpu_pageCrossed(addr1,addr2){
-
-        //???
-        return (addr1&0xFF00) !== (addr2&0xFF00);
 
     },
 
@@ -209,7 +202,7 @@ nes.cpu = {
             switch(this.irqType){
 
                 //Normal Interrupt
-                case 0: {
+                case 0:{
                     if(this.F_INTERRUPT === 0){
                         doIrq(temp);
                     }
@@ -390,7 +383,7 @@ nes.cpu = {
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
                 this.REG_ACC = temp&255;
-                cycleCount+=cycleAdd;
+                cycleCount += cycleAdd;
                 break;
 
             }
@@ -402,7 +395,9 @@ nes.cpu = {
                 this.F_SIGN = (this.REG_ACC>>7)&1;
                 this.F_ZERO = this.REG_ACC;
                 //this.REG_ACC = temp;
-                if(addrMode!=11)cycleCount+=cycleAdd; // PostIdxInd = 11
+                if(addrMode !== 11){
+                    cycleCount += cycleAdd;
+                }
                 break;
             }
 
@@ -429,7 +424,7 @@ nes.cpu = {
             //BCC
             case 3:{
                 //Branch on carry clear.
-                if(this.F_CARRY == 0){
+                if(this.F_CARRY === 0){
                     cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
@@ -439,7 +434,7 @@ nes.cpu = {
             //BCS
             case 4:{
                 //Branch on carry set.
-                if(this.F_CARRY == 1){
+                if(this.F_CARRY === 1){
                     cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
@@ -449,7 +444,7 @@ nes.cpu = {
             //BEQ
             case 5:{
                 //Branch on zero.
-                if(this.F_ZERO == 0){
+                if(this.F_ZERO === 0){
                     cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
@@ -470,7 +465,7 @@ nes.cpu = {
             //BMI
             case 7:{
                 //Branch on negative result.
-                if(this.F_SIGN == 1){
+                if(this.F_SIGN === 1){
                     cycleCount++;
                     this.REG_PC = addr;
                 }
@@ -480,7 +475,7 @@ nes.cpu = {
             //BNE
             case 8:{
                 //Branch on not zero.
-                if(this.F_ZERO != 0){
+                if(this.F_ZERO !== 0){
                     cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
@@ -490,7 +485,7 @@ nes.cpu = {
             //BPL
             case 9:{
                 //Branch on positive result.
-                if(this.F_SIGN == 0){
+                if(this.F_SIGN === 0){
                     cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
@@ -500,13 +495,13 @@ nes.cpu = {
             //BRK
             case 10:{
                 //???
-                this.REG_PC+=2;
+                this.REG_PC += 2;
                 this.push((this.REG_PC>>8)&255);
                 this.push(this.REG_PC&255);
                 this.F_BRK = 1;
                 this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|(this.F_NOTUSED<<5)|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO==0?1:0)<<1)|this.F_CARRY);
                 this.F_INTERRUPT = 1;
-                //this.REG_PC = load(0xFFFE) | (load(0xFFFF) << 8);
+                //this.REG_PC = load(0xFFFE)|(load(0xFFFF)<<8);
                 this.REG_PC = this.load16bit(0xFFFE)-1;
                 break;
             }
@@ -514,8 +509,8 @@ nes.cpu = {
             //BVC
             case 11:{
                 //Branch on overflow clear.
-                if(this.F_OVERFLOW == 0){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                if(this.F_OVERFLOW === 0){
+                    cycleCount += ((opaddr&0xFF00)!==(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -524,8 +519,8 @@ nes.cpu = {
             //BVS
             case 12:{
                 //Branch on overflow set.
-                if(this.F_OVERFLOW == 1){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                if(this.F_OVERFLOW === 1){
+                    cycleCount += ((opaddr&0xFF00)!==(addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -566,7 +561,7 @@ nes.cpu = {
                 this.F_CARRY = (temp>=0?1:0);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
-                cycleCount+=cycleAdd;
+                cycleCount += cycleAdd;
                 break;
             }
 
@@ -596,7 +591,7 @@ nes.cpu = {
                 temp = (this.load(addr)-1)&0xFF;
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp;
-                this.write(addr, temp);
+                this.write(addr,temp);
                 break;
             }
 
@@ -705,7 +700,7 @@ nes.cpu = {
             //LSR
             case 32:{
                 //Shift right one bit.
-                if(addrMode == 4){ // ADDR_ACC
+                if(addrMode == 4){
                     temp = this.REG_ACC&0xFF;
                     this.F_CARRY = temp&1;
                     temp >>= 1;
@@ -736,7 +731,7 @@ nes.cpu = {
                 this.F_ZERO = temp;
                 this.REG_ACC = temp;
                 if(addrMode !== 11){
-                    cycleCount += cycleAdd; // PostIdxInd = 11
+                    cycleCount += cycleAdd;
                 }
                 break;
             }
@@ -784,7 +779,7 @@ nes.cpu = {
             //ROL
             case 39:{
                 //Rotate one bit left.
-                if(addrMode == 4){
+                if(addrMode === 4){
                     temp = this.REG_ACC;
                     add = this.F_CARRY;
                     this.F_CARRY = (temp>>7)&1;
@@ -796,7 +791,7 @@ nes.cpu = {
                     add = this.F_CARRY;
                     this.F_CARRY = (temp>>7)&1;
                     temp = ((temp<<1)&0xFF)+add;
-                    this.write(addr, temp);
+                    this.write(addr,temp);
                 }
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp;
@@ -806,7 +801,7 @@ nes.cpu = {
             //ROR
             case 40:{
                 //Rotate one bit right.
-                if(addrMode == 4){ //ADDR_ACC = 4
+                if(addrMode === 4){
                     add = this.F_CARRY<<7;
                     this.F_CARRY = this.REG_ACC&1;
                     temp = (this.REG_ACC>>1)+add;
@@ -828,18 +823,18 @@ nes.cpu = {
             case 41:{
                 //Return from interrupt, pull status and PC from stack.
                 temp = this.pull();
-                this.F_SIGN      = (temp>>7)&1;
-                this.F_OVERFLOW  = (temp>>6)&1;
-                this.F_NOTUSED   = (temp>>5)&1;
-                this.F_BRK       = (temp>>4)&1;
-                this.F_DECIMAL   = (temp>>3)&1;
+                this.F_SIGN = (temp>>7)&1;
+                this.F_OVERFLOW = (temp>>6)&1;
+                this.F_NOTUSED = (temp>>5)&1;
+                this.F_BRK = (temp>>4)&1;
+                this.F_DECIMAL = (temp>>3)&1;
                 this.F_INTERRUPT = (temp>>2)&1;
-                this.F_ZERO      = ((temp>>1)&1)==0?1:0;
-                this.F_CARRY     = temp&1;
-                this.REG_PC = this.pull();
-                this.REG_PC += this.pull()<<8;
+                this.F_ZERO = ((temp>>1)&1)==0?1:0;
+                this.F_CARRY = temp&1;
+                this.REG_PC = this.pull()+(this.pull()<<8);
                 if(this.REG_PC === 0xFFFF){
-                    return;//Return without sending cycle count?
+                    //Return from NSF play routine.
+                    return;
                 }
                 this.REG_PC--;
                 this.F_NOTUSED = 1;
@@ -849,10 +844,10 @@ nes.cpu = {
             //RTS
             case 42:{
                 //Return from subroutine, pull PC from stack.
-                this.REG_PC = this.pull();
-                this.REG_PC += this.pull()<<8;
+                this.REG_PC = this.pull()+(this.pull()<<8);
                 if(this.REG_PC === 0xFFFF){
-                    return;//Return from NSF play routine.
+                    //Return from NSF play routine.
+                    return;
                 }
                 break;
             }
@@ -863,11 +858,11 @@ nes.cpu = {
                 temp = this.REG_ACC-this.load(addr)-(1-this.F_CARRY);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
-                this.F_OVERFLOW = ((((this.REG_ACC^temp)&0x80)!=0 && ((this.REG_ACC^this.load(addr))&0x80)!=0)?1:0);
+                this.F_OVERFLOW = ((((this.REG_ACC^temp)&0x80)!==0 && ((this.REG_ACC^this.load(addr))&0x80)!==0)?1:0);
                 this.F_CARRY = (temp<0?0:1);
                 this.REG_ACC = (temp&0xFF);
                 if(addrMode !== 11){
-                    cycleCount+=cycleAdd;//PostIdxInd = 11
+                    cycleCount+=cycleAdd;
                 }
                 break;
             }
