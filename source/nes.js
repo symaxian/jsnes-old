@@ -255,8 +255,99 @@ nes = {
         //Check the rom validity.
         if(data.indexOf("NES\x1a") !== -1){
 
-            //Create a new rom object.
-            this.rom = new JSNES.ROM(data);
+            //Create a blank object for the rom data.
+            this.rom = {};
+
+            //Reset the header.
+            this.rom.header = new Array(16);
+
+            //Load the header.
+            for(var i=0;i<16;i++){
+                this.rom.header[i] = data.charCodeAt(i)&0xFF;
+            }
+
+            //Get the rom count.
+            this.rom.romCount = this.rom.header[4];
+
+            //Get the number of 4kb vrom banks, not 8kb.
+            this.rom.vromCount = this.rom.header[5]*2;
+
+            //Get the mirroring type.
+            this.rom.mirroring = (this.rom.header[6]&1);
+
+            //Get the battery ram flag.
+            this.rom.batteryRam = (this.rom.header[6]&2) !== 0;
+
+            //Get the trainer flag.
+            this.rom.trainer = (this.rom.header[6]&4) !== 0;
+
+            //Get the four screen flag.
+            this.rom.fourScreen = (this.rom.header[6]&8) !== 0;
+
+            //Get the mapper needed.
+            this.rom.mapperType = (this.rom.header[6]>>4) | (this.rom.header[7]&0xF0);
+
+            //Load the battery ram, FIXME.
+            if(this.rom.batteryRam){
+                //this.rom.loadBatteryRam();
+            }
+
+            //Check whether any byte 8-15 is not a zero.
+            for(var i=8;i<16;i++){
+                if(this.rom.header[i] !== 0){
+                    //Ignore byte 7.
+                    this.rom.mapperType &= 0xF;
+                }
+            }
+
+            //Load PRG-ROM banks.
+            this.rom.rom = new Array(this.rom.romCount);
+            var offset = 16;
+            for(var i=0;i<this.rom.romCount;i++){
+                this.rom.rom[i] = new Array(16384);
+                for(var j=0;j<16384;j++){
+                    if(offset+j >= data.length){
+                        break;
+                    }
+                    this.rom.rom[i][j] = data.charCodeAt(offset+j) & 0xFF;
+                }
+                offset += 16384;
+            }
+
+            //Reset the vrom and vrom tiles.
+            this.rom.vrom = new Array(this.rom.vromCount);
+            this.rom.vromTile = new Array(this.rom.vromCount);
+
+            //Loop through the vrom banks.
+            for(var i=0;i<this.rom.vromCount;i++){
+
+                //Create the tiles.
+                this.rom.vromTile[i] = new Array(256);
+                for(var j=0;j<256;j++){
+                    this.rom.vromTile[i][j] = new Tile();
+                }
+
+                //Load the bank.
+                this.rom.vrom[i] = new Array(4096);
+                for(var j=0;j<4096;j++){
+                    if(offset+j >= data.length){
+                        break;
+                    }
+                    this.rom.vrom[i][j] = data.charCodeAt(offset+j)&0xFF;
+                }
+                offset += 4096;
+
+                //Convert the bank to the tile.
+                for(var j=0;j<4096;j++){
+                    if((j%16)<8){
+                        this.rom.vromTile[i][j>>4].setScanline(j%16,this.rom.vrom[i][j],this.rom.vrom[i][j+8]);
+                    }
+                    else{
+                        this.rom.vromTile[i][j>>4].setScanline((j%16)-8,this.rom.vrom[i][j-8],this.rom.vrom[i][j]);
+                    }
+                }
+
+            }
 
             //Reset the nes.
             this.reset();
