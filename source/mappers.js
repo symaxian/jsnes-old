@@ -357,10 +357,6 @@ JSNES.Mappers[0].prototype = {
       },
 
     loadROM: function() {
-        if (!this.nes.rom.valid || this.nes.rom.romCount < 1) {
-            alert("NoMapper: Invalid ROM! Unable to load.");
-            return;
-        }
     
         // Load ROM into memory:
         this.loadPRGROM();
@@ -374,6 +370,7 @@ JSNES.Mappers[0].prototype = {
         // Reset IRQ:
         //nes.getCpu().doResetInterrupt();
         this.nes.cpu.requestIrq(2);
+
     },
 
     loadPRGROM: function() {
@@ -592,17 +589,16 @@ JSNES.Mappers[1].prototype.setReg = function(reg, value) {
                 this.mirroring = tmp;
                 if ((this.mirroring & 2) === 0) {
                     // SingleScreen mirroring overrides the other setting:
-                    this.nes.ppu.setMirroring(
-                        this.nes.rom.SINGLESCREEN_MIRRORING);
+                    this.nes.ppu.setMirroring(3);
                 }
                 // Not overridden by SingleScreen mirroring.
-                else if ((this.mirroring & 1) !== 0) {
-                    this.nes.ppu.setMirroring(
-                        this.nes.rom.HORIZONTAL_MIRRORING
-                    );
+                else if ((this.mirroring & 1) !== 0){
+                    //Set horizontal mirroring.
+                    this.nes.ppu.setMirroring(1);
                 }
-                else {
-                    this.nes.ppu.setMirroring(this.nes.rom.VERTICAL_MIRRORING);
+                else{
+                    //Set vertical mirroring.
+                    this.nes.ppu.setMirroring(0);
                 }
             }
     
@@ -742,10 +738,6 @@ JSNES.Mappers[1].prototype.getRegNumber = function(address) {
 };
 
 JSNES.Mappers[1].prototype.loadROM = function(rom) {
-    if (!this.nes.rom.valid) {
-        alert("MMC1: Invalid ROM! Unable to load.");
-        return;
-    }
 
     // Load PRG-ROM:
     this.loadRomBank(0, 0x8000);                         //   First ROM bank..
@@ -795,10 +787,6 @@ JSNES.Mappers[2].prototype.write = function(address, value) {
 };
 
 JSNES.Mappers[2].prototype.loadROM = function(rom) {
-    if (!this.nes.rom.valid) {
-        alert("UNROM: Invalid ROM! Unable to load.");
-        return;
-    }
 
     // Load PRG-ROM:
     this.loadRomBank(0, 0x8000);
@@ -860,15 +848,15 @@ JSNES.Mappers[4].prototype.write = function(address, value) {
             this.executeCommand(this.command, value);
             break;
     
-        case 0xA000:        
+        case 0xA000:
             // Mirroring select
             if ((value & 1) !== 0) {
-                this.nes.ppu.setMirroring(
-                    this.nes.rom.HORIZONTAL_MIRRORING
-                );
+                //Set vertical mirroring.
+                this.nes.ppu.setMirroring(1);
             }
-            else {
-                this.nes.ppu.setMirroring(this.nes.rom.VERTICAL_MIRRORING);
+            else{
+                //Set vertical mirroring.
+                this.nes.ppu.setMirroring(0);
             }
             break;
         
@@ -1025,10 +1013,6 @@ JSNES.Mappers[4].prototype.executeCommand = function(cmd, arg) {
 };
 
 JSNES.Mappers[4].prototype.loadROM = function(rom) {
-    if (!this.nes.rom.valid) {
-        alert("MMC3: Invalid ROM! Unable to load.");
-        return;
-    }
 
     // Load hardwired PRG banks (0xC000 and 0xE000):
     this.load8kRomBank(((this.nes.rom.romCount - 1) * 2), 0xC000);

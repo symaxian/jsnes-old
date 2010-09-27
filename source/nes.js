@@ -2,6 +2,16 @@
 //== Nintendo Entertainment System ==
 //===================================
 
+    //Mirroring Types
+    //VERTICAL_MIRRORING:0,
+    //HORIZONTAL_MIRRORING:1,
+    //FOURSCREEN_MIRRORING:2,
+    //SINGLESCREEN_MIRRORING:3,
+    //SINGLESCREEN_MIRRORING2:4,
+    //SINGLESCREEN_MIRRORING3:5,
+    //SINGLESCREEN_MIRRORING4:6,
+    //CHRROM_MIRRORING:7,
+
 JSNES = {};
 
 nes = {
@@ -13,6 +23,9 @@ nes = {
     fps:0,
     lastFrameTime:0,
     fpsDisplay:null,
+
+    //Mapper Names
+    mapperNames:["Direct Access","Nintendo MMC1","UNROM","CNROM","Nintendo MMC3","Nintendo MMC5","FFE F4xxx","AOROM","FFE F3xxx","Nintendo MMC2","Nintendo MMC4","Color Dreams Chip","FFE F6xxx","Unknown Mapper","Unknown Mapper","100-in-1 switch","Bandai chip","FFE F8xxx","Jaleco SS8806 chip","Namcot 106 chip","Famicom Disk System","Konami VRC4a","Konami VRC2a","Konami VRC2a","Konami VRC6","Konami VRC4b","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem G-101 chip","Taito TC0190/TC0350","32kB ROM switch","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Tengen RAMBO-1 chip","Irem H-3001 chip","GNROM switch","SunSoft3 chip","SunSoft4 chip","SunSoft5 FME-7 chip","Unknown Mapper","Camerica chip","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem 74HC161/32-based","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Pirate HK-SF3 chip"],
 
 //Methods
 
@@ -64,7 +77,7 @@ nes = {
     start:function nes_start(){
 
         //Check if a valid rom is loaded.
-        if(this.rom !== null && this.rom.valid){
+        if(this.rom !== null){
 
             //Set the nes to active.
             this.active = true;
@@ -243,41 +256,42 @@ nes = {
         if(data.indexOf("NES\x1a") !== -1){
 
             //Create a new rom object.
-            this.rom = new JSNES.ROM(this);
-
-            //Set the valid flag, REMOVE.
-            this.rom.valid = true;
-
-            //Load the data.
-            this.rom.load(data);
+            this.rom = new JSNES.ROM(data);
 
             //Reset the nes.
             this.reset();
 
-            //Get the mmc needed by the rom.
-            this.mmap = this.rom.createMapper();
+            //Check the mapper needed.
+            if(typeof JSNES.Mappers[this.rom.mapperType] !== 'undefined'){
 
-            //Check if the mmc is valid.
-            if(!this.mmap){
-                return;
+                //Get the mapper.
+                this.mmap = new JSNES.Mappers[this.rom.mapperType](nes);
+
+                //Load the rom data.
+                this.mmap.loadROM();
+
+                //Set the ppu mirroring from the rom.
+                if(this.rom.fourScreen){
+                    //Set fourscreen mirroring.
+                    this.ppu.setMirroring(2);
+                }
+                else if(this.rom.mirroring === 1){
+                    //Set horizontal mirroring.
+                    this.ppu.setMirroring(1);
+                }
+                else{
+                    //Set vertical mirroring.
+                    this.ppu.setMirroring(0);
+                }
+
+                //Return true, the rom was succesfully loaded.
+                return true;
+
             }
 
-            //Load the rom data.
-            this.mmap.loadROM();
-
-            //Set the ppu mirroring from the rom.
-            if(this.rom.fourScreen){
-                this.ppu.setMirroring(this.rom.FOURSCREEN_MIRRORING);
-            }
-            else if(this.rom.mirroring === 0){
-                this.ppu.setMirroring(this.rom.HORIZONTAL_MIRRORING);
-            }
-            else{
-                this.ppu.setMirroring(this.rom.VERTICAL_MIRRORING);
-            }
-
-            //Return true, the rom was succesfully loaded.
-            return true;
+            //Return false, rom requires unknown mapper.
+            nes.updateStatus("This ROM uses a mapper not supported by JSNES: "+nes.mapperNames[this.rom.mapperType]+"("+this.rom.mapperType+")");
+            return false;
 
         }
 
@@ -344,11 +358,11 @@ nes = {
             //Loop through each pixel.
             for(var i=0;i<61440;i++){
 
-                //Cache the new color.
-                var pixel = buffer[i];
-
                 //Check if the new and old colors are different.
-                if(pixel !== this.buffer[i]){
+                if(buffer[i] !== this.buffer[i]){
+
+                    //Cache the new color.
+                    var pixel = buffer[i];
     
                     //Set the red color component.
                     this.pixelData[i*4] = pixel&0xFF;

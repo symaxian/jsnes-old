@@ -263,7 +263,7 @@ JSNES.PPU.prototype = {
         this.defineMirrorRegion(0x3000,0x2000,0xf00);
         this.defineMirrorRegion(0x4000,0x0000,0x4000);
     
-        if (mirroring == this.nes.rom.HORIZONTAL_MIRRORING) {
+        if (mirroring === 0) {
             // Horizontal mirroring.
             
             this.ntable1[0] = 0;
@@ -274,7 +274,7 @@ JSNES.PPU.prototype = {
             this.defineMirrorRegion(0x2400,0x2000,0x400);
             this.defineMirrorRegion(0x2c00,0x2800,0x400);
             
-        }else if (mirroring == this.nes.rom.VERTICAL_MIRRORING) {
+        }else if (mirroring === 0) {
             // Vertical mirroring.
             
             this.ntable1[0] = 0;
@@ -285,7 +285,7 @@ JSNES.PPU.prototype = {
             this.defineMirrorRegion(0x2800,0x2000,0x400);
             this.defineMirrorRegion(0x2c00,0x2400,0x400);
             
-        }else if (mirroring == this.nes.rom.SINGLESCREEN_MIRRORING) {
+        }else if (mirroring === 3) {
             
             // Single Screen mirroring
             
@@ -298,8 +298,9 @@ JSNES.PPU.prototype = {
             this.defineMirrorRegion(0x2800,0x2000,0x400);
             this.defineMirrorRegion(0x2c00,0x2000,0x400);
             
-        }else if (mirroring == this.nes.rom.SINGLESCREEN_MIRRORING2) {
+        }else if (mirroring === 4) {
             
+            // Single Screen mirroring 2
             
             this.ntable1[0] = 1;
             this.ntable1[1] = 1;
