@@ -28,7 +28,6 @@ JSNES.PPU = function(nes) {
     this.firstWrite = null;
     this.sramAddress = null;
     this.mapperIrqCounter     = null;
-    this.currentMirroring = null;
     this.requestEndFrame = null;
     this.nmiOk = null;
     this.dummyCycleToggle = null;
@@ -85,7 +84,6 @@ JSNES.PPU = function(nes) {
     this.imgPalette = null;
     this.ptTile = null;
     this.ntable1 = null;
-    this.currentMirroring = null;
     this.nameTable = null;
     this.vramMirrorTable = null;
     this.palTable = null;
@@ -96,25 +94,26 @@ JSNES.PPU = function(nes) {
     this.clipToTvSize = true;
     
     this.reset();
+
 };
 
 JSNES.PPU.prototype = {
+
     // Status flags:
     STATUS_VRAMWRITE: 4,
     STATUS_SLSPRITECOUNT: 5,
     STATUS_SPRITE0HIT: 6,
     STATUS_VBLANK: 7,
     
-    reset: function() {
-        var i;
+    reset:function(){
         
         // Memory
         this.vramMem = new Array(0x8000);
         this.spriteMem = new Array(0x100);
-        for (i=0; i<this.vramMem.length; i++) {
+        for (var i=0; i<this.vramMem.length; i++) {
             this.vramMem[i] = 0;
         }
-        for (i=0; i<this.spriteMem.length; i++) {
+        for (var i=0; i<this.spriteMem.length; i++) {
             this.spriteMem[i] = 0;
         }
         
@@ -128,7 +127,6 @@ JSNES.PPU.prototype = {
         this.sramAddress = 0; // 8-bit only.
         
         this.mapperIrqCounter     = 0;
-        this.currentMirroring = -1;
         this.requestEndFrame = false;
         this.nmiOk = false;
         this.dummyCycleToggle = false;
@@ -215,15 +213,14 @@ JSNES.PPU.prototype = {
         // Create nametable buffers:
         // Name table data:
         this.ntable1 = new Array(4);
-        this.currentMirroring = -1;
         this.nameTable = new Array(4);
-        for (i=0; i<4; i++) {
+        for (var i=0; i<4; i++) {
             this.nameTable[i] = new JSNES.PPU.NameTable(32, 32, "Nt"+i);
         }
         
         // Initialize mirroring lookup table:
         this.vramMirrorTable = new Array(0x8000);
-        for (i=0; i<0x8000; i++) {
+        for (var i=0; i<0x8000; i++) {
             this.vramMirrorTable[i] = i;
         }
         
@@ -237,12 +234,7 @@ JSNES.PPU.prototype = {
     
     // Sets Nametable mirroring.
     setMirroring: function(mirroring){
-    
-        if (mirroring == this.currentMirroring) {
-            return;
-        }
-        
-        this.currentMirroring = mirroring;
+
         this.triggerRendering();
     
         // Remove mirroring:
@@ -262,80 +254,70 @@ JSNES.PPU.prototype = {
         // Additional mirroring:
         this.defineMirrorRegion(0x3000,0x2000,0xf00);
         this.defineMirrorRegion(0x4000,0x0000,0x4000);
-    
-        if (mirroring === 0) {
-            // Horizontal mirroring.
-            
+
+        //Horizontal mirroring
+        if(mirroring === 0){
             this.ntable1[0] = 0;
             this.ntable1[1] = 0;
             this.ntable1[2] = 1;
             this.ntable1[3] = 1;
-            
             this.defineMirrorRegion(0x2400,0x2000,0x400);
             this.defineMirrorRegion(0x2c00,0x2800,0x400);
-            
-        }else if (mirroring === 0) {
-            // Vertical mirroring.
-            
+        }
+
+        //Vertical mirroring
+        else if (mirroring === 0){
             this.ntable1[0] = 0;
             this.ntable1[1] = 1;
             this.ntable1[2] = 0;
             this.ntable1[3] = 1;
-            
             this.defineMirrorRegion(0x2800,0x2000,0x400);
             this.defineMirrorRegion(0x2c00,0x2400,0x400);
-            
-        }else if (mirroring === 3) {
-            
-            // Single Screen mirroring
-            
+        }
+
+        //Single Screen mirroring
+        else if(mirroring === 3){
             this.ntable1[0] = 0;
             this.ntable1[1] = 0;
             this.ntable1[2] = 0;
             this.ntable1[3] = 0;
-            
             this.defineMirrorRegion(0x2400,0x2000,0x400);
             this.defineMirrorRegion(0x2800,0x2000,0x400);
             this.defineMirrorRegion(0x2c00,0x2000,0x400);
-            
-        }else if (mirroring === 4) {
-            
-            // Single Screen mirroring 2
-            
+        }
+
+        //Single Screen mirroring 2
+        else if(mirroring === 4){
             this.ntable1[0] = 1;
             this.ntable1[1] = 1;
             this.ntable1[2] = 1;
             this.ntable1[3] = 1;
-            
             this.defineMirrorRegion(0x2400,0x2400,0x400);
             this.defineMirrorRegion(0x2800,0x2400,0x400);
             this.defineMirrorRegion(0x2c00,0x2400,0x400);
-            
-        }else {
-            
-            // Assume Four-screen mirroring.
-            
+        }
+
+        //Assume Four-screen mirroring
+        else{
             this.ntable1[0] = 0;
             this.ntable1[1] = 1;
             this.ntable1[2] = 2;
             this.ntable1[3] = 3;
-            
-        }   
-        
+        }
+
     },
-    
-    
+
     // Define a mirrored area in the address lookup table.
     // Assumes the regions don't overlap.
     // The 'to' region is the region that is physically in memory.
-    defineMirrorRegion: function(fromStart, toStart, size){
-        for (var i=0;i<size;i++) {
-            this.vramMirrorTable[fromStart+i] = toStart+i;
+    defineMirrorRegion:function(from,to,size){
+        for(var i=0;i<size;i++){
+            this.vramMirrorTable[from+i] = to+i;
         }
     },
-    
+
     startVBlank: function(){
-        
+
         // Do NMI:
         this.nes.cpu.requestIrq(1);
         
@@ -403,7 +385,7 @@ JSNES.PPU.prototype = {
 
                 if (this.f_bgVisibility==1 || this.f_spVisibility==1) {
                     // Clock mapper IRQ Counter:
-                    this.nes.mmap.clockIrqCounter();
+                    this.nes.mmc.clockIrqCounter();
                 }
                 break;
                 
@@ -451,7 +433,7 @@ JSNES.PPU.prototype = {
 
                     if (this.f_bgVisibility==1 || this.f_spVisibility==1) {
                         // Clock mapper IRQ Counter:
-                        this.nes.mmap.clockIrqCounter();
+                        this.nes.mmc.clockIrqCounter();
                     }
                 }
         }
@@ -513,66 +495,67 @@ JSNES.PPU.prototype = {
         }
     },
     
-    endFrame: function(){
-        var i, x, y;
-        var buffer = this.buffer;
+    endFrame:function(){
         
         // Draw spr#0 hit coordinates:
-        if (this.showSpr0Hit) {
-            // Spr 0 position:
-            if (this.sprX[0] >= 0 && this.sprX[0] < 256 &&
-                    this.sprY[0] >= 0 && this.sprY[0] < 240) {
-                for (i=0; i<256; i++) {  
-                    buffer[(this.sprY[0]<<8)+i] = 0xFF5555;
-                }
-                for (i=0; i<240; i++) {
-                    buffer[(i<<8)+this.sprX[0]] = 0xFF5555;
-                }
-            }
-            // Hit position:
-            if (this.spr0HitX >= 0 && this.spr0HitX < 256 &&
-                    this.spr0HitY >= 0 && this.spr0HitY < 240) {
-                for (i=0; i<256; i++) {
-                    buffer[(this.spr0HitY<<8)+i] = 0x55FF55;
-                }
-                for (i=0; i<240; i++) {
-                    buffer[(i<<8)+this.spr0HitX] = 0x55FF55;
-                }
-            }
-        }
-        
-        // This is a bit lazy..
-        // if either the sprites or the background should be clipped,
-        // both are clipped after rendering is finished.
-        if (this.clipToTvSize || this.f_bgClipping === 0 || this.f_spClipping === 0) {
-            // Clip left 8-pixels column:
-            for (y=0;y<240;y++) {
-                for (x=0;x<8;x++) {
-                    buffer[(y<<8)+x] = 0;
-                }
-            }
-        }
-        
-        if (this.clipToTvSize) {
-            // Clip right 8-pixels column too:
-            for (y=0; y<240; y++) {
-                for (x=0; x<8; x++) {
-                    buffer[(y<<8)+255-x] = 0;
+        //if (this.showSpr0Hit) {
+        //    // Spr 0 position:
+        //    if (this.sprX[0] >= 0 && this.sprX[0] < 256 &&
+        //            this.sprY[0] >= 0 && this.sprY[0] < 240) {
+        //        for (var i=0; i<256; i++) {  
+        //            buffer[(this.sprY[0]<<8)+i] = 0xFF5555;
+        //        }
+        //        for (var i=0; i<240; i++) {
+        //            buffer[(i<<8)+this.sprX[0]] = 0xFF5555;
+        //        }
+        //    }
+        //    // Hit position:
+        //    if (this.spr0HitX >= 0 && this.spr0HitX < 256 &&
+        //            this.spr0HitY >= 0 && this.spr0HitY < 240) {
+        //        for (var i=0; i<256; i++) {
+        //            buffer[(this.spr0HitY<<8)+i] = 0x55FF55;
+        //        }
+        //        for (var i=0; i<240; i++) {
+        //            buffer[(i<<8)+this.spr0HitX] = 0x55FF55;
+        //        }
+        //    }
+        //}
+
+        //Check to clip the buffer to the tv size.
+        if(this.clipToTvSize){
+            //Clip the left and right pixels.
+            for(var y=0;y<240;y++){
+                for(var x=0;x<8;x++){
+                    //Left
+                    this.buffer[(y<<8)+x] = 0;
+                    //Right
+                    this.buffer[(y<<8)+255-x] = 0;
                 }
             }
-        }
-        
-        // Clip top and bottom 8 pixels:
-        if (this.clipToTvSize) {
-            for (y=0; y<8; y++) {
-                for (x=0; x<256; x++) {
-                    buffer[(y<<8)+x] = 0;
-                    buffer[((239-y)<<8)+x] = 0;
+            //Clip the top and bottom pixels.
+            for(var y=0;y<8;y++){
+                for(var x=0;x<256;x++){
+                    //Top
+                    this.buffer[(y<<8)+x] = 0;
+                    //Bottom
+                    this.buffer[((239-y)<<8)+x] = 0;
                 }
             }
         }
-    
-        this.nes.screen.writeFrame(buffer);
+
+        //Else check to clip the sprites or background.
+        else if(this.f_bgClipping === 0 || this.f_spClipping === 0){
+            //Clip left 8 pixels column.
+            for(var y=0;y<240;y++){
+                for(var x=0;x<8;x++){
+                    this.buffer[(y<<8)+x] = 0;
+                }
+            }
+        }
+
+        //Write the buffer to the screen.
+        this.nes.screen.writeFrame(this.buffer);
+
     },
     
     updateControlReg1: function(value){
@@ -611,8 +594,7 @@ JSNES.PPU.prototype = {
     
     setStatusFlag: function(flag, value){
         var n = 1<<flag;
-        this.nes.cpu.mem[0x2002] = 
-            ((this.nes.cpu.mem[0x2002] & (255-n)) | (value?n:0));
+        this.nes.cpu.mem[0x2002] = ((this.nes.cpu.mem[0x2002] & (255-n)) | (value?n:0));
     },
     
     // CPU Register $2002:
@@ -715,7 +697,7 @@ JSNES.PPU.prototype = {
         // Invoke mapper latch:
         this.cntsToAddress();
         if (this.vramAddress < 0x2000) {
-            this.nes.mmap.latchAccess(this.vramAddress);
+            this.nes.mmc.latchAccess(this.vramAddress);
         }   
     },
     
@@ -743,7 +725,7 @@ JSNES.PPU.prototype = {
             
             // Mapper latch access:
             if (this.vramAddress < 0x2000) {
-                this.nes.mmap.latchAccess(this.vramAddress);
+                this.nes.mmc.latchAccess(this.vramAddress);
             }
             
             // Increment by either 1 or 32, depending on d2 of Control Register 1:
@@ -784,7 +766,7 @@ JSNES.PPU.prototype = {
             this.writeMem(this.vramAddress,value);
             
             // Invoke mapper latch:
-            this.nes.mmap.latchAccess(this.vramAddress);
+            this.nes.mmc.latchAccess(this.vramAddress);
             
         }
         

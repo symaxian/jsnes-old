@@ -49,7 +49,7 @@ nes = {
         //this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
         this.ppu = new JSNES.PPU(this);
-        this.mmap = null;
+        this.mmc = null;
 
         //Reset the system.
         this.reset();
@@ -68,8 +68,8 @@ nes = {
         //this.apu.reset(true);
 
         //Reset the mmc if its loaded.
-        if(this.mmap !== null){
-            this.mmap.reset();
+        if(this.mmc !== null){
+            this.mmc.reset();
         }
 
     },
@@ -353,13 +353,13 @@ nes = {
             this.reset();
 
             //Check the mapper needed.
-            if(typeof JSNES.Mappers[this.rom.mapperType] !== 'undefined'){
+            if(typeof this.mappers[this.rom.mapperType] !== 'undefined'){
 
                 //Get the mapper.
-                this.mmap = new JSNES.Mappers[this.rom.mapperType](nes);
+                this.mmc = new this.mappers[this.rom.mapperType]();
 
                 //Load the rom data.
-                this.mmap.loadROM();
+                this.mmc.loadROM();
 
                 //Set the ppu mirroring from the rom.
                 if(this.rom.fourScreen){

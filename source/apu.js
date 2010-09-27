@@ -874,7 +874,7 @@ JSNES.PAPU.ChannelDM.prototype = {
 
     nextSample: function() {
         // Fetch byte:
-        this.data = this.papu.nes.mmap.load(this.playAddress);
+        this.data = this.papu.nes.mmc.load(this.playAddress);
         this.papu.nes.cpu.haltCycles(4);
     
         this.playLengthCounter--;
