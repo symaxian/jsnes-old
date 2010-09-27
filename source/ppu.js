@@ -909,7 +909,7 @@ JSNES.PPU.prototype = {
                 this.writeMem(this.vramMirrorTable[address],value);
             }else {
                 // FIXME
-                alert("Invalid VRAM address: "+address.toString(16));
+                //alert("Invalid VRAM address: "+address.toString(16));
             }
             
         }

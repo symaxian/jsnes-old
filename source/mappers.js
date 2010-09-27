@@ -1,20 +1,3 @@
-/*
-JSNES, based on Jamie Sanders' vNES
-Copyright (C) 2010 Ben Firshman
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
 nes.mappers = {};
 
@@ -28,8 +11,8 @@ nes.mappers[0] = function(){
 nes.mappers[0].prototype = {
 
     reset:function(){
-        this.joy1StrobeState = 0;
-        this.joy2StrobeState = 0;
+        this.joy1Strobe = 0;
+        this.joy2Strobe = 0;
         this.joypadLastWrite = 0;
         this.mousePressed = false;
         this.mouseX = null;
@@ -37,60 +20,48 @@ nes.mappers[0].prototype = {
     },
 
     write:function(address,value){
-        if (address < 0x2000) {
-            // Mirroring of RAM:
+
+        //Check the address.
+        if(address<0x2000){
+            //RAM
             nes.cpu.mem[address&0x7FF] = value;
         }
-        else if (address > 0x4017) {
+        else if(address>0x4017){
+            //ROM
             nes.cpu.mem[address] = value;
-            if (address >= 0x6000 && address < 0x8000) {
-                // Write to SaveRAM. Store in file:
-                // TODO: not yet
-                //if(nes.rom!=null)
-                //    nes.rom.writeBatteryRam(address,value);
+            //Battery RAM, FIXME
+            if(address >= 0x6000 && address < 0x8000){
+                //nes.rom.writeBatteryRam(address,value);
             }
         }
-        else if (address > 0x2007 && address < 0x4000) {
-            this.regWrite(0x2000 + (address & 0x7), value);
+        else if(address > 0x2007 && address < 0x4000){
+            //Registers
+            this.regWrite(0x2000+(address&0x7),value);
         }
-        else {
-            this.regWrite(address, value);
+        else{
+            //Registers
+            this.regWrite(address,value);
         }
-    },
-    
-    writelow: function(address, value) {
-        if (address < 0x2000) {
-            // Mirroring of RAM:
-            nes.cpu.mem[address & 0x7FF] = value;
-        }
-        else if (address > 0x4017) {
-            nes.cpu.mem[address] = value;
-        }
-        else if (address > 0x2007 && address < 0x4000) {
-            this.regWrite(0x2000 + (address & 0x7), value);
-        }
-        else {
-            this.regWrite(address, value);
-        }
+
     },
 
     load:function(address){
 
         //Wrap around.
         //address &= 0xFFFF;
-    
-        // Check address range:
-        if (address > 0x4017) {
-            // ROM:
+
+        //Check the address.
+        if(address < 0x2000){
+            //RAM
+            return nes.cpu.mem[address&0x7FF];
+        }
+        if(address > 0x4017){
+            //ROM
             return nes.cpu.mem[address];
         }
-        else if (address >= 0x2000) {
-            // I/O Ports.
+        else if(address >= 0x2000){
+            //Registers
             return this.regLoad(address);
-        }
-        else {
-            // RAM (mirrored)
-            return nes.cpu.mem[address & 0x7FF];
         }
 
     },
@@ -161,12 +132,12 @@ nes.mappers[0].prototype = {
                         // 0x4015:
                         // Sound channel enable, DMC Status
                         return //nes.apu.readReg(address);
-                    
+
                     case 1:
                         // 0x4016:
                         // Joystick 1 + Strobe
                         return this.joy1Read();
-                    
+
                     case 2:
                         // 0x4017:
                         // Joystick 2 + Strobe
@@ -196,7 +167,7 @@ nes.mappers[0].prototype = {
                         else {
                             return this.joy2Read();
                         }
-                    
+
                 }
                 break;
         }
@@ -255,8 +226,8 @@ nes.mappers[0].prototype = {
             case 0x4016:
                 // Joystick 1 + Strobe
                 if (value === 0 && this.joypadLastWrite === 1) {
-                    this.joy1StrobeState = 0;
-                    this.joy2StrobeState = 0;
+                    this.joy1Strobe = 0;
+                    this.joy2Strobe = 0;
                 }
                 this.joypadLastWrite = value;
                 break;
@@ -276,88 +247,40 @@ nes.mappers[0].prototype = {
         }
     },
 
-    joy1Read: function() {
-        var ret;
-    
-        switch (this.joy1StrobeState) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-                ret = nes.controllers.state1[this.joy1StrobeState];
-                break;
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-                ret = 0;
-                break;
-            case 19:
-                ret = 1;
-                break;
-            default:
-                ret = 0;
+    joy1Read:function(){
+
+        //Get the button state.
+        var temp = nes.controllers.state1[this.joy1Strobe];
+
+        //Increment the strobe.
+        this.joy1Strobe++;
+
+        //Reset it to 0 if at 24.
+        if(this.joy1Strobe === 24){
+            this.joy1Strobe = 0;
         }
-    
-        this.joy1StrobeState++;
-        if (this.joy1StrobeState == 24) {
-            this.joy1StrobeState = 0;
-        }
-    
-        return ret;
+
+        //Return the button state.
+        return temp;
+
     },
 
-    joy2Read: function() {
-        var ret;
-    
-        switch (this.joy2StrobeState) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-                ret = nes.controllers.state2[this.joy2StrobeState];
-                break;
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-                ret = 0;
-                break;
-            case 19:
-                ret = 1;
-                break;
-            default:
-                ret = 0;
+    joy2Read:function(){
+
+        //Get the button state.
+        var temp = nes.controllers.state2[this.joy2Strobe];
+
+        //Increment the strobe.
+        this.joy2Strobe++;
+
+        //Reset it to 0 if at 24.
+        if(this.joy2Strobe === 24){
+            this.joy2Strobe = 0;
         }
 
-        this.joy2StrobeState++;
-        if (this.joy2StrobeState == 24) {
-            this.joy2StrobeState = 0;
-        }
-    
-        return ret;
+        //Return the button state.
+        return temp;
+
       },
 
     loadROM: function() {

@@ -73,14 +73,14 @@ nes.cpu = {
 
     load16bit:function nes_cpu_load(addr){
 
-        //Load 2 address from the mmc, shift the latter and combine them.
-        return nes.mmc.load(addr) | (nes.mmc.load(addr+1)<<8);
+        //Load two addresses from memory and combine them.
+        return nes.mmc.load(addr)|(nes.mmc.load(addr+1)<<8);
 
     },
 
     requestIrq:function(type){
 
-        //Check if an interrupt is not already requested and the new interrupt is abnormal.
+        //Check if an interrupt is not already requested and the new interrupt is normal.
         if(!this.irqRequested && type !== 0){
 
             //Set the request.
@@ -354,6 +354,7 @@ nes.cpu = {
                 this.REG_ACC = temp&255;
                 cycleCount += cycleAdd;
                 break;
+
             }
 
             //AND
