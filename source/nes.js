@@ -236,12 +236,20 @@ nes = {
         //Send the request.
         request.send(null);
 
-        //Load the rom file.
-        this.rom = new JSNES.ROM(this);
-        this.rom.load(request.responseText);
+        //Cache the rom data.
+        var data = request.responseText;
 
-        //Check if the rom is valid.
-        if(this.rom.valid){
+        //Check the rom validity.
+        if(data.indexOf("NES\x1a") !== -1){
+
+            //Create a new rom object.
+            this.rom = new JSNES.ROM(this);
+
+            //Set the valid flag, REMOVE.
+            this.rom.valid = true;
+
+            //Load the data.
+            this.rom.load(data);
 
             //Reset the nes.
             this.reset();
@@ -258,7 +266,15 @@ nes = {
             this.mmap.loadROM();
 
             //Set the ppu mirroring from the rom.
-            this.ppu.setMirroring(this.rom.getMirroringType());
+            if(this.rom.fourScreen){
+                this.ppu.setMirroring(this.rom.FOURSCREEN_MIRRORING);
+            }
+            else if(this.rom.mirroring === 0){
+                this.ppu.setMirroring(this.rom.HORIZONTAL_MIRRORING);
+            }
+            else{
+                this.ppu.setMirroring(this.rom.VERTICAL_MIRRORING);
+            }
 
             //Return true, the rom was succesfully loaded.
             return true;
