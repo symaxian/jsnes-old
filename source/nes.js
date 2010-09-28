@@ -12,7 +12,13 @@
     //SINGLESCREEN_MIRRORING4:6,
     //CHRROM_MIRRORING:7,
 
-JSNES = {};
+    //PPU Status Flags
+    //STATUS_VRAMWRITE: 4,
+    //STATUS_SLSPRITECOUNT: 5,
+    //STATUS_SPRITE0HIT: 6,
+    //STATUS_VBLANK: 7,
+
+JSNES = {PPU:{}};
 
 nes = {
 
@@ -48,7 +54,6 @@ nes = {
         //Initiate the audio wrapper, FIXME
         //this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
-        this.ppu = new JSNES.PPU(this);
         this.mmc = null;
 
         //Reset the system.
@@ -159,7 +164,7 @@ nes = {
 
                     //Check for a sprite 0 hit.
                     if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
-                        this.ppu.setStatusFlag(this.ppu.STATUS_SPRITE0HIT,true);
+                        this.ppu.setStatusFlag(6,true);
                     }
 
                     //Check if the ppu is done rendering.

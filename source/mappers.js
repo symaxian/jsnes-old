@@ -10,16 +10,21 @@ nes.mappers[0] = function(){
 
 nes.mappers[0].prototype = {
 
-    reset:function(){
+    reset:function mmc0_reset(){
+
+        //Reset the controller strobes.
         this.joy1Strobe = 0;
         this.joy2Strobe = 0;
         this.joypadLastWrite = 0;
+
+        //Reset the mouse flags.
         this.mousePressed = false;
         this.mouseX = null;
         this.mouseY = null;
+
     },
 
-    write:function(address,value){
+    write:function mmc0_write(address,value){
 
         //Check the address.
         if(address<0x2000){
@@ -45,7 +50,7 @@ nes.mappers[0].prototype = {
 
     },
 
-    load:function(address){
+    load:function mmc0_load(address){
 
         //Wrap around.
         //address &= 0xFFFF;
@@ -66,7 +71,7 @@ nes.mappers[0].prototype = {
 
     },
 
-    regLoad: function(address) {
+    regLoad:function mmc0_regLoad(address){
         switch (address >> 12) { // use fourth nibble (0xF000)
             case 0:
                 break;
@@ -78,7 +83,7 @@ nes.mappers[0].prototype = {
                 // Fall through to case 3
             case 3:
                 // PPU Registers
-                switch (address & 0x7) {
+                switch(address & 0x7){
                     case 0x0:
                         // 0x2000:
                         // PPU Control Register 1.
@@ -126,47 +131,71 @@ nes.mappers[0].prototype = {
                 }
                 break;
             case 4:
-                // Sound+Joypad registers
-                switch (address - 0x4015) {
-                    case 0:
-                        // 0x4015:
-                        // Sound channel enable, DMC Status
+
+                //Sound/Joypad Registers
+                switch(address){
+
+                    case 0x4015:
+                        //Read 0x4015, sound channel enable, DMC status
                         return //nes.apu.readReg(address);
 
-                    case 1:
-                        // 0x4016:
-                        // Joystick 1 + Strobe
-                        return this.joy1Read();
+                    case 0x4016:
+                        //Read 0x4016, Joystick 1
 
-                    case 2:
-                        // 0x4017:
-                        // Joystick 2 + Strobe
-                        if (this.mousePressed) {
-                        
-                            // Check for white pixel nearby:
-                            var sx = Math.max(0, this.mouseX - 4);
-                            var ex = Math.min(256, this.mouseX + 4);
-                            var sy = Math.max(0, this.mouseY - 4);
-                            var ey = Math.min(240, this.mouseY + 4);
-                            var w = 0;
-                        
-                            for (var y=sy; y<ey; y++) {
-                                for (var x=sx; x<ex; x++) {
-                               
-                                    if (nes.ppu.buffer[(y<<8)+x] == 0xFFFFFF) {
-                                        w |= 0x1<<3;
-                                        console.debug("Clicked on white!");
-                                        break;
-                                    }
-                                }
-                            }
-                        
-                            w |= (this.mousePressed?(0x1<<4):0);
-                            return (this.joy2Read()|w) & 0xFFFF;
+                        //Get the button state.
+                        var temp = nes.controllers.state1[this.joy1Strobe];
+
+                        //Increment the strobe.
+                        this.joy1Strobe++;
+
+                        //Reset it to 0 if at 24.
+                        if(this.joy1Strobe === 24){
+                            this.joy1Strobe = 0;
                         }
-                        else {
-                            return this.joy2Read();
+
+                        //Return the button state.
+                        return temp;
+
+                    case 0x4017:
+                        //Read 0x4017, Joystick 2
+
+                        //Get the button state.
+                        var temp = nes.controllers.state2[this.joy2Strobe];
+
+                        //Increment the strobe.
+                        this.joy2Strobe++;
+
+                        //Reset it to 0 if at 24.
+                        if(this.joy2Strobe === 24){
+                            this.joy2Strobe = 0;
                         }
+
+                        //Nintendo Zapper Emulation, FIXME
+                        //if(this.mousePressed){
+                        //    //Get a square around the mouse.
+                        //    var sx = Math.max(0,this.mouseX-4);
+                        //    var ex = Math.min(256,this.mouseX+4);
+                        //    var sy = Math.max(0,this.mouseY-4);
+                        //    var ey = Math.min(240,this.mouseY+4);
+                        //    var w = 0;
+                        //    //Loop through each pixel in the square.
+                        //    for(var y=sy;y<ey;y++){
+                        //        for(var x=sx;x<ex;x++){
+                        //            //Check if a white pixel was clicked on.
+                        //            if(nes.ppu.buffer[(y<<8)+x] === 0xFFFFFF){
+                        //                w = 8;
+                        //                console.log('Clicked on white!');
+                        //                break;
+                        //            }
+                        //        }
+                        //    }
+                        //    //???
+                        //    w |= 16;
+                        //    return (temp|w)&0xFFFF;
+                        //}
+
+                        //Return the button state.
+                        return temp;
 
                 }
                 break;
@@ -174,8 +203,8 @@ nes.mappers[0].prototype = {
         return 0;
     },
 
-    regWrite: function(address, value) {
-        switch (address) {
+    regWrite:function mmc0_regWrite(address,value){
+        switch(address){
             case 0x2000:
                 // PPU Control register 1
                 nes.cpu.mem[address] = value;
@@ -224,8 +253,8 @@ nes.mappers[0].prototype = {
                 break;
             
             case 0x4016:
-                // Joystick 1 + Strobe
-                if (value === 0 && this.joypadLastWrite === 1) {
+                //Write 0x4016, Joystick Strobe Reset
+                if(value === 0 && this.joypadLastWrite === 1){
                     this.joy1Strobe = 0;
                     this.joy2Strobe = 0;
                 }
@@ -239,198 +268,148 @@ nes.mappers[0].prototype = {
             
             default:
                 // Sound registers
-                ////System.out.println("write to sound reg");
-                if (address >= 0x4000 && address <= 0x4017) {
+                if(address >= 0x4000 && address <= 0x4017){
                     //nes.apu.writeReg(address,value);
                 }
-                
+
         }
     },
 
-    joy1Read:function(){
+    loadROM:function(){
 
-        //Get the button state.
-        var temp = nes.controllers.state1[this.joy1Strobe];
-
-        //Increment the strobe.
-        this.joy1Strobe++;
-
-        //Reset it to 0 if at 24.
-        if(this.joy1Strobe === 24){
-            this.joy1Strobe = 0;
-        }
-
-        //Return the button state.
-        return temp;
-
-    },
-
-    joy2Read:function(){
-
-        //Get the button state.
-        var temp = nes.controllers.state2[this.joy2Strobe];
-
-        //Increment the strobe.
-        this.joy2Strobe++;
-
-        //Reset it to 0 if at 24.
-        if(this.joy2Strobe === 24){
-            this.joy2Strobe = 0;
-        }
-
-        //Return the button state.
-        return temp;
-
-      },
-
-    loadROM: function() {
-    
         // Load ROM into memory:
         this.loadPRGROM();
-    
+
         // Load CHR-ROM:
         this.loadCHRROM();
-    
+
         // Load Battery RAM (if present):
         this.loadBatteryRam();
-    
+
         // Reset IRQ:
         //nes.getCpu().doResetInterrupt();
         nes.cpu.requestIrq(2);
 
     },
 
-    loadPRGROM: function() {
-        if (nes.rom.romCount > 1) {
+    loadPRGROM:function(){
+        if(nes.rom.romCount > 1){
             // Load the two first banks into memory.
-            this.loadRomBank(0, 0x8000);
-            this.loadRomBank(1, 0xC000);
+            this.loadRomBank(0,0x8000);
+            this.loadRomBank(1,0xC000);
         }
-        else {
+        else{
             // Load the one bank into both memory locations:
-            this.loadRomBank(0, 0x8000);
-            this.loadRomBank(0, 0xC000);
+            this.loadRomBank(0,0x8000);
+            this.loadRomBank(0,0xC000);
         }
     },
 
-    loadCHRROM: function() {
-        ////System.out.println("Loading CHR ROM..");
-        if (nes.rom.vromCount > 0) {
-            if (nes.rom.vromCount == 1) {
+    loadCHRROM:function(){
+        if(nes.rom.vromCount > 0){
+            if(nes.rom.vromCount === 1){
                 this.loadVromBank(0,0x0000);
                 this.loadVromBank(0,0x1000);
             }
-            else {
+            else{
                 this.loadVromBank(0,0x0000);
                 this.loadVromBank(1,0x1000);
             }
         }
-        else {
-            //System.out.println("There aren't any CHR-ROM banks..");
-        }
     },
 
-    loadBatteryRam: function() {
-        if (nes.rom.batteryRam) {
+    loadBatteryRam:function(){
+        if(nes.rom.batteryRam){
             var ram = nes.rom.batteryRam;
-            if (ram !== null && ram.length == 0x2000) {
-                // Load Battery RAM into memory:
-                arraycopy(ram, 0, nes.cpu.mem, 0x6000, 0x2000);
+            if(ram !== null && ram.length === 0x2000){
+                //Load Battery RAM into memory.
+                arraycopy(ram,0,nes.cpu.mem,0x6000,0x2000);
             }
         }
     },
 
-    loadRomBank: function(bank, address) {
-        // Loads a ROM bank into the specified address.
+    loadRomBank:function(bank,address){
         bank %= nes.rom.romCount;
-        //var data = nes.rom.rom[bank];
-        //cpuMem.write(address,data,data.length);
-        arraycopy(nes.rom.rom[bank], 0, nes.cpu.mem, address, 16384);
+        //Load the rom bank into the specified address.
+        arraycopy(nes.rom.rom[bank],0,nes.cpu.mem,address,16384);
+    },
+
+    load32kRomBank:function(bank,address){
+        //Load two 16kb banks.
+        this.loadRomBank((bank*2)%nes.rom.romCount,address);
+        this.loadRomBank((bank*2+1)%nes.rom.romCount,address+16384);
     },
 
     loadVromBank: function(bank, address) {
-        if (nes.rom.vromCount === 0) {
-            return;
-        }
-        nes.ppu.triggerRendering();
-    
-        arraycopy(nes.rom.vrom[bank % nes.rom.vromCount], 
-            0, nes.ppu.vramMem, address, 4096);
-    
-        var vromTile = nes.rom.vromTile[bank % nes.rom.vromCount];
-        arraycopy(vromTile, 0, nes.ppu.ptTile,address >> 4, 256);
-    },
+        if(nes.rom.vromCount !== 0){
+            nes.ppu.triggerRendering();
 
-    load32kRomBank: function(bank, address) {
-        this.loadRomBank((bank*2) % nes.rom.romCount, address);
-        this.loadRomBank((bank*2+1) % nes.rom.romCount, address+16384);
-    },
+            arraycopy(nes.rom.vrom[bank%nes.rom.vromCount],0,nes.ppu.vramMem,address,4096);
 
-    load8kVromBank: function(bank4kStart, address) {
-        if (nes.rom.vromCount === 0) {
-            return;
-        }
-        nes.ppu.triggerRendering();
-
-        this.loadVromBank((bank4kStart) % nes.rom.vromCount, address);
-        this.loadVromBank((bank4kStart + 1) % nes.rom.vromCount,
-                address + 4096);
-    },
-
-    load1kVromBank: function(bank1k, address) {
-        if (nes.rom.vromCount === 0) {
-            return;
-        }
-        nes.ppu.triggerRendering();
-    
-        var bank4k = parseInt(bank1k / 4, 10) % nes.rom.vromCount;
-        var bankoffset = (bank1k % 4) * 1024;
-        arraycopy(nes.rom.vrom[bank4k], 0, 
-            nes.ppu.vramMem, bankoffset, 1024);
-    
-        // Update tiles:
-        var vromTile = nes.rom.vromTile[bank4k];
-        var baseIndex = address >> 4;
-        for (var i = 0; i < 64; i++) {
-            nes.ppu.ptTile[baseIndex+i] = vromTile[((bank1k%4) << 6) + i];
+            var vromTile = nes.rom.vromTile[bank % nes.rom.vromCount];
+            arraycopy(vromTile,0,nes.ppu.ptTile,address>>4,256);
         }
     },
 
-    load2kVromBank: function(bank2k, address) {
-        if (nes.rom.vromCount === 0) {
-            return;
-        }
-        nes.ppu.triggerRendering();
-    
-        var bank4k = parseInt(bank2k / 2, 10) % nes.rom.vromCount;
-        var bankoffset = (bank2k % 2) * 2048;
-        arraycopy(nes.rom.vrom[bank4k], bankoffset,
-            nes.ppu.vramMem, address, 2048);
-    
-        // Update tiles:
-        var vromTile = nes.rom.vromTile[bank4k];
-        var baseIndex = address >> 4;
-        for (var i = 0; i < 128; i++) {
-            nes.ppu.ptTile[baseIndex+i] = vromTile[((bank2k%2) << 7) + i];
+    load8kVromBank: function(bank4kStart,address){
+        if(nes.rom.vromCount !== 0){
+            //???
+            nes.ppu.triggerRendering();
+            //???
+            this.loadVromBank((bank4kStart)%nes.rom.vromCount,address);
+            this.loadVromBank((bank4kStart+1)%nes.rom.vromCount,address+4096);
         }
     },
 
-    load8kRomBank: function(bank8k, address) {
-        var bank16k = parseInt(bank8k / 2, 10) % nes.rom.romCount;
-        var offset = (bank8k % 2) * 8192;
-    
+    load1kVromBank:function(bank1k,address){
+        if(nes.rom.vromCount !== 0){
+            //???
+            nes.ppu.triggerRendering();
+            //???
+            var bank4k = parseInt(bank1k/4,10)%nes.rom.vromCount;
+            var bankoffset = (bank1k%4)*1024;
+            arraycopy(nes.rom.vrom[bank4k],0,nes.ppu.vramMem,bankoffset,1024);
+            //Update tiles.
+            var vromTile = nes.rom.vromTile[bank4k];
+            var baseIndex = address>>4;
+            for(var i=0;i<64;i++){
+                nes.ppu.ptTile[baseIndex+i] = vromTile[((bank1k%4)<<6)+i];
+            }
+        }
+    },
+
+    load2kVromBank:function(bank2k,address){
+        if(nes.rom.vromCount !== 0){
+            //???
+            nes.ppu.triggerRendering();
+            //???
+            var bank4k = parseInt(bank2k/2,10)%nes.rom.vromCount;
+            var bankoffset = (bank2k%2)*2048;
+            arraycopy(nes.rom.vrom[bank4k],bankoffset,nes.ppu.vramMem,address,2048);
+            //Update tiles.
+            var vromTile = nes.rom.vromTile[bank4k];
+            var baseIndex = address >> 4;
+            for(var i=0;i<128;i++){
+                nes.ppu.ptTile[baseIndex+i] = vromTile[((bank2k%2)<<7)+i];
+            }
+        }
+    },
+
+    load8kRomBank:function(bank8k,address){
+        var bank16k = parseInt(bank8k/2,10)%nes.rom.romCount;
+        var offset = (bank8k%2)*8192;
         //nes.cpu.mem.write(address,nes.rom.rom[bank16k],offset,8192);
-        arraycopy(nes.rom.rom[bank16k], offset, 
-                  nes.cpu.mem, address, 8192);
+        arraycopy(nes.rom.rom[bank16k],offset,nes.cpu.mem,address,8192);
     },
 
     clockIrqCounter: function() {
-        // Does nothing. This is used by the MMC3 mapper.
+        //Used by MMC3.
     },
 
     latchAccess: function(address) {
-        // Does nothing. This is used by MMC2.
-    }
+        //Used by MMC2.
+    },
+
 };
 
 //==============
@@ -758,10 +737,10 @@ nes.mappers[4] = function() {
 nes.mappers[4].prototype = new nes.mappers[0]();
 
 nes.mappers[4].prototype.write = function(address, value) {
-    // Writes to addresses other than MMC registers are handled by NoMapper.
-    if (address < 0x8000) {
-        nes.mappers[0].prototype.write.apply(this, arguments);
-        return;
+
+    //Writes below MMC registers are handled by mmc0.
+    if(address < 0x8000){
+        return nes.mappers[0].prototype.write.apply(this,arguments);
     }
 
     switch (address) {

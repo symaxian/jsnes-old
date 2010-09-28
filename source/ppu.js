@@ -1,122 +1,30 @@
-/*
-JSNES, based on Jamie Sanders' vNES
-Copyright (C) 2010 Ben Firshman
+//=============================
+//== Picture Processing Unit ==
+//=============================
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+nes.ppu = {
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+//Properties
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+    clipToTvSize:true,
+    showSpr0Hit:false,
 
-JSNES.PPU = function(nes) {
-    this.nes = nes;
-    
-    // Keep Chrome happy
-    this.vramMem = null;
-    this.spriteMem = null;
-    this.vramAddress = null;
-    this.vramTmpAddress = null;
-    this.vramBufferedReadValue = null;
-    this.firstWrite = null;
-    this.sramAddress = null;
-    this.mapperIrqCounter     = null;
-    this.requestEndFrame = null;
-    this.nmiOk = null;
-    this.dummyCycleToggle = null;
-    this.validTileData = null;
-    this.nmiCounter = null;
-    this.scanlineAlreadyRendered = null;
-    this.f_nmiOnVblank = null;   
-    this.f_spriteSize = null;
-    this.f_bgPatternTable = null;
-    this.f_spPatternTable = null;
-    this.f_addrInc = null;
-    this.f_nTblAddress = null;
-    this.f_color = null;
-    this.f_spVisibility = null;
-    this.f_bgVisibility = null;
-    this.f_spClipping = null;
-    this.f_bgClipping = null;
-    this.f_dispType = null;
-    this.cntFV = null;
-    this.cntV = null;
-    this.cntH = null;
-    this.cntVT = null;
-    this.cntHT = null;
-    this.regFV = null;
-    this.regV = null;
-    this.regH = null;
-    this.regVT = null;
-    this.regHT = null;
-    this.regFH = null;
-    this.regS = null;
-    this.curNt = null;
-    this.attrib = null;
-    this.buffer = null;
-    this.bgbuffer = null;
-    this.pixrendered = null;
-    this.spr0dummybuffer = null;
-    this.dummyPixPriTable = null;
-    this.validTileData = null;
-    this.scantile = null;
-    this.scanline = null;
-    this.lastRenderedScanline = null;
-    this.curX = null;
-    this.sprX = null; 
-    this.sprY = null; 
-    this.sprTile = null; 
-    this.sprCol = null; 
-    this.vertFlip = null; 
-    this.horiFlip = null; 
-    this.bgPriority = null; 
-    this.spr0HitX = null; 
-    this.spr0HitY = null; 
-    this.hitSpr0 = null;
-    this.sprPalette = null;
-    this.imgPalette = null;
-    this.ptTile = null;
-    this.ntable1 = null;
-    this.nameTable = null;
-    this.vramMirrorTable = null;
-    this.palTable = null;
-    
-    
-    // Rendering Options:
-    this.showSpr0Hit = false;
-    this.clipToTvSize = true;
-    
-    this.reset();
+//Methods
 
-};
-
-JSNES.PPU.prototype = {
-
-    // Status flags:
-    STATUS_VRAMWRITE: 4,
-    STATUS_SLSPRITECOUNT: 5,
-    STATUS_SPRITE0HIT: 6,
-    STATUS_VBLANK: 7,
-    
     reset:function(){
         
-        // Memory
+        //Reset the vram.
         this.vramMem = new Array(0x8000);
-        this.spriteMem = new Array(0x100);
-        for (var i=0; i<this.vramMem.length; i++) {
+        for(var i=0;i<this.vramMem.length;i++){
             this.vramMem[i] = 0;
         }
-        for (var i=0; i<this.spriteMem.length; i++) {
+
+        //Reset the sprite memory.
+        this.spriteMem = new Array(0x100);
+        for(var i=0;i<this.spriteMem.length;i++){
             this.spriteMem[i] = 0;
         }
-        
+
         // VRAM I/O:
         this.vramAddress = null;
         this.vramTmpAddress = null;
@@ -126,23 +34,21 @@ JSNES.PPU.prototype = {
         // SPR-RAM I/O:
         this.sramAddress = 0; // 8-bit only.
         
-        this.mapperIrqCounter     = 0;
+        this.mapperIrqCounter = 0;
         this.requestEndFrame = false;
-        this.nmiOk = false;
         this.dummyCycleToggle = false;
         this.validTileData = false;
         this.nmiCounter = 0;
-        this.scanlineAlreadyRendered = null;
-        
-        // Control Flags Register 1:
+
+        //Control Register
         this.f_nmiOnVblank = 0;    // NMI on VBlank. 0=disable, 1=enable
         this.f_spriteSize = 0;     // Sprite size. 0=8x8, 1=8x16
         this.f_bgPatternTable = 0; // Background Pattern Table address. 0=0x0000,1=0x1000
         this.f_spPatternTable = 0; // Sprite Pattern Table address. 0=0x0000,1=0x1000
         this.f_addrInc = 0;        // PPU Address Increment. 0=1,1=32
         this.f_nTblAddress = 0;    // Name Table Address. 0=0x2000,1=0x2400,2=0x2800,3=0x2C00
-        
-        // Control Flags Register 2:
+
+        //Masking Register
         this.f_color = 0;         // Background color. 0=black, 1=blue, 2=green, 4=red
         this.f_spVisibility = 0;   // Sprite visibility. 0=not displayed,1=displayed
         this.f_bgVisibility = 0;   // Background visibility. 0=Not Displayed,1=displayed
@@ -176,18 +82,16 @@ JSNES.PPU.prototype = {
         this.buffer = new Array(256*240);
         this.bgbuffer = new Array(256*240);
         this.pixrendered = new Array(256*240);
-        this.spr0dummybuffer = new Array(256*240);
-        this.dummyPixPriTable = new Array(256*240);
 
         this.validTileData = null;
 
         this.scantile = new Array(32);
-        
+
         // Initialize misc vars:
         this.scanline = 0;
         this.lastRenderedScanline = -1;
         this.curX = 0;
-        
+
         // Sprite data:
         this.sprX = new Array(64); // X coordinate
         this.sprY = new Array(64); // Y coordinate
@@ -199,52 +103,52 @@ JSNES.PPU.prototype = {
         this.spr0HitX = 0; // Sprite #0 hit X coordinate
         this.spr0HitY = 0; // Sprite #0 hit Y coordinate
         this.hitSpr0 = false;
-        
+
         // Palette data:
         this.sprPalette = new Array(16);
         this.imgPalette = new Array(16);
-        
+
         // Create pattern table tile buffers:
         this.ptTile = new Array(512);
-        for (i=0; i<512; i++) {
+        for(var i=0;i<512;i++){
             this.ptTile[i] = new Tile();
         }
-        
+
         // Create nametable buffers:
         // Name table data:
         this.ntable1 = new Array(4);
         this.nameTable = new Array(4);
         for (var i=0; i<4; i++) {
-            this.nameTable[i] = new JSNES.PPU.NameTable(32, 32, "Nt"+i);
+            this.nameTable[i] = new JSNES.PPU.NameTable(32,32);
         }
-        
+
         // Initialize mirroring lookup table:
         this.vramMirrorTable = new Array(0x8000);
         for (var i=0; i<0x8000; i++) {
             this.vramMirrorTable[i] = i;
         }
-        
+
         this.palTable = new JSNES.PPU.PaletteTable();
         this.palTable.loadNTSCPalette();
-        //this.palTable.loadDefaultPalette();
-        
+
         this.updateControlReg1(0);
         this.updateControlReg2(0);
-    },
-    
-    // Sets Nametable mirroring.
-    setMirroring: function(mirroring){
 
+    },
+
+    setMirroring:function(mirroring){
+
+        //??
         this.triggerRendering();
     
-        // Remove mirroring:
-        if (this.vramMirrorTable === null) {
+        //Remove mirroring
+        if(this.vramMirrorTable === null){
             this.vramMirrorTable = new Array(0x8000);
         }
-        for (var i=0; i<0x8000; i++) {
+        for(var i=0;i<0x8000;i++){
             this.vramMirrorTable[i] = i;
         }
-        
+
         // Palette mirroring:
         this.defineMirrorRegion(0x3f20,0x3f00,0x20);
         this.defineMirrorRegion(0x3f40,0x3f00,0x20);
@@ -319,7 +223,7 @@ JSNES.PPU.prototype = {
     startVBlank: function(){
 
         // Do NMI:
-        this.nes.cpu.requestIrq(1);
+        nes.cpu.requestIrq(1);
         
         // Make sure everything is rendered:
         if (this.lastRenderedScanline < 239) {
@@ -352,10 +256,10 @@ JSNES.PPU.prototype = {
                 
             case 20:
                 // Clear VBlank flag:
-                this.setStatusFlag(this.STATUS_VBLANK,false);
+                this.setStatusFlag(7,false);
 
                 // Clear Sprite #0 hit flag:
-                this.setStatusFlag(this.STATUS_SPRITE0HIT,false);
+                this.setStatusFlag(6,false);
                 this.hitSpr0 = false;
                 this.spr0HitX = -1;
                 this.spr0HitY = -1;
@@ -385,14 +289,14 @@ JSNES.PPU.prototype = {
 
                 if (this.f_bgVisibility==1 || this.f_spVisibility==1) {
                     // Clock mapper IRQ Counter:
-                    this.nes.mmc.clockIrqCounter();
+                    nes.mmc.clockIrqCounter();
                 }
                 break;
                 
             case 261:
                 // Dead scanline, no rendering.
                 // Set VINT:
-                this.setStatusFlag(this.STATUS_VBLANK,true);
+                this.setStatusFlag(7,true);
                 this.requestEndFrame = true;
                 this.nmiCounter = 9;
             
@@ -407,13 +311,10 @@ JSNES.PPU.prototype = {
                     // Render normally:
                     if (this.f_bgVisibility == 1) {
 
-                        if (!this.scanlineAlreadyRendered) {
-                            // update scroll:
-                            this.cntHT = this.regHT;
-                            this.cntH = this.regH;
-                            this.renderBgScanline(true,this.scanline+1-21);
-                        }
-                        this.scanlineAlreadyRendered=false;
+                        // update scroll:
+                        this.cntHT = this.regHT;
+                        this.cntH = this.regH;
+                        this.renderBgScanline(true,this.scanline+1-21);
 
                         // Check for sprite 0 (next scanline):
                         if (!this.hitSpr0 && this.f_spVisibility == 1) {
@@ -433,7 +334,7 @@ JSNES.PPU.prototype = {
 
                     if (this.f_bgVisibility==1 || this.f_spVisibility==1) {
                         // Clock mapper IRQ Counter:
-                        this.nes.mmc.clockIrqCounter();
+                        nes.mmc.clockIrqCounter();
                     }
                 }
         }
@@ -554,7 +455,7 @@ JSNES.PPU.prototype = {
         }
 
         //Write the buffer to the screen.
-        this.nes.screen.writeFrame(this.buffer);
+        nes.screen.writeFrame(this.buffer);
 
     },
     
@@ -594,20 +495,20 @@ JSNES.PPU.prototype = {
     
     setStatusFlag: function(flag, value){
         var n = 1<<flag;
-        this.nes.cpu.mem[0x2002] = ((this.nes.cpu.mem[0x2002] & (255-n)) | (value?n:0));
+        nes.cpu.mem[0x2002] = ((nes.cpu.mem[0x2002] & (255-n)) | (value?n:0));
     },
     
     // CPU Register $2002:
     // Read the Status Register.
     readStatusRegister: function(){
         
-        var tmp = this.nes.cpu.mem[0x2002];
+        var tmp = nes.cpu.mem[0x2002];
         
         // Reset scroll & VRAM Address toggle:
         this.firstWrite = true;
         
         // Clear VBlank flag:
-        this.setStatusFlag(this.STATUS_VBLANK,false);
+        this.setStatusFlag(7,false);
         
         // Fetch status data:
         return tmp;
@@ -697,7 +598,7 @@ JSNES.PPU.prototype = {
         // Invoke mapper latch:
         this.cntsToAddress();
         if (this.vramAddress < 0x2000) {
-            this.nes.mmc.latchAccess(this.vramAddress);
+            nes.mmc.latchAccess(this.vramAddress);
         }   
     },
     
@@ -725,7 +626,7 @@ JSNES.PPU.prototype = {
             
             // Mapper latch access:
             if (this.vramAddress < 0x2000) {
-                this.nes.mmc.latchAccess(this.vramAddress);
+                nes.mmc.latchAccess(this.vramAddress);
             }
             
             // Increment by either 1 or 32, depending on d2 of Control Register 1:
@@ -766,7 +667,7 @@ JSNES.PPU.prototype = {
             this.writeMem(this.vramAddress,value);
             
             // Invoke mapper latch:
-            this.nes.mmc.latchAccess(this.vramAddress);
+            nes.mmc.latchAccess(this.vramAddress);
             
         }
         
@@ -784,12 +685,12 @@ JSNES.PPU.prototype = {
         var baseAddress = value * 0x100;
         var data;
         for (var i=this.sramAddress; i < 256; i++) {
-            data = this.nes.cpu.mem[baseAddress+i];
+            data = nes.cpu.mem[baseAddress+i];
             this.spriteMem[i] = data;
             this.spriteRamWriteUpdate(i, data);
         }
         
-        this.nes.cpu.haltCycles(513);
+        nes.cpu.haltCycles(513);
         
     },
     
@@ -1078,29 +979,30 @@ JSNES.PPU.prototype = {
                     // Show sprite.
                     if (this.f_spriteSize === 0) {
                         // 8x8 sprites
-                        
-                        this.srcy1 = 0;
-                        this.srcy2 = 8;
-                        
-                        if (this.sprY[i]<startscan) {
+
+                        if(this.sprY[i]<startscan){
                             this.srcy1 = startscan - this.sprY[i]-1;
                         }
+                        else{
+                            this.srcy1 = 0;
+                        }
                         
-                        if (this.sprY[i]+8 > startscan+scancount) {
+                        if(this.sprY[i]+8 > startscan+scancount){
                             this.srcy2 = startscan+scancount-this.sprY[i]+1;
                         }
-                        
-                        if (this.f_spPatternTable===0) {
-                            this.ptTile[this.sprTile[i]].render(this.buffer, 
-                                0, this.srcy1, 8, this.srcy2, this.sprX[i], 
-                                this.sprY[i]+1, this.sprCol[i], this.sprPalette, 
-                                this.horiFlip[i], this.vertFlip[i], i, 
-                                this.pixrendered
-                            );
-                        }else {
-                            this.ptTile[this.sprTile[i]+256].render(this.buffer, 0, this.srcy1, 8, this.srcy2, this.sprX[i], this.sprY[i]+1, this.sprCol[i], this.sprPalette, this.horiFlip[i], this.vertFlip[i], i, this.pixrendered);
+                        else{
+                            this.srcy2 = 8;
                         }
-                    }else {
+
+                        if(this.f_spPatternTable === 0){
+                            this.ptTile[this.sprTile[i]].render(0,this.srcy1,8,this.srcy2,this.sprX[i],this.sprY[i]+1,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
+                        }
+                        else{
+                            this.ptTile[this.sprTile[i]+256].render(0,this.srcy1,8,this.srcy2,this.sprX[i],this.sprY[i]+1,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
+                        }
+
+                    }
+                    else{
                         // 8x16 sprites
                         var top = this.sprTile[i];
                         if ((top&1)!==0) {
@@ -1118,21 +1020,7 @@ JSNES.PPU.prototype = {
                             srcy2 = startscan+scancount-this.sprY[i];
                         }
                         
-                        this.ptTile[top+(this.vertFlip[i]?1:0)].render(
-                            this.buffer,
-                            0,
-                            srcy1,
-                            8,
-                            srcy2,
-                            this.sprX[i],
-                            this.sprY[i]+1,
-                            this.sprCol[i],
-                            this.sprPalette,
-                            this.horiFlip[i],
-                            this.vertFlip[i],
-                            i,
-                            this.pixrendered
-                        );
+                        this.ptTile[top+(this.vertFlip[i]?1:0)].render(0,srcy1,8,srcy2,this.sprX[i],this.sprY[i]+1,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
                         
                         srcy1 = 0;
                         srcy2 = 8;
@@ -1145,21 +1033,7 @@ JSNES.PPU.prototype = {
                             srcy2 = startscan+scancount-(this.sprY[i]+8);
                         }
                         
-                        this.ptTile[top+(this.vertFlip[i]?0:1)].render(
-                            this.buffer,
-                            0,
-                            srcy1,
-                            8,
-                            srcy2,
-                            this.sprX[i],
-                            this.sprY[i]+1+8,
-                            this.sprCol[i],
-                            this.sprPalette,
-                            this.horiFlip[i],
-                            this.vertFlip[i],
-                            i,
-                            this.pixrendered
-                        );
+                        this.ptTile[top+(this.vertFlip[i]?0:1)].render(0,srcy1,8,srcy2,this.sprX[i],this.sprY[i]+1+8,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
                         
                     }
                 }
@@ -1448,58 +1322,65 @@ JSNES.PPU.prototype = {
             this.sprX[tIndex] = value;
         }
     },
-    
-    doNMI: function(){
+
+    doNMI:function(){
         // Set VBlank flag:
-        this.setStatusFlag(this.STATUS_VBLANK,true);
+        this.setStatusFlag(7,true);
         //nes.getCpu().doNonMaskableInterrupt();
-        this.nes.cpu.requestIrq(1);
-    }
+        nes.cpu.requestIrq(1);
+    },
+
 };
 
-JSNES.PPU.NameTable = function(width, height, name) {   
+//================
+//== Name Table ==
+//================
+
+JSNES.PPU.NameTable = function(width,height){
+
     this.width = width;
     this.height = height;
-    this.name = name;
-    
+
     this.tile = new Array(width*height);
     this.attrib = new Array(width*height);
+
 };
 
 JSNES.PPU.NameTable.prototype = {
-    getTileIndex: function(x, y){
+
+    getTileIndex:function(x,y){
         return this.tile[y*this.width+x];
     },
 
-    getAttrib: function(x, y){
+    getAttrib:function(x,y){
         return this.attrib[y*this.width+x];
     },
 
-    writeAttrib: function(index, value){
-        var basex = (index % 8) * 4;
-        var basey = parseInt(index / 8, 10) * 4;
-        var add;
-        var tx, ty;
-        var attindex;
-    
-        for (var sqy=0;sqy<2;sqy++) {
-            for (var sqx=0;sqx<2;sqx++) {
-                add = (value>>(2*(sqy*2+sqx)))&3;
-                for (var y=0;y<2;y++) {
-                    for (var x=0;x<2;x++) {
-                        tx = basex+sqx*2+x;
-                        ty = basey+sqy*2+y;
-                        attindex = ty*this.width+tx;
+    writeAttrib:function(index,value){
+
+        var basex = (index%8)*4;
+        var basey = parseInt(index/8,10)*4;
+
+        for(var sqy=0;sqy<2;sqy++){
+            for(var sqx=0;sqx<2;sqx++){
+                var add = (value>>(2*(sqy*2+sqx)))&3;
+                for(var y=0;y<2;y++){
+                    for(var x=0;x<2;x++){
+                        var tx = basex+sqx*2+x;
+                        var ty = basey+sqy*2+y;
+                        var attindex = ty*this.width+tx;
                         this.attrib[ty*this.width+tx] = (add<<2)&12;
                     }
                 }
             }
         }
-    }
+    },
+
 };
 
-
-
+//===================
+//== Color Palette ==
+//===================
 
 JSNES.PPU.PaletteTable = function() {
     this.curTable = new Array(64);
@@ -1513,13 +1394,13 @@ JSNES.PPU.PaletteTable.prototype = {
     },
     
     loadNTSCPalette: function() {
-        this.curTable = [0x525252, 0xB40000, 0xA00000, 0xB1003D, 0x740069, 0x00005B, 0x00005F, 0x001840, 0x002F10, 0x084A08, 0x006700, 0x124200, 0x6D2800, 0x000000, 0x000000, 0x000000, 0xC4D5E7, 0xFF4000, 0xDC0E22, 0xFF476B, 0xD7009F, 0x680AD7, 0x0019BC, 0x0054B1, 0x006A5B, 0x008C03, 0x00AB00, 0x2C8800, 0xA47200, 0x000000, 0x000000, 0x000000, 0xF8F8F8, 0xFFAB3C, 0xFF7981, 0xFF5BC5, 0xFF48F2, 0xDF49FF, 0x476DFF, 0x00B4F7, 0x00E0FF, 0x00E375, 0x03F42B, 0x78B82E, 0xE5E218, 0x787878, 0x000000, 0x000000, 0xFFFFFF, 0xFFF2BE, 0xF8B8B8, 0xF8B8D8, 0xFFB6FF, 0xFFC3FF, 0xC7D1FF, 0x9ADAFF, 0x88EDF8, 0x83FFDD, 0xB8F8B8, 0xF5F8AC, 0xFFFFB0, 0xF8D8F8, 0x000000, 0x000000];
+        this.curTable = [0x525252,0xB40000,0xA00000,0xB1003D,0x740069,0x00005B,0x00005F,0x001840,0x002F10,0x084A08,0x006700,0x124200,0x6D2800,0x000000,0x000000,0x000000,0xC4D5E7,0xFF4000,0xDC0E22,0xFF476B,0xD7009F,0x680AD7,0x0019BC,0x0054B1,0x006A5B,0x008C03,0x00AB00,0x2C8800,0xA47200,0x000000,0x000000,0x000000,0xF8F8F8,0xFFAB3C,0xFF7981,0xFF5BC5,0xFF48F2,0xDF49FF,0x476DFF,0x00B4F7,0x00E0FF,0x00E375,0x03F42B,0x78B82E,0xE5E218,0x787878,0x000000,0x000000,0xFFFFFF,0xFFF2BE,0xF8B8B8,0xF8B8D8,0xFFB6FF,0xFFC3FF,0xC7D1FF,0x9ADAFF,0x88EDF8,0x83FFDD,0xB8F8B8,0xF5F8AC,0xFFFFB0,0xF8D8F8,0x000000,0x000000];
         this.makeTables();
         this.setEmphasis(0);
     },
     
     loadPALPalette: function() {
-        this.curTable = [0x525252, 0xB40000, 0xA00000, 0xB1003D, 0x740069, 0x00005B, 0x00005F, 0x001840, 0x002F10, 0x084A08, 0x006700, 0x124200, 0x6D2800, 0x000000, 0x000000, 0x000000, 0xC4D5E7, 0xFF4000, 0xDC0E22, 0xFF476B, 0xD7009F, 0x680AD7, 0x0019BC, 0x0054B1, 0x006A5B, 0x008C03, 0x00AB00, 0x2C8800, 0xA47200, 0x000000, 0x000000, 0x000000, 0xF8F8F8, 0xFFAB3C, 0xFF7981, 0xFF5BC5, 0xFF48F2, 0xDF49FF, 0x476DFF, 0x00B4F7, 0x00E0FF, 0x00E375, 0x03F42B, 0x78B82E, 0xE5E218, 0x787878, 0x000000, 0x000000, 0xFFFFFF, 0xFFF2BE, 0xF8B8B8, 0xF8B8D8, 0xFFB6FF, 0xFFC3FF, 0xC7D1FF, 0x9ADAFF, 0x88EDF8, 0x83FFDD, 0xB8F8B8, 0xF5F8AC, 0xFFFFB0, 0xF8D8F8, 0x000000, 0x000000];
+        this.curTable = [0x525252,0xB40000,0xA00000,0xB1003D,0x740069,0x00005B,0x00005F,0x001840,0x002F10,0x084A08,0x006700,0x124200,0x6D2800,0x000000,0x000000,0x000000,0xC4D5E7,0xFF4000,0xDC0E22,0xFF476B,0xD7009F,0x680AD7,0x0019BC,0x0054B1,0x006A5B,0x008C03,0x00AB00,0x2C8800,0xA47200,0x000000,0x000000,0x000000,0xF8F8F8,0xFFAB3C,0xFF7981,0xFF5BC5,0xFF48F2,0xDF49FF,0x476DFF,0x00B4F7,0x00E0FF,0x00E375,0x03F42B,0x78B82E,0xE5E218,0x787878,0x000000,0x000000,0xFFFFFF,0xFFF2BE,0xF8B8B8,0xF8B8D8,0xFFB6FF,0xFFC3FF,0xC7D1FF,0x9ADAFF,0x88EDF8,0x83FFDD,0xB8F8B8,0xF5F8AC,0xFFFFB0,0xF8D8F8,0x000000,0x000000];
         this.makeTables();
         this.setEmphasis(0);
     },
@@ -1662,127 +1543,131 @@ JSNES.PPU.PaletteTable.prototype = {
 //== Tile ==
 //==========
 
-Tile = function() {
-    // Tile data:
+Tile = function(){
+
+    //Tile Data
     this.pix = new Array(64);
-    
+
     this.fbIndex = null;
     this.tIndex = null;
-    this.x = null;
-    this.y = null;
-    this.w = null;
-    this.h = null;
-    this.incX = null;
-    this.incY = null;
     this.palIndex = null;
     this.tpri = null;
-    this.c = null;
-    this.initialized = false;
     this.opaque = new Array(8);
+
 };
 
 Tile.prototype = {
-    setBuffer: function(scanline){
-        for (this.y=0;this.y<8;this.y++) {
-            this.setScanline(this.y,scanline[this.y],scanline[this.y+8]);
+
+    setBuffer:function(scanline){
+        for(var y=0;y<8;y++){
+            this.setScanline(y,scanline[y],scanline[y+8]);
         }
     },
-    
-    setScanline: function(sline, b1, b2){
-        this.initialized = true;
+
+    setScanline:function(sline,b1,b2){
         this.tIndex = sline<<3;
-        for (this.x = 0; this.x < 8; this.x++) {
-            this.pix[this.tIndex + this.x] = ((b1 >> (7 - this.x)) & 1) +
-                    (((b2 >> (7 - this.x)) & 1) << 1);
-            if(this.pix[this.tIndex+this.x] === 0) {
+        for(var x=0;x<8;x++){
+            this.pix[this.tIndex+x] = ((b1 >> (7 - x)) & 1) +(((b2 >> (7 - x)) & 1) << 1);
+            if(this.pix[this.tIndex+x] === 0){
                 this.opaque[sline] = false;
             }
         }
     },
-    
-    render: function(buffer, srcx1, srcy1, srcx2, srcy2, dx, dy, palAdd, palette, flipHorizontal, flipVertical, pri, priTable) {
 
-        if (dx<-7 || dx>=256 || dy<-7 || dy>=240) {
+    render:function(srcx1,srcy1,srcx2,srcy2,dx,dy,palAdd,flipHorizontal,flipVertical,pri){
+
+        var palette = nes.ppu.sprPalette;
+        var priTable = nes.ppu.pixrendered;
+
+        if(dx<-7 || dx>=256 || dy<-7 || dy>=240){
             return;
         }
 
-        this.w=srcx2-srcx1;
-        this.h=srcy2-srcy1;
-    
-        if (dx<0) {
-            srcx1-=dx;
+        if(dx<0){
+            srcx1 -= dx;
         }
-        if (dx+srcx2>=256) {
-            srcx2=256-dx;
+
+        if(dx+srcx2>=256){
+            srcx2 = 256-dx;
         }
     
-        if (dy<0) {
-            srcy1-=dy;
+        if(dy<0){
+            srcy1 -= dy;
         }
-        if (dy+srcy2>=240) {
-            srcy2=240-dy;
+
+        if(dy+srcy2>=240){
+            srcy2 = 240-dy;
         }
-    
-        if (!flipHorizontal && !flipVertical) {
-        
-            this.fbIndex = (dy<<8)+dx;
-            this.tIndex = 0;
-            for (this.y=0;this.y<8;this.y++) {
-                for (this.x=0;this.x<8;this.x++) {
-                    if (this.x>=srcx1 && this.x<srcx2 && this.y>=srcy1 && this.y<srcy2) {
-                        this.palIndex = this.pix[this.tIndex];
-                        this.tpri = priTable[this.fbIndex];
-                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)) {
-                            //console.log("Rendering upright tile to buffer");
-                            buffer[this.fbIndex] = palette[this.palIndex+palAdd];
-                            this.tpri = (this.tpri&0xF00)|pri;
-                            priTable[this.fbIndex] =this.tpri;
+
+        if(flipHorizontal){
+            if(flipVertical){
+
+                //Draw the sprite flipped horizontally and vertically.
+
+                this.fbIndex = (dy<<8)+dx;
+                this.tIndex = 63;
+                for(var y=0;y<8;y++){
+                    for(var x=0;x<8;x++){
+                        if(x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
+                            this.palIndex = this.pix[this.tIndex];
+                            this.tpri = priTable[this.fbIndex];
+                            if(this.palIndex!==0 && pri<=(this.tpri&0xFF)){
+                                nes.ppu.buffer[this.fbIndex] = palette[this.palIndex+palAdd];
+                                this.tpri = (this.tpri&0xF00)|pri;
+                                priTable[this.fbIndex] = this.tpri;
+                            }
                         }
+                        this.fbIndex++;
+                        this.tIndex--;
                     }
-                    this.fbIndex++;
-                    this.tIndex++;
+                    this.fbIndex-=8;
+                    this.fbIndex+=256;
                 }
-                this.fbIndex-=8;
-                this.fbIndex+=256;
+
             }
-        
-        }else if (flipHorizontal && !flipVertical) {
-        
-            this.fbIndex = (dy<<8)+dx;
-            this.tIndex = 7;
-            for (this.y=0;this.y<8;this.y++) {
-                for (this.x=0;this.x<8;this.x++) {
-                    if (this.x>=srcx1 && this.x<srcx2 && this.y>=srcy1 && this.y<srcy2) {
-                        this.palIndex = this.pix[this.tIndex];
-                        this.tpri = priTable[this.fbIndex];
-                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)) {
-                            buffer[this.fbIndex] = palette[this.palIndex+palAdd];
-                            this.tpri = (this.tpri&0xF00)|pri;
-                            priTable[this.fbIndex] =this.tpri;
+            else{
+
+                //Draw the sprite flipped horizontally.
+
+                this.fbIndex = (dy<<8)+dx;
+                this.tIndex = 7;
+                for(var y=0;y<8;y++){
+                    for(var x=0;x<8;x++){
+                        if (x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
+                            this.palIndex = this.pix[this.tIndex];
+                            this.tpri = priTable[this.fbIndex];
+                            if(this.palIndex!==0 && pri<=(this.tpri&0xFF)){
+                                nes.ppu.buffer[this.fbIndex] = palette[this.palIndex+palAdd];
+                                this.tpri = (this.tpri&0xF00)|pri;
+                                priTable[this.fbIndex] = this.tpri;
+                            }
                         }
+                        this.fbIndex++;
+                        this.tIndex--;
                     }
-                    this.fbIndex++;
-                    this.tIndex--;
+                    this.fbIndex-=8;
+                    this.fbIndex+=256;
+                    this.tIndex+=16;
                 }
-                this.fbIndex-=8;
-                this.fbIndex+=256;
-                this.tIndex+=16;
+
             }
-        
+
         }
-        else if(flipVertical && !flipHorizontal) {
-        
+        else if(flipVertical){
+
+            //Draw the sprite flipped vertically.
+
             this.fbIndex = (dy<<8)+dx;
             this.tIndex = 56;
-            for (this.y=0;this.y<8;this.y++) {
-                for (this.x=0;this.x<8;this.x++) {
-                    if (this.x>=srcx1 && this.x<srcx2 && this.y>=srcy1 && this.y<srcy2) {
+            for(var y=0;y<8;y++){
+                for(var x=0;x<8;x++){
+                    if(x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
                         this.palIndex = this.pix[this.tIndex];
                         this.tpri = priTable[this.fbIndex];
-                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)) {
-                            buffer[this.fbIndex] = palette[this.palIndex+palAdd];
+                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)){
+                            nes.ppu.buffer[this.fbIndex] = palette[this.palIndex+palAdd];
                             this.tpri = (this.tpri&0xF00)|pri;
-                            priTable[this.fbIndex] =this.tpri;
+                            priTable[this.fbIndex] = this.tpri;
                         }
                     }
                     this.fbIndex++;
@@ -1792,34 +1677,34 @@ Tile.prototype = {
                 this.fbIndex+=256;
                 this.tIndex-=16;
             }
-        
+
         }
-        else {
+        else{
+
+            //Draw the sprite normally.
+
             this.fbIndex = (dy<<8)+dx;
-            this.tIndex = 63;
-            for (this.y=0;this.y<8;this.y++) {
-                for (this.x=0;this.x<8;this.x++) {
-                    if (this.x>=srcx1 && this.x<srcx2 && this.y>=srcy1 && this.y<srcy2) {
+            this.tIndex = 0;
+            for(var y=0;y<8;y++){
+                for(var x=0;x<8;x++){
+                    if(x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
                         this.palIndex = this.pix[this.tIndex];
                         this.tpri = priTable[this.fbIndex];
-                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)) {
-                            buffer[this.fbIndex] = palette[this.palIndex+palAdd];
+                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)){
+                            nes.ppu.buffer[this.fbIndex] = palette[this.palIndex+palAdd];
                             this.tpri = (this.tpri&0xF00)|pri;
-                            priTable[this.fbIndex] =this.tpri;
+                            priTable[this.fbIndex] = this.tpri;
                         }
                     }
                     this.fbIndex++;
-                    this.tIndex--;
+                    this.tIndex++;
                 }
                 this.fbIndex-=8;
                 this.fbIndex+=256;
             }
-        
+
         }
-    
+
     },
-    
-    isTransparent: function(x, y){
-        return (this.pix[(y<<3)+x] === 0);
-    }
+
 };
