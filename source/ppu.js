@@ -25,14 +25,14 @@ nes.ppu = {
             this.spriteMem[i] = 0;
         }
 
-        // VRAM I/O:
+        //VRAM I/O:
         this.vramAddress = null;
         this.vramTmpAddress = null;
         this.vramBufferedReadValue = 0;
-        this.firstWrite = true;       // VRAM/Scroll Hi/Lo latch
+        this.firstWrite = true;       //VRAM/Scroll Hi/Lo latch
 
-        // SPR-RAM I/O:
-        this.sramAddress = 0; // 8-bit only.
+        //SPR-RAM I/O:
+        this.sramAddress = 0; //8-bit only.
 
         this.mapperIrqCounter = 0;
         this.requestEndFrame = false;
@@ -41,20 +41,20 @@ nes.ppu = {
         this.nmiCounter = 0;
 
         //Control Register
-        this.f_nmiOnVblank = 0;    // NMI on VBlank. 0=disable, 1=enable
-        this.f_spriteSize = 0;     // Sprite size. 0=8x8, 1=8x16
-        this.f_bgPatternTable = 0; // Background Pattern Table address. 0=0x0000,1=0x1000
-        this.f_spPatternTable = 0; // Sprite Pattern Table address. 0=0x0000,1=0x1000
-        this.f_addrInc = 0;        // PPU Address Increment. 0=1,1=32
-        this.f_nTblAddress = 0;    // Name Table Address. 0=0x2000,1=0x2400,2=0x2800,3=0x2C00
+        this.f_nmiOnVblank = 0;    //NMI on VBlank. 0=disable, 1=enable
+        this.f_spriteSize = 0;     //Sprite size. 0=8x8, 1=8x16
+        this.f_bgPatternTable = 0; //Background Pattern Table address. 0=0x0000,1=0x1000
+        this.f_spPatternTable = 0; //Sprite Pattern Table address. 0=0x0000,1=0x1000
+        this.f_addrInc = 0;        //PPU Address Increment. 0=1,1=32
+        this.f_nTblAddress = 0;    //Name Table Address. 0=0x2000,1=0x2400,2=0x2800,3=0x2C00
 
         //Masking Register
-        this.f_color = 0;         // Background color. 0=black, 1=blue, 2=green, 4=red
-        this.f_spVisibility = 0;   // Sprite visibility. 0=not displayed,1=displayed
-        this.f_bgVisibility = 0;   // Background visibility. 0=Not Displayed,1=displayed
-        this.f_spClipping = 0;     // Sprite clipping. 0=Sprites invisible in left 8-pixel column,1=No clipping
-        this.f_bgClipping = 0;     // Background clipping. 0=BG invisible in left 8-pixel column, 1=No clipping
-        this.f_dispType = 0;       // Display type. 0=color, 1=monochrome
+        this.f_color = 0;         //Background color. 0=black, 1=blue, 2=green, 4=red
+        this.f_spVisibility = 0;   //Sprite visibility. 0=not displayed,1=displayed
+        this.f_bgVisibility = 0;   //Background visibility. 0=Not Displayed,1=displayed
+        this.f_spClipping = 0;     //Sprite clipping. 0=Sprites invisible in left 8-pixel column,1=No clipping
+        this.f_bgClipping = 0;     //Background clipping. 0=BG invisible in left 8-pixel column, 1=No clipping
+        this.f_dispType = 0;       //Display type. 0=color, 1=monochrome
 
         //Counters
         this.cntFV = 0;
@@ -72,9 +72,9 @@ nes.ppu = {
         this.regFH = 0;
         this.regS = 0;
 
-        // These are temporary variables used in rendering and sound procedures.
-        // Their states outside of those procedures can be ignored.
-        // TODO: the use of this is a bit weird, investigate
+        //These are temporary variables used in rendering and sound procedures.
+        //Their states outside of those procedures can be ignored.
+        //TODO: the use of this is a bit weird, investigate
         this.curNt = null;
 
         //Variables used when rendering.
@@ -93,15 +93,15 @@ nes.ppu = {
         this.curX = 0;
 
         //Sprite data.
-        this.sprX = new Array(64); // X coordinate
-        this.sprY = new Array(64); // Y coordinate
-        this.sprTile = new Array(64); // Tile Index (into pattern table)
-        this.sprCol = new Array(64); // Upper two bits of color
-        this.vertFlip = new Array(64); // Vertical Flip
-        this.horiFlip = new Array(64); // Horizontal Flip
-        this.bgPriority = new Array(64); // Background priority
-        this.spr0HitX = 0; // Sprite #0 hit X coordinate
-        this.spr0HitY = 0; // Sprite #0 hit Y coordinate
+        this.sprX = new Array(64); //X coordinate
+        this.sprY = new Array(64); //Y coordinate
+        this.sprTile = new Array(64); //Tile Index (into pattern table)
+        this.sprCol = new Array(64); //Upper two bits of color
+        this.vertFlip = new Array(64); //Vertical Flip
+        this.horiFlip = new Array(64); //Horizontal Flip
+        this.bgPriority = new Array(64); //Background priority
+        this.spr0HitX = 0; //Sprite #0 hit X coordinate
+        this.spr0HitY = 0; //Sprite #0 hit Y coordinate
         this.hitSpr0 = false;
 
         //Palette data.
@@ -114,15 +114,15 @@ nes.ppu = {
             this.ptTile[i] = new Tile();
         }
 
-        // Create nametable buffers:
-        // Name table data:
+        //Create nametable buffers:
+        //Name table data:
         this.ntable1 = new Array(4);
         this.nameTable = new Array(4);
         for(var i=0;i<4;i++){
             this.nameTable[i] = new JSNES.PPU.NameTable(32,32);
         }
 
-        // Initialize mirroring lookup table:
+        //Initialize mirroring lookup table:
         this.vramMirrorTable = new Array(0x8000);
         for (var i=0; i<0x8000; i++) {
             this.vramMirrorTable[i] = i;
@@ -131,8 +131,8 @@ nes.ppu = {
         this.palTable = new JSNES.PPU.PaletteTable();
         this.palTable.loadNTSCPalette();
 
-        this.updateControlReg1(0);
-        this.updateControlReg2(0);
+        this.setControlRegister(0);
+        this.setMaskingRegister(0);
 
     },
 
@@ -142,9 +142,7 @@ nes.ppu = {
         this.triggerRendering();
 
         //Remove mirroring
-        if(this.vramMirrorTable === null){
-            this.vramMirrorTable = new Array(0x8000);
-        }
+        this.vramMirrorTable = new Array(0x8000);
         for(var i=0;i<0x8000;i++){
             this.vramMirrorTable[i] = i;
         }
@@ -211,16 +209,16 @@ nes.ppu = {
 
     },
 
-    // Define a mirrored area in the address lookup table.
-    // Assumes the regions don't overlap.
-    // The 'to' region is the region that is physically in memory.
+    //Defines a mirrored area in the address lookup table.
+    //Assumes the regions don't overlap.
+    //The 'to' region is the region that is physically in memory.
     defineMirrorRegion:function(from,to,size){
         for(var i=0;i<size;i++){
             this.vramMirrorTable[from+i] = to+i;
         }
     },
 
-    startVBlank: function(){
+    startVBlank:function(){
 
         //Do NMI.
         nes.cpu.requestIrq(1);
@@ -230,28 +228,26 @@ nes.ppu = {
             this.renderFramePartially(this.lastRenderedScanline+1,240-this.lastRenderedScanline);
         }
 
-        // Draw spr#0 hit coordinates:
-        //if (this.showSpr0Hit) {
-        //    // Spr 0 position:
-        //    if (this.sprX[0] >= 0 && this.sprX[0] < 256 &&
-        //            this.sprY[0] >= 0 && this.sprY[0] < 240) {
-        //        for (var i=0; i<256; i++) {  
-        //            buffer[(this.sprY[0]<<8)+i] = 0xFF5555;
-        //        }
-        //        for (var i=0; i<240; i++) {
-        //            buffer[(i<<8)+this.sprX[0]] = 0xFF5555;
-        //        }
-        //    }
-        //    // Hit position:
-        //    if (this.spr0HitX >= 0 && this.spr0HitX < 256 &&
-        //            this.spr0HitY >= 0 && this.spr0HitY < 240) {
-        //        for (var i=0; i<256; i++) {
-        //            buffer[(this.spr0HitY<<8)+i] = 0x55FF55;
-        //        }
-        //        for (var i=0; i<240; i++) {
-        //            buffer[(i<<8)+this.spr0HitX] = 0x55FF55;
-        //        }
-        //    }
+        //Draw spr0 hit coordinates.
+        //if(this.showSpr0Hit){
+        //   //Spr 0 position
+        //   if(this.sprX[0] >= 0 && this.sprX[0] < 256 && this.sprY[0] >= 0 && this.sprY[0] < 240){
+        //       for(var i=0;i<256;i++){
+        //           buffer[(this.sprY[0]<<8)+i] = 0xFF5555;
+        //       }
+        //       for(var i=0;i<240;i++){
+        //           buffer[(i<<8)+this.sprX[0]] = 0xFF5555;
+        //       }
+        //   }
+        //   //Hit position
+        //   if(this.spr0HitX >= 0 && this.spr0HitX < 256 && this.spr0HitY >= 0 && this.spr0HitY < 240){
+        //       for(var i=0;i<256;i++){
+        //           buffer[(this.spr0HitY<<8)+i] = 0x55FF55;
+        //       }
+        //       for(var i=0;i<240;i++){
+        //           buffer[(i<<8)+this.spr0HitX] = 0x55FF55;
+        //       }
+        //   }
         //}
 
         //Check to clip the buffer to the tv size.
@@ -297,12 +293,12 @@ nes.ppu = {
     endScanline:function(){
         switch(this.scanline){
             case 19:
-                // Dummy scanline.
-                // May be variable length:
+                //Dummy scanline.
+                //May be variable length:
                 if (this.dummyCycleToggle) {
 
-                    // Remove dead cycle at end of scanline,
-                    // for next scanline:
+                    //Remove dead cycle at end of scanline,
+                    //for next scanline:
                     this.curX = 1;
                     this.dummyCycleToggle = !this.dummyCycleToggle;
 
@@ -310,10 +306,10 @@ nes.ppu = {
                 break;
                 
             case 20:
-                // Clear VBlank flag:
+                //Clear VBlank flag:
                 this.setStatusFlag(7,false);
 
-                // Clear Sprite #0 hit flag:
+                //Clear Sprite #0 hit flag:
                 this.setStatusFlag(6,false);
                 this.hitSpr0 = false;
                 this.spr0HitX = -1;
@@ -321,7 +317,7 @@ nes.ppu = {
 
                 if (this.f_bgVisibility == 1 || this.f_spVisibility==1) {
 
-                    // Update counters:
+                    //Update counters:
                     this.cntFV = this.regFV;
                     this.cntV = this.regV;
                     this.cntH = this.regH;
@@ -329,7 +325,7 @@ nes.ppu = {
                     this.cntHT = this.regHT;
 
                     if (this.f_bgVisibility==1) {
-                        // Render dummy scanline:
+                        //Render dummy scanline:
                         this.renderBgScanline(this.buffer,0);
                     }   
 
@@ -337,20 +333,20 @@ nes.ppu = {
 
                 if (this.f_bgVisibility==1 && this.f_spVisibility==1) {
 
-                    // Check sprite 0 hit for first scanline:
+                    //Check sprite 0 hit for first scanline:
                     this.checkSprite0(0);
 
                 }
 
                 if (this.f_bgVisibility==1 || this.f_spVisibility==1) {
-                    // Clock mapper IRQ Counter:
+                    //Clock mapper IRQ Counter:
                     nes.mmc.clockIrqCounter();
                 }
                 break;
                 
             case 261:
-                // Dead scanline, no rendering.
-                // Set VINT:
+                //Dead scanline, no rendering.
+                //Set VINT:
                 this.setStatusFlag(7,true);
                 this.requestEndFrame = true;
                 this.nmiCounter = 9;
@@ -363,15 +359,15 @@ nes.ppu = {
             default:
                 if(this.scanline >= 21 && this.scanline <= 260){
 
-                    // Render normally:
+                    //Render normally:
                     if (this.f_bgVisibility == 1) {
 
-                        // update scroll:
+                        //update scroll:
                         this.cntHT = this.regHT;
                         this.cntH = this.regH;
                         this.renderBgScanline(this.bgbuffer,this.scanline+1-21);
 
-                        // Check for sprite 0 (next scanline):
+                        //Check for sprite 0 (next scanline):
                         if(!this.hitSpr0 && this.f_spVisibility == 1){
                             if(this.sprX[0] >= -7 && this.sprX[0] < 256 && this.sprY[0] + 1 <= (this.scanline - 20) && (this.sprY[0] + 1 + (this.f_spriteSize === 0 ? 8 : 16)) >= (this.scanline - 20)){
                                 if(this.checkSprite0(this.scanline - 20)){
@@ -383,7 +379,7 @@ nes.ppu = {
                     }
 
                     if(this.f_bgVisibility==1 || this.f_spVisibility==1){
-                        // Clock mapper IRQ Counter:
+                        //Clock mapper IRQ Counter:
                         nes.mmc.clockIrqCounter();
                     }
 
@@ -396,7 +392,7 @@ nes.ppu = {
 
     },
 
-    startFrame:function(){
+    startFrame:function ppu_startFrame(){
 
         //Set the default bg color to black.
         var bgColor = 0;
@@ -410,15 +406,15 @@ nes.ppu = {
             //Yes, color emphasis determines the bg color.
             switch(this.f_color){
                 case 1:
-                    // Green
+                    //Green
                     bgColor = 0x00FF00;
                     break;
                 case 2:
-                    // Blue
+                    //Blue
                     bgColor = 0xFF0000;
                     break;
                 case 4:
-                    // Red
+                    //Red
                     bgColor = 0x0000FF;
                     break;
             }
@@ -434,307 +430,246 @@ nes.ppu = {
 
     },
 
-    updateControlReg1: function(value){
-        
+    writeRegister:function(address,value){
+        switch(address&7){
+
+            //Write 0x2000, PPU Control Register
+            case 0:
+                nes.cpu.mem[0x2000] = value;
+                nes.ppu.setControlRegister(value);
+                break;
+
+            //Write 0x2001, PPU Masking Register
+            case 1:
+                nes.cpu.mem[0x2001] = value;
+                nes.ppu.setMaskingRegister(value);
+                break;
+
+            //Write 0x2003, Sprite RAM Address
+            case 3:
+                this.sramAddress = value;
+                break;
+
+            //Write 0x2004, Sprite RAM
+            //Writes to the sprite RAM at the address set to 0x2003, increments the address afterwards.
+            case 4:
+                this.spriteMem[this.sramAddress] = value;
+                this.spriteRamWriteUpdate(this.sramAddress,value);
+                this.sramAddress++;
+                this.sramAddress %= 0x100;
+                break;
+
+            //Write 0x2005, Screen Scroll Offsets
+            //First write sets the horizontal scrolling, the second vertical scrolling.
+            case 5:
+                this.triggerRendering();
+                if(this.firstWrite){
+                    this.regHT = (value>>3)&31;
+                    this.regFH = value&7;
+                    this.firstWrite = false;
+                }
+                else{
+                    this.regFV = value&7;
+                    this.regVT = (value>>3)&31;
+                    this.firstWrite = true;
+                }
+                break;
+
+            //Write 0x2006, VRAM Address
+            //Sets the adress used when reading/writing from/to VRAM.
+            //The first write sets the high byte, the second the low byte.
+            case 6:
+                if(this.firstWrite){
+                    this.regFV = (value>>4)&3;
+                    this.regV = (value>>3)&1;
+                    this.regH = (value>>2)&1;
+                    this.regVT = (this.regVT&7) | ((value&3)<<3);
+                    this.firstWrite = false;
+                }
+                else{
+                    this.triggerRendering();
+                    this.regVT = (this.regVT&24) | ((value>>5)&7);
+                    this.regHT = value&31;
+                    this.cntFV = this.regFV;
+                    this.cntV = this.regV;
+                    this.cntH = this.regH;
+                    this.cntVT = this.regVT;
+                    this.cntHT = this.regHT;
+                    this.checkSprite0(this.scanline-20);
+                    this.firstWrite = true;
+                }
+                //Invoke mapper latch.
+                this.cntsToAddress();
+                if(this.vramAddress < 0x2000){
+                    nes.mmc.latchAccess(this.vramAddress);
+                }
+                break;
+
+            //Write 0x2007, VRAM
+            case 7:
+                //???
+                this.triggerRendering();
+                //???
+                this.cntsToAddress();
+                this.regsToAddress();
+                //???
+                if(this.vramAddress >= 0x2000){
+                    //Mirroring is used.
+                    this.mirroredWrite(this.vramAddress,value);
+                }
+                else{
+                    //Write normally.
+                    this.writeMem(this.vramAddress,value);
+                    //Invoke mapper latch.
+                    nes.mmc.latchAccess(this.vramAddress);
+                }
+                //Increment by either 1 or 32, depending on d2 of Control Register
+                this.vramAddress += (this.f_addrInc==1?32:1);
+                //???
+                this.regsFromAddress();
+                this.cntsFromAddress();
+                break;
+
+        }
+    },
+
+    setControlRegister:function ppu_setControlRegister(value){
+        //???
         this.triggerRendering();
-        
-        this.f_nmiOnVblank =    (value>>7)&1;
-        this.f_spriteSize =     (value>>5)&1;
+        //Set the flags from the value.
+        this.f_nmiOnVblank = (value>>7)&1;
+        this.f_spriteSize = (value>>5)&1;
         this.f_bgPatternTable = (value>>4)&1;
         this.f_spPatternTable = (value>>3)&1;
-        this.f_addrInc =        (value>>2)&1;
-        this.f_nTblAddress =     value&3;
-        
+        this.f_addrInc = (value>>2)&1;
+        this.f_nTblAddress = value&3;
+        //???
         this.regV = (value>>1)&1;
         this.regH = value&1;
         this.regS = (value>>4)&1;
-        
     },
-    
-    updateControlReg2: function(value){
-        
+
+    setMaskingRegister:function ppu_setMaskingRegister(value){
+        //???
         this.triggerRendering();
-        
-        this.f_color =       (value>>5)&7;
+        //Set the flags from the value.
+        this.f_color = (value>>5)&7;
         this.f_spVisibility = (value>>4)&1;
         this.f_bgVisibility = (value>>3)&1;
-        this.f_spClipping =   (value>>2)&1;
-        this.f_bgClipping =   (value>>1)&1;
-        this.f_dispType =      value&1;
-
+        this.f_spClipping = (value>>2)&1;
+        this.f_bgClipping = (value>>1)&1;
+        this.f_dispType = value&1;
+        //Set the color emphasis if the display type is monochrome.
         if(this.f_dispType === 0){
             this.palTable.setEmphasis(this.f_color);
         }
-
+        //Update the image and sprite color palettes.
         this.updatePalettes();
     },
-    
-    setStatusFlag: function(flag, value){
-        var n = 1<<flag;
-        nes.cpu.mem[0x2002] = ((nes.cpu.mem[0x2002] & (255-n)) | (value?n:0));
+
+    setStatusFlag:function(flag,value){
+        nes.cpu.mem[0x2002] = (nes.cpu.mem[0x2002]&(255-(1<<flag)))|(value?(1<<flag):0);
     },
-    
-    // CPU Register $2002:
-    // Read the Status Register.
-    readStatusRegister: function(){
-        
+
+    //CPU Register $2002:
+    //Read the Status Register.
+    readStatusRegister:function(){
+        //Get the value from memory.
         var tmp = nes.cpu.mem[0x2002];
-        
-        // Reset scroll & VRAM Address toggle:
+        //Reset scroll & VRAM Address toggle:
         this.firstWrite = true;
-        
-        // Clear VBlank flag:
+        //Clear VBlank flag:
         this.setStatusFlag(7,false);
-        
-        // Fetch status data:
+        //Fetch status data:
         return tmp;
-        
     },
-    
-    // CPU Register $2003:
-    // Write the SPR-RAM address that is used for sramWrite (Register 0x2004 in CPU memory map)
-    writeSRAMAddress: function(address) {
-        this.sramAddress = address;
-    },
-    
-    // CPU Register $2004 (R):
-    // Read from SPR-RAM (Sprite RAM).
-    // The address should be set first.
-    sramLoad: function() {
-        /*short tmp = sprMem.load(sramAddress);
-        sramAddress++; // Increment address
-        sramAddress%=0x100;
-        return tmp;*/
-        return this.spriteMem[this.sramAddress];
-    },
-    
-    // CPU Register $2004 (W):
-    // Write to SPR-RAM (Sprite RAM).
-    // The address should be set first.
-    sramWrite: function(value){
-        this.spriteMem[this.sramAddress] = value;
-        this.spriteRamWriteUpdate(this.sramAddress,value);
-        this.sramAddress++; // Increment address
-        this.sramAddress %= 0x100;
-    },
-    
-    // CPU Register $2005:
-    // Write to scroll registers.
-    // The first write is the vertical offset, the second is the
-    // horizontal offset:
-    scrollWrite: function(value){
-        this.triggerRendering();
-        
-        if (this.firstWrite) {
-            // First write, horizontal scroll:
-            this.regHT = (value>>3)&31;
-            this.regFH = value&7;
-            
-        }else {
-            
-            // Second write, vertical scroll:
-            this.regFV = value&7;
-            this.regVT = (value>>3)&31;
-            
-        }
-        this.firstWrite = !this.firstWrite;
-        
-    },
-    
-    // CPU Register $2006:
-    // Sets the adress used when reading/writing from/to VRAM.
-    // The first write sets the high byte, the second the low byte.
-    writeVRAMAddress: function(address){
-        
-        if (this.firstWrite) {
-            
-            this.regFV = (address>>4)&3;
-            this.regV = (address>>3)&1;
-            this.regH = (address>>2)&1;
-            this.regVT = (this.regVT&7) | ((address&3)<<3);
-            
-        }else {
-            this.triggerRendering();
-            
-            this.regVT = (this.regVT&24) | ((address>>5)&7);
-            this.regHT = address&31;
-            
-            this.cntFV = this.regFV;
-            this.cntV = this.regV;
-            this.cntH = this.regH;
-            this.cntVT = this.regVT;
-            this.cntHT = this.regHT;
-            
-            this.checkSprite0(this.scanline-20);
-            
-        }
-        
-        this.firstWrite = !this.firstWrite;
-        
-        // Invoke mapper latch:
-        this.cntsToAddress();
-        if (this.vramAddress < 0x2000) {
-            nes.mmc.latchAccess(this.vramAddress);
-        }   
-    },
-    
-    // CPU Register $2007(R):
-    // Read from PPU memory. The address should be set first.
-    vramLoad: function(){
-        var tmp;
-        
+
+    //CPU Register $2007(R):
+    //Read from PPU memory. The address should be set first.
+    vramLoad:function(){
+        //???
         this.cntsToAddress();
         this.regsToAddress();
-        
-        // If address is in range 0x0000-0x3EFF, return buffered values:
-        if (this.vramAddress <= 0x3EFF) {
-            tmp = this.vramBufferedReadValue;
-        
-            // Update buffered value:
-            if (this.vramAddress < 0x2000) {
+        //If address is in range 0x0000-0x3EFF, return buffered values:
+        if(this.vramAddress <= 0x3EFF){
+            //Get the value from the previous read?
+            var tmp = this.vramBufferedReadValue;
+            //Update buffered value:
+            if(this.vramAddress < 0x2000){
+                //Not mirrored, get normally.
                 this.vramBufferedReadValue = this.vramMem[this.vramAddress];
-            }
-            else {
-                this.vramBufferedReadValue = this.mirroredLoad(
-                    this.vramAddress
-                );
-            }
-            
-            // Mapper latch access:
-            if (this.vramAddress < 0x2000) {
+                //Mapper latch access
                 nes.mmc.latchAccess(this.vramAddress);
             }
-            
-            // Increment by either 1 or 32, depending on d2 of Control Register 1:
-            this.vramAddress += (this.f_addrInc == 1 ? 32 : 1);
-            
-            this.cntsFromAddress();
-            this.regsFromAddress();
-            
-            return tmp; // Return the previous buffered value.
+            else{
+                //Mirrored, take into account the mirror table.
+                this.vramBufferedReadValue = this.vramMem[this.vramMirrorTable[this.vramAddress]];
+            }
         }
-            
-        // No buffering in this mem range. Read normally.
-        tmp = this.mirroredLoad(this.vramAddress);
-        
-        // Increment by either 1 or 32, depending on d2 of Control Register 1:
-        this.vramAddress += (this.f_addrInc == 1 ? 32 : 1); 
-        
+        else{
+            //No buffering in this mem range, read normally.
+            var tmp = this.vramMem[this.vramMirrorTable[this.vramAddress]];
+        }
+        //Increment by either 1 or 32, depending on d2 of Control Register 1:
+        this.vramAddress += (this.f_addrInc === 1?32:1);
+        //???
         this.cntsFromAddress();
         this.regsFromAddress();
-        
+        //Return the value.
         return tmp;
     },
-    
-    // CPU Register $2007(W):
-    // Write to PPU memory. The address should be set first.
-    vramWrite: function(value){
-        
-        this.triggerRendering();
-        this.cntsToAddress();
-        this.regsToAddress();
-        
-        if (this.vramAddress >= 0x2000) {
-            // Mirroring is used.
-            this.mirroredWrite(this.vramAddress,value);
-        }else {
-            
-            // Write normally.
-            this.writeMem(this.vramAddress,value);
-            
-            // Invoke mapper latch:
-            nes.mmc.latchAccess(this.vramAddress);
-            
-        }
-        
-        // Increment by either 1 or 32, depending on d2 of Control Register 1:
-        this.vramAddress += (this.f_addrInc==1?32:1);
-        this.regsFromAddress();
-        this.cntsFromAddress();
-        
-    },
-    
-    // CPU Register $4014:
-    // Write 256 bytes of main memory
-    // into Sprite RAM.
-    sramDMA: function(value){
-        var baseAddress = value * 0x100;
-        var data;
-        for (var i=this.sramAddress; i < 256; i++) {
-            data = nes.cpu.mem[baseAddress+i];
-            this.spriteMem[i] = data;
-            this.spriteRamWriteUpdate(i, data);
-        }
-        
-        nes.cpu.haltCycles(513);
-        
-    },
-    
-    // Updates the scroll registers from a new VRAM address.
-    regsFromAddress: function(){
-        
+
+    //Updates the scroll registers from a new VRAM address.
+    regsFromAddress:function(){
+
         var address = (this.vramTmpAddress>>8)&0xFF;
         this.regFV = (address>>4)&7;
         this.regV = (address>>3)&1;
         this.regH = (address>>2)&1;
         this.regVT = (this.regVT&7) | ((address&3)<<3);
-        
+
         address = this.vramTmpAddress&0xFF;
         this.regVT = (this.regVT&24) | ((address>>5)&7);
         this.regHT = address&31;
     },
-    
-    // Updates the scroll registers from a new VRAM address.
-    cntsFromAddress: function(){
-        
+
+    //Updates the scroll registers from a new VRAM address.
+    cntsFromAddress:function(){
+
         var address = (this.vramAddress>>8)&0xFF;
         this.cntFV = (address>>4)&3;
         this.cntV = (address>>3)&1;
         this.cntH = (address>>2)&1;
-        this.cntVT = (this.cntVT&7) | ((address&3)<<3);        
-        
+        this.cntVT = (this.cntVT&7) | ((address&3)<<3);
+
         address = this.vramAddress&0xFF;
         this.cntVT = (this.cntVT&24) | ((address>>5)&7);
         this.cntHT = address&31;
-        
+
     },
-    
-    regsToAddress: function(){
-        var b1  = (this.regFV&7)<<4;
-        b1 |= (this.regV&1)<<3;
-        b1 |= (this.regH&1)<<2;
-        b1 |= (this.regVT>>3)&3;
-        
-        var b2  = (this.regVT&7)<<5;
-        b2 |= this.regHT&31;
-        
-        this.vramTmpAddress = ((b1<<8) | b2)&0x7FFF;
+
+    //Converts the registers to a temporary vram address?
+    regsToAddress:function(){
+        this.vramTmpAddress = (((((this.regFV&7)<<4)|((this.regV&1)<<3)|((this.regH&1)<<2)|((this.regVT>>3)&3))<<8)|(((this.regVT&7)<<5)|(this.regHT&31)))&0x7FFF;
     },
-    
-    cntsToAddress: function(){
-        var b1  = (this.cntFV&7)<<4;
-        b1 |= (this.cntV&1)<<3;
-        b1 |= (this.cntH&1)<<2;
-        b1 |= (this.cntVT>>3)&3;
-        
-        var b2  = (this.cntVT&7)<<5;
-        b2 |= this.cntHT&31;
-        
-        this.vramAddress = ((b1<<8) | b2)&0x7FFF;
+
+    //Converts the counters to the vram address?
+    cntsToAddress:function(){
+        this.vramAddress = (((((this.cntFV&7)<<4)|((this.cntV&1)<<3)|((this.cntH&1)<<2)|((this.cntVT>>3)&3))<<8)|(((this.cntVT&7)<<5)|(this.cntHT&31)))&0x7FFF;
     },
-    
-    incTileCounter: function(count) { 
-        for (var i=count; i!==0; i--) {
+
+    incTileCounter:function(count){
+        for(var i=count;i!==0;i--){
             this.cntHT++;
-            if (this.cntHT == 32) {
+            if(this.cntHT === 32){
                 this.cntHT = 0;
                 this.cntVT++;
-                if (this.cntVT >= 30) {
+                if (this.cntVT >= 30){
                     this.cntH++;
-                    if(this.cntH == 2) {
+                    if(this.cntH === 2){
                         this.cntH = 0;
                         this.cntV++;
-                        if (this.cntV == 2) {
+                        if(this.cntV === 2){
                             this.cntV = 0;
                             this.cntFV++;
                             this.cntFV &= 0x7;
@@ -744,68 +679,54 @@ nes.ppu = {
             }
         }
     },
-    
-    // Reads from memory, taking into account
-    // mirroring/mapping of address ranges.
-    mirroredLoad: function(address) {
-        return this.vramMem[this.vramMirrorTable[address]];
-    },
-    
-    // Writes to memory, taking into account
-    // mirroring/mapping of address ranges.
-    mirroredWrite: function(address, value){
-        if (address>=0x3f00 && address<0x3f20) {
-            // Palette write mirroring.
-            if (address==0x3F00 || address==0x3F10) {
+
+    //Writes to memory, taking into account mirroring/mapping of address ranges.
+    mirroredWrite:function(address,value){
+        if(address >= 0x3f00 && address < 0x3f20){
+            //Palette write mirroring.
+            if(address === 0x3F00 || address === 0x3F10){
                 this.writeMem(0x3F00,value);
                 this.writeMem(0x3F10,value);
-                
-            }else if (address==0x3F04 || address==0x3F14) {
-                
+            }
+            else if(address === 0x3F04 || address === 0x3F14){
                 this.writeMem(0x3F04,value);
                 this.writeMem(0x3F14,value);
-                
-            }else if (address==0x3F08 || address==0x3F18) {
-                
+            }
+            else if(address === 0x3F08 || address === 0x3F18){
                 this.writeMem(0x3F08,value);
                 this.writeMem(0x3F18,value);
-                
-            }else if (address==0x3F0C || address==0x3F1C) {
-                
+            }
+            else if(address === 0x3F0C || address === 0x3F1C){
                 this.writeMem(0x3F0C,value);
                 this.writeMem(0x3F1C,value);
-                
-            }else {
+            }
+            else{
                 this.writeMem(address,value);
             }
-            
-        }else {
-            
-            // Use lookup table for mirrored address:
-            if (address<this.vramMirrorTable.length) {
+        }
+        else{
+            //Use lookup table for mirrored address:
+            if(address < this.vramMirrorTable.length){
                 this.writeMem(this.vramMirrorTable[address],value);
-            }else {
-                // FIXME
+            }
+            else{
+                //FIXME
                 //alert("Invalid VRAM address: "+address.toString(16));
             }
-            
         }
     },
     
-    triggerRendering: function(){
-        if (this.scanline >= 21 && this.scanline <= 260) {
-            // Render sprites, and combine:
-            this.renderFramePartially(
-                this.lastRenderedScanline+1,
-                this.scanline-21-this.lastRenderedScanline
-            );
-            
-            // Set last rendered scanline:
+    triggerRendering:function(){
+        //Check if this is a valid scanline.
+        if(this.scanline >= 21 && this.scanline <= 260){
+            //Render sprites, and combine.
+            this.renderFramePartially(this.lastRenderedScanline+1,this.scanline-21-this.lastRenderedScanline);
+            //Set last rendered scanline.
             this.lastRenderedScanline = this.scanline-21;
         }
     },
     
-    renderFramePartially: function(startScan, scanCount){
+    renderFramePartially:function(startScan, scanCount){
         //Check if the sprites are visible.
         if(this.f_spVisibility === 1){
             this.renderSpritesPartially(startScan,scanCount,true);
@@ -838,22 +759,22 @@ nes.ppu = {
             var tscanoffset = this.cntFV<<3;
             for(var tile=0;tile<32;tile++){
                 if(scan >= 0){
-                    // Fetch tile & attrib data:
+                    //Fetch tile & attrib data:
                     if(this.validTileData){
-                        // Get data from array:
+                        //Get data from array:
                         var t = this.scantile[tile];
                         var tpix = t.pix;
                         var att = this.attrib[tile];
                     }
                     else{
-                        // Fetch data:
+                        //Fetch data:
                         var t = this.ptTile[baseTile+this.nameTable[this.curNt].getTileIndex(this.cntHT,this.cntVT)];
                         var tpix = t.pix;
                         var att = this.nameTable[this.curNt].getAttrib(this.cntHT,this.cntVT);
                         this.scantile[tile] = t;
                         this.attrib[tile] = att;
                     }
-                    // Render tile scanline:
+                    //Render tile scanline:
                     var sx = 0;
                     var x = (tile<<3)-this.regFH;
                     if(x>-8){
@@ -880,7 +801,7 @@ nes.ppu = {
                         }
                     }
                 }
-                // Increase Horizontal Tile Counter:
+                //Increase Horizontal Tile Counter:
                 if(++this.cntHT === 32){
                     this.cntHT = 0;
                     this.cntH++;
@@ -888,10 +809,10 @@ nes.ppu = {
                     this.curNt = this.ntable1[(this.cntV<<1)+this.cntH];
                 }
             }
-            // Tile data for one row should now have been fetched, so the data in the array is valid.
+            //Tile data for one row should now have been fetched, so the data in the array is valid.
             this.validTileData = true;
         }
-        // update vertical scroll:
+        //update vertical scroll:
         this.cntFV++;
         if(this.cntFV === 8){
             this.cntFV = 0;
@@ -905,12 +826,12 @@ nes.ppu = {
             else if(this.cntVT === 32){
                 this.cntVT = 0;
             }
-            // Invalidate tile data.
+            //Invalidate tile data.
             this.validTileData = false;
         }
     },
 
-    renderSpritesPartially: function(startscan,scancount,bgPri){
+    renderSpritesPartially:function(startscan,scancount,bgPri){
         //Check if the sprites are visible.
         if(this.f_spVisibility === 1){
             //Check the sprite size.
@@ -1000,16 +921,16 @@ nes.ppu = {
         //???
         x = this.sprX[0];
         y = this.sprY[0]+1;
-        //Check the sprite size.
+        //Check if sprite size is 8x8.
         if(this.f_spriteSize === 0){
-            //8x8 sprite, check if its in range.
+            //Check if its in range.
             if(y <= scan && y+8 > scan && x >= -7 && x < 256){
-                // Sprite is in range.
-                // Draw scanline:
+                //Sprite is in range.
+                //Draw scanline:
                 var t = this.ptTile[this.sprTile[0]+tIndexAdd];
                 var col = this.sprCol[0];
                 var bgPri = this.bgPriority[0];
-                if (this.vertFlip[0]){
+                if(this.vertFlip[0]){
                     var toffset = 7-(scan-y);
                 }
                 else{
@@ -1051,7 +972,7 @@ nes.ppu = {
         }
         //Else 8x16 sprite, check if its in range.
         else if(y <= scan && y+16 > scan && x >= -7 && x < 256){
-            // Draw scanline:
+            //Draw scanline.
             if(this.vertFlip[0]){
                 var toffset = 15-(scan-y);
             }
@@ -1059,11 +980,11 @@ nes.ppu = {
                 var toffset = scan-y;
             }
             if(toffset<8){
-                // first half of sprite.
+                //First half of sprite.
                 var t = this.ptTile[this.sprTile[0]+(this.vertFlip[0]?1:0)+((this.sprTile[0]&1)!==0?255:0)];
             }
             else{
-                // second half of sprite.
+                //Second half of sprite.
                 var t = this.ptTile[this.sprTile[0]+(this.vertFlip[0]?0:1)+((this.sprTile[0]&1)!==0?255:0)];
                 if(this.vertFlip[0]){
                     toffset = 15-toffset;
@@ -1072,7 +993,7 @@ nes.ppu = {
                     toffset -= 8;
                 }
             }
-            toffset*=8;
+            toffset *= 8;
             var col = this.sprCol[0];
             var bgPri = this.bgPriority[0];
             var bufferIndex = scan*256+x;
@@ -1162,8 +1083,7 @@ nes.ppu = {
     },
 
     //Updates the internal pattern table buffers with this new byte.
-    //In vNES, there is a version of this with 4 arguments which isn't used.
-    patternWrite: function(address, value){
+    patternWrite:function(address,value){
         var tileIndex = parseInt(address/16,10);
         var leftOver = address%16;
         if(leftOver < 8){
@@ -1176,9 +1096,9 @@ nes.ppu = {
 
     //Updates the internal name table buffers with this new byte.
     nameTableWrite:function(index,address,value){
+        //???
         this.nameTable[index].tile[address] = value;
-        // Update Sprite #0 hit:
-        //updateSpr0Hit();
+        //Update sprite 0 hit.
         this.checkSprite0(this.scanline-20);
     },
 
@@ -1190,27 +1110,28 @@ nes.ppu = {
     //Updates the internally buffered sprite data with this new byte of info.
     spriteRamWriteUpdate:function(address,value){
         var tIndex = parseInt(address/4,10);
+        address %= 4;
         if(tIndex === 0){
             //updateSpr0Hit();
             this.checkSprite0(this.scanline-20);
         }
-        if(address%4 === 0){
-            // Y coordinate
+        if(address === 0){
+            //Y coordinate
             this.sprY[tIndex] = value;
         }
-        else if(address%4 === 1){
-            // Tile index
+        else if(address === 1){
+            //Tile index
             this.sprTile[tIndex] = value;
         }
-        else if(address%4 === 2){
-            // Attributes
+        else if(address === 2){
+            //Attributes
             this.vertFlip[tIndex] = (value&0x80) !== 0;
             this.horiFlip[tIndex] = (value&0x40) !== 0;
             this.bgPriority[tIndex] = (value&0x20) !== 0;
             this.sprCol[tIndex] = (value&3)<<2;
         }
-        else if(address%4 === 3){
-            // X coordinate
+        else if(address === 3){
+            //X coordinate
             this.sprX[tIndex] = value;
         }
     },
@@ -1234,18 +1155,20 @@ JSNES.PPU.NameTable = function(width,height){
 JSNES.PPU.NameTable.prototype = {
 
     getTileIndex:function(x,y){
+        //???
         return this.tile[y*this.width+x];
     },
 
     getAttrib:function(x,y){
+        //???
         return this.attrib[y*this.width+x];
     },
 
     writeAttrib:function(index,value){
-
+        //???
         var basex = (index%8)*4;
         var basey = parseInt(index/8,10)*4;
-
+        //???
         for(var sqy=0;sqy<2;sqy++){
             for(var sqx=0;sqx<2;sqx++){
                 var add = (value>>(2*(sqy*2+sqx)))&3;
@@ -1294,10 +1217,10 @@ JSNES.PPU.PaletteTable.prototype = {
 
     makeTables:function(){
 
-        // Calculate a table for each possible emphasis setting:
+        //Calculate a table for each possible emphasis setting:
         for(var emph=0;emph<8;emph++){
 
-            // Determine color component factors:
+            //Determine color component factors:
             var rFactor=1.0, gFactor=1.0, bFactor=1.0;
 
             if((emph&1) !== 0){
@@ -1317,7 +1240,7 @@ JSNES.PPU.PaletteTable.prototype = {
             
             this.emphTable[emph] = new Array(64);
             
-            // Calculate table:
+            //Calculate table:
             for(var i=0;i<64;i++){
                 var col = this.curTable[i];
                 var r = parseInt(this.getRed(col)*rFactor,10);

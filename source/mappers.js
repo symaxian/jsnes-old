@@ -5,8 +5,7 @@ nes.mappers = {};
 //== Mapper 0 ==
 //==============
 
-nes.mappers[0] = function(){
-};
+nes.mappers[0] = function mmc0(){};
 
 nes.mappers[0].prototype = {
 
@@ -52,11 +51,47 @@ nes.mappers[0].prototype = {
         }
         else if(address < 0x4000){
             //PPU Registers
-            this.regWrite(0x2000+(address&0x7),value);
+            nes.ppu.writeRegister(address,value);
         }
         else if(address < 0x4018){
             //IO & Sound Registers
-            this.regWrite(address,value);
+            switch(address){
+
+                //Write 0x4014, Sprite Memory DMA Access
+                case 0x4014:
+                    var baseAddress = value*0x100;
+                    for(var i=nes.ppu.sramAddress;i<256;i++){
+                        var data = nes.cpu.mem[baseAddress+i];
+                        nes.ppu.spriteMem[i] = data;
+                        nes.ppu.spriteRamWriteUpdate(i,data);
+                    }
+                    nes.cpu.haltCycles(513);
+                    break;
+
+                //Write 0x4015, Sound Channel Switch, DMC Status
+                case 0x4015:
+                    //nes.apu.writeReg(address, value);
+                    break;
+
+                //Write 0x4016, Joystick Strobe Reset
+                case 0x4016:
+                    if(value === 0 && this.joypadLastWrite === 1){
+                        this.joy1Strobe = 0;
+                        this.joy2Strobe = 0;
+                    }
+                    this.joypadLastWrite = value;
+                    break;
+
+                //Write 0x4017, Sound Channel Frame Sequencer
+                case 0x4017:
+                    //nes.apu.writeReg(address, value);
+                    break;
+
+                //Write 0x4000-0x4017, Sound Registers
+                default:
+                    //nes.apu.writeReg(address,value);
+
+            }
         }
         else{
             //ROM
@@ -77,8 +112,8 @@ nes.mappers[0].prototype = {
                 break;
             case 2:
             case 3:
-                // PPU Registers
-                switch(address&0x7){
+                //PPU Registers
+                switch(address&7){
 
                     //Read 0x2000, PPU Control Register
                     case 0x0: return nes.cpu.mem[0x2000];
@@ -106,8 +141,8 @@ nes.mappers[0].prototype = {
 
                 }
                 break;
-            case 4:
 
+            case 4:
                 //Sound/Joypad Registers
                 switch(address){
 
@@ -148,26 +183,26 @@ nes.mappers[0].prototype = {
 
                         //Nintendo Zapper Emulation, FIXME
                         //if(this.mousePressed){
-                        //    //Get a square around the mouse.
-                        //    var sx = Math.max(0,this.mouseX-4);
-                        //    var ex = Math.min(256,this.mouseX+4);
-                        //    var sy = Math.max(0,this.mouseY-4);
-                        //    var ey = Math.min(240,this.mouseY+4);
-                        //    var w = 0;
-                        //    //Loop through each pixel in the square.
-                        //    for(var y=sy;y<ey;y++){
-                        //        for(var x=sx;x<ex;x++){
-                        //            //Check if a white pixel was clicked on.
-                        //            if(nes.ppu.buffer[(y<<8)+x] === 0xFFFFFF){
-                        //                w = 8;
-                        //                console.log('Clicked on white!');
-                        //                break;
-                        //            }
-                        //        }
-                        //    }
-                        //    //???
-                        //    w |= 16;
-                        //    return (temp|w)&0xFFFF;
+                        //   //Get a square around the mouse.
+                        //   var sx = Math.max(0,this.mouseX-4);
+                        //   var ex = Math.min(256,this.mouseX+4);
+                        //   var sy = Math.max(0,this.mouseY-4);
+                        //   var ey = Math.min(240,this.mouseY+4);
+                        //   var w = 0;
+                        //   //Loop through each pixel in the square.
+                        //   for(var y=sy;y<ey;y++){
+                        //       for(var x=sx;x<ex;x++){
+                        //           //Check if a white pixel was clicked on.
+                        //           if(nes.ppu.buffer[(y<<8)+x] === 0xFFFFFF){
+                        //               w = 8;
+                        //               console.log('Clicked on white!');
+                        //               break;
+                        //           }
+                        //       }
+                        //   }
+                        //   //???
+                        //   w |= 16;
+                        //   return (temp|w)&0xFFFF;
                         //}
 
                         //Return the button state.
@@ -179,106 +214,34 @@ nes.mappers[0].prototype = {
         return 0;
     },
 
-    regWrite:function mmc0_regWrite(address,value){
-        switch(address){
-
-            //Write 0x2000, PPU Control Register
-            case 0x2000:
-                nes.cpu.mem[address] = value;
-                nes.ppu.updateControlReg1(value);
-                break;
-
-            //Write 0x2001, PPU Masking Register
-            case 0x2001:
-                nes.cpu.mem[address] = value;
-                nes.ppu.updateControlReg2(value);
-                break;
-
-            //Write 0x2003, Sprite RAM Address
-            case 0x2003:
-                nes.ppu.writeSRAMAddress(value);
-                break;
-
-            //Write 0x2004, Sprite RAM
-            case 0x2004:
-                nes.ppu.sramWrite(value);
-                break;
-
-            //Write 0x2005, Screen Scroll Offsets
-            case 0x2005:
-                nes.ppu.scrollWrite(value);
-                break;
-
-            //Write 0x2006, VRAM Address
-            case 0x2006:
-                nes.ppu.writeVRAMAddress(value);
-                break;
-
-            //Write 0x2007, VRAM
-            case 0x2007:
-                nes.ppu.vramWrite(value);
-                break;
-
-            //Write 0x4014, Sprite Memory DMA Access
-            case 0x4014:
-                nes.ppu.sramDMA(value);
-                break;
-
-            //Write 0x4015, Sound Channel Switch, DMC Status
-            case 0x4015:
-                //nes.apu.writeReg(address, value);
-                break;
-
-            //Write 0x4016, Joystick Strobe Reset
-            case 0x4016:
-                if(value === 0 && this.joypadLastWrite === 1){
-                    this.joy1Strobe = 0;
-                    this.joy2Strobe = 0;
-                }
-                this.joypadLastWrite = value;
-                break;
-
-            //Write 0x4017, Sound Channel Frame Sequencer
-            case 0x4017:
-                //nes.apu.writeReg(address, value);
-                break;
-
-            //Write 0x4000-0x4017, Sound Registers
-            default:
-                //nes.apu.writeReg(address,value);
-
-        }
-    },
+    //Load ROM
 
     loadROM:function mmc0_loadROM(){
 
-        // Load ROM into memory:
-        this.loadPRGROM();
-
-        // Load CHR-ROM:
-        this.loadCHRROM();
-
-        // Load Battery RAM (if present):
-        this.loadBatteryRam();
-
-        // Reset IRQ:
-        //nes.getCpu().doResetInterrupt();
-        nes.cpu.requestIrq(2);
-
-    },
-
-    loadPRGROM:function mmc0_loadPRGROM(){
+        //Load PRG-ROM.
         if(nes.rom.romCount > 1){
-            // Load the two first banks into memory.
+            //Load the two first banks into memory.
             this.loadRomBank(0,0x8000);
             this.loadRomBank(1,0xC000);
         }
         else{
-            // Load the one bank into both memory locations:
+            //Load the one bank into both memory locations:
             this.loadRomBank(0,0x8000);
             this.loadRomBank(0,0xC000);
         }
+
+        //Load CHR-ROM.
+        this.loadCHRROM();
+
+        //Load Battery RAM if present.
+        this.loadBatteryRam();
+
+        //Do Reset-Interrupt.
+        nes.cpu.requestIrq(2);
+
     },
+
+    //Load CHR-ROM
 
     loadCHRROM:function mmc0_loadCHRROM(){
         if(nes.rom.vromCount > 0){
@@ -317,7 +280,6 @@ nes.mappers[0].prototype = {
         //???
         var bank16k = parseInt(bank8k/2,10)%nes.rom.romCount;
         var offset = (bank8k%2)*8192;
-        //nes.cpu.mem.write(address,nes.rom.rom[bank16k],offset,8192);
         arraycopy(nes.rom.rom[bank16k],offset,nes.cpu.mem,address,8192);
     },
 
@@ -428,59 +390,49 @@ nes.mappers[1].prototype.reset = function mmc1_reset(){
 };
 
 nes.mappers[1].prototype.write = function mmc1_write(address,value){
-
     //Handle normal writes with the mmc0 write function.
     if(address < 0x8000){
         return nes.mappers[0].prototype.write.apply(this,arguments);
     }
-
-    // See what should be done with the written value:
+    //See what should be done with the written value.
     if((value&128) !== 0){
-
-        // Reset buffering:
-        this.regBufferCounter = 0;
-        this.regBuffer = 0;
-    
-        // Reset register:
+        //Reset buffering.
+        this.regBuffer = this.regBufferCounter = 0;
+        //Reset register.
         if(this.getRegNumber(address) === 0){
-
             this.prgSwitchingArea = 1;
             this.prgSwitchingSize = 1;
-
         }
     }
     else{
-
-        // Continue buffering:
-        //regBuffer = (regBuffer & (0xFF-(1<<regBufferCounter))) | ((value & (1<<regBufferCounter))<<regBufferCounter);
+        //Continue buffering.
         this.regBuffer = (this.regBuffer&(0xFF-(1<<this.regBufferCounter)))|((value&1)<<this.regBufferCounter);
         this.regBufferCounter++;
-
+        //???
         if(this.regBufferCounter === 5){
-            // Use the buffered value:
-            this.setReg(this.getRegNumber(address), this.regBuffer);
-        
-            // Reset buffer:
+            //Use the buffered value.
+            this.setReg(this.getRegNumber(address),this.regBuffer);
+            //Reset buffer.
             this.regBuffer = 0;
             this.regBufferCounter = 0;
         }
     }
-
 };
 
 nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
-
+    //Check the register.
     switch(reg){
+
         case 0:
-            // Mirroring:
+            //Mirroring
             if(value&3 !== this.mirroring){
-                // Set mirroring:
+                //Set mirroring.
                 this.mirroring = value&3;
                 if((this.mirroring&2) === 0){
-                    // SingleScreen mirroring overrides the other setting:
+                    //SingleScreen mirroring overrides the other setting.
                     nes.ppu.setMirroring(3);
                 }
-                // Not overridden by SingleScreen mirroring.
+                //Not overridden by SingleScreen mirroring.
                 else if((this.mirroring&1) !== 0){
                     //Set horizontal mirroring.
                     nes.ppu.setMirroring(1);
@@ -490,26 +442,22 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
                     nes.ppu.setMirroring(0);
                 }
             }
-
-            // PRG Switching Area;
+            //PRG Switching Area
             this.prgSwitchingArea = (value>>2)&1;
-
-            // PRG Switching Size:
+            //PRG Switching Size
             this.prgSwitchingSize = (value>>3)&1;
-
-            // VROM Switching Size:
+            //VROM Switching Size
             this.vromSwitchingSize = (value>>4)&1;
-
             break;
 
         case 1:
-            // ROM selection:
+            //ROM selection.
             this.romSelectionReg0 = (value>>4)&1;
-            // Check whether the cart has VROM:
+            //Check whether the cart has VROM.
             if(nes.rom.vromCount > 0){
-                // Select VROM bank at 0x0000:
+                //Select VROM bank at 0x0000.
                 if(this.vromSwitchingSize === 0){
-                    // Swap 8kB VROM:
+                    //Swap 8kB VROM.
                     if(this.romSelectionReg0 === 0){
                         this.load8kVromBank((value&0xF),0x0000);
                     }
@@ -518,7 +466,7 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
                     }
                 }
                 else{
-                    // Swap 4kB VROM:
+                    //Swap 4kB VROM.
                     if(this.romSelectionReg0 === 0){
                         this.loadVromBank((value&0xF),0x0000);
                     }
@@ -530,13 +478,13 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
             break;
 
         case 2:
-            // ROM selection:
+            //ROM selection:
             this.romSelectionReg1 = (value>>4)&1;
-            // Check whether the cart has VROM:
+            //Check whether the cart has VROM.
             if(nes.rom.vromCount > 0){
-                // Select VROM bank at 0x1000:
+                //Select VROM bank at 0x1000.
                 if(this.vromSwitchingSize === 1){
-                    // Swap 4kB of VROM:
+                    //Swap 4kB of VROM.
                     if(this.romSelectionReg1 === 0){
                         this.loadVromBank((value&0xF),0x1000);
                     }
@@ -548,13 +496,11 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
             break;
 
         default:
-            // Select ROM bank:
-            // -------------------------
-            var bank;
+            //Select ROM bank.
             var baseBank = 0;
-
+            //???
             if(nes.rom.romCount >= 32){
-                // 1024 kB cart
+                //1024 kB cart
                 if(this.vromSwitchingSize === 0){
                     if(this.romSelectionReg0 === 1){
                         baseBank = 16;
@@ -565,32 +511,34 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
                 }
             }
             else if(nes.rom.romCount >= 16){
-                // 512 kB cart
+                //512 kB cart
                 if(this.romSelectionReg0 === 1){
                     baseBank = 8;
                 }
             }
-
+            //???
             if(this.prgSwitchingSize === 0){
-                // 32kB
-                bank = baseBank + (value&0xF);
-                this.load32kRomBank(bank, 0x8000);
+                //32kB
+                var bank = baseBank+(value&0xF);
+                this.load32kRomBank(bank,0x8000);
             }
             else{
-                // 16kB
-                bank = baseBank*2+(value&0xF);
+                //16kB
+                var bank = baseBank*2+(value&0xF);
                 if(this.prgSwitchingArea === 0){
-                    this.loadRomBank(bank, 0xC000);
+                    this.loadRomBank(bank,0xC000);
                 }
                 else{
-                    this.loadRomBank(bank, 0x8000);
+                    this.loadRomBank(bank,0x8000);
                 }
             }
+            break;
+
     }
 };
 
-// Returns the register number from the address written to:
 nes.mappers[1].prototype.getRegNumber = function mmc1_getRegNumber(address){
+    //Return the register number from the address written to.
     if(address >= 0x8000 && address <= 0x9FFF){
         return 0;
     }
@@ -603,11 +551,11 @@ nes.mappers[1].prototype.getRegNumber = function mmc1_getRegNumber(address){
     return 3;
 };
 
-nes.mappers[1].prototype.loadROM = function mmc1_loadROM(rom){
+nes.mappers[1].prototype.loadROM = function mmc1_loadROM(){
 
-    //Load PRG-ROM.
-    this.loadRomBank(0,0x8000);                  //First ROM bank
-    this.loadRomBank(nes.rom.romCount-1,0xC000); //Last ROM bank
+    //Load PRG-ROM, the first and last banks.
+    this.loadRomBank(0,0x8000);
+    this.loadRomBank(nes.rom.romCount-1,0xC000);
 
     //Load CHR-ROM.
     this.loadCHRROM();
@@ -636,20 +584,20 @@ nes.mappers[2] = function(){};
 
 nes.mappers[2].prototype = new nes.mappers[0]();
 
-nes.mappers[2].prototype.write = function(address,value){
+nes.mappers[2].prototype.write = function mmc2_write(address,value){
 
-    //Writes below MMC registers are handled by mmc0.
+    //Handle regular writes with the mmc0 write method.
     if(address < 0x8000){
         return nes.mappers[0].prototype.write.apply(this,arguments);
     }
 
-    // This is a ROM bank select command.
-    // Swap in the given ROM bank at 0x8000:
+    //This is a ROM bank select command.
+    //Swap in the given ROM bank at 0x8000:
     this.loadRomBank(value,0x8000);
 
 };
 
-nes.mappers[2].prototype.loadROM = function mmc2_loadROM(rom){
+nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
 
     //Load PRG-ROM.
     this.loadRomBank(0,0x8000);
@@ -668,20 +616,10 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(rom){
 //==============
 
 nes.mappers[4] = function(){
-    
-    this.CMD_SEL_2_1K_VROM_0000 = 0;
-    this.CMD_SEL_2_1K_VROM_0800 = 1;
-    this.CMD_SEL_1K_VROM_1000 = 2;
-    this.CMD_SEL_1K_VROM_1400 = 3;
-    this.CMD_SEL_1K_VROM_1800 = 4;
-    this.CMD_SEL_1K_VROM_1C00 = 5;
-    this.CMD_SEL_ROM_PAGE1 = 6;
-    this.CMD_SEL_ROM_PAGE2 = 7;
 
     this.command = null;
     this.prgAddressSelect = null;
     this.chrAddressSelect = null;
-    this.pageNumber = null;
     this.irqCounter = null;
     this.irqLatchValue = null;
     this.irqEnable = null;
@@ -700,10 +638,10 @@ nes.mappers[4].prototype.write = function mmc4_write(address,value){
 
     switch(address){
         case 0x8000:
-            // Command/Address Select register
-            this.command = value & 7;
-            var tmp = (value >> 6) & 1;
-            if(tmp != this.prgAddressSelect){
+            //Command/Address Select register
+            this.command = value&7;
+            var tmp = (value>>6)&1;
+            if(tmp !== this.prgAddressSelect){
                 this.prgAddressChanged = true;
             }
             this.prgAddressSelect = tmp;
@@ -711,12 +649,12 @@ nes.mappers[4].prototype.write = function mmc4_write(address,value){
             break;
     
         case 0x8001:
-            // Page number for command
+            //Page number for command
             this.executeCommand(this.command, value);
             break;
     
         case 0xA000:
-            // Mirroring select
+            //Mirroring select
             if((value & 1) !== 0){
                 //Set vertical mirroring.
                 nes.ppu.setMirroring(1);
@@ -728,44 +666,45 @@ nes.mappers[4].prototype.write = function mmc4_write(address,value){
             break;
         
         case 0xA001:
-            // SaveRAM Toggle
-            // TODO
+            //SaveRAM Toggle
+            //TODO
             //nes.getRom().setSaveState((value&1)!=0);
             break;
     
         case 0xC000:
-            // IRQ Counter register
+            //IRQ Counter register
             this.irqCounter = value;
             //nes.ppu.mapperIrqCounter = 0;
             break;
     
         case 0xC001:
-            // IRQ Latch register
+            //IRQ Latch register
             this.irqLatchValue = value;
             break;
     
         case 0xE000:
-            // IRQ Control Reg 0 (disable)
+            //IRQ Control Reg 0 (disable)
             //irqCounter = irqLatchValue;
             this.irqEnable = 0;
             break;
     
         case 0xE001:        
-            // IRQ Control Reg 1 (enable)
+            //IRQ Control Reg 1 (enable)
             this.irqEnable = 1;
             break;
     
         default:
-            // Not a MMC3 register.
-            // The game has probably crashed, since it tries to write to ROM..
-            // IGNORE.
+            //Not a MMC3 register.
+            //The game has probably crashed, since it tries to write to ROM..
+            //IGNORE.
     }
 };
 
 nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
     switch(cmd){
-        case this.CMD_SEL_2_1K_VROM_0000:
-            // Select 2 1KB VROM pages at 0x0000:
+
+        //Select 2 1KB VROM pages at 0x0000.
+        case 0:
             if(this.chrAddressSelect === 0){
                 this.load1kVromBank(arg,0x0000);
                 this.load1kVromBank(arg+1,0x0400);
@@ -776,8 +715,8 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
             }
             break;
 
-        case this.CMD_SEL_2_1K_VROM_0800:
-            // Select 2 1KB VROM pages at 0x0800:
+        //Select 2 1KB VROM pages at 0x0800.
+        case 1:
             if(this.chrAddressSelect === 0){
                 this.load1kVromBank(arg,0x0800);
                 this.load1kVromBank(arg+1,0x0C00);
@@ -788,8 +727,8 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
             }
             break;
 
-        case this.CMD_SEL_1K_VROM_1000:
-            // Select 1K VROM Page at 0x1000:
+        //Select 1K VROM Page at 0x1000.
+        case 2:
             if(this.chrAddressSelect === 0){
                 this.load1kVromBank(arg,0x1000);
             }
@@ -798,8 +737,8 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
             }
             break;
 
-        case this.CMD_SEL_1K_VROM_1400:
-            // Select 1K VROM Page at 0x1400:
+        //Select 1K VROM Page at 0x1400.
+        case 3:
             if(this.chrAddressSelect === 0){
                 this.load1kVromBank(arg,0x1400);
             }
@@ -808,8 +747,8 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
             }
             break;
 
-        case this.CMD_SEL_1K_VROM_1800:
-            // Select 1K VROM Page at 0x1800:
+        //Select 1K VROM Page at 0x1800.
+        case 4:
             if(this.chrAddressSelect === 0){
                 this.load1kVromBank(arg,0x1800);
             }
@@ -818,8 +757,8 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
             }
             break;
 
-        case this.CMD_SEL_1K_VROM_1C00:
-            // Select 1K VROM Page at 0x1C00:
+        //Select 1K VROM Page at 0x1C00.
+        case 5:
             if(this.chrAddressSelect === 0){
                 this.load1kVromBank(arg,0x1C00);
             }
@@ -828,9 +767,10 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
             }
             break;
 
-        case this.CMD_SEL_ROM_PAGE1:
+        //Select ROM page 1.
+        case 6:
             if(this.prgAddressChanged){
-                // Load the two hardwired banks:
+                //Load the two hardwired banks.
                 if(this.prgAddressSelect === 0){
                     this.load8kRomBank(((nes.rom.romCount-1)*2),0xC000);
                 }
@@ -839,8 +779,7 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
                 }
                 this.prgAddressChanged = false;
             }
-
-            // Select first switchable ROM page:
+            //Select first switchable ROM page.
             if(this.prgAddressSelect === 0){
                 this.load8kRomBank(arg,0x8000);
             }
@@ -848,13 +787,14 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
                 this.load8kRomBank(arg,0xC000);
             }
             break;
-        
-        case this.CMD_SEL_ROM_PAGE2:
-            // Select second switchable ROM page:
-            this.load8kRomBank(arg, 0xA000);
-            // hardwire appropriate bank:
+
+        //Select ROM page 2.
+        case 7:
+            //Select second switchable ROM page.
+            this.load8kRomBank(arg,0xA000);
+            //Hardwire appropriate bank.
             if(this.prgAddressChanged){
-                // Load the two hardwired banks:
+                //Load the two hardwired banks.
                 if(this.prgAddressSelect === 0){
                     this.load8kRomBank(((nes.rom.romCount-1)*2),0xC000);
                 }
@@ -863,10 +803,12 @@ nes.mappers[4].prototype.executeCommand = function mmc4_executeCommand(cmd,arg){
                 }
                 this.prgAddressChanged = false;
             }
+            break;
+
     }
 };
 
-nes.mappers[4].prototype.loadROM = function mmc4_loadROM(rom){
+nes.mappers[4].prototype.loadROM = function mmc4_loadROM(){
 
     //Load hardwired PRG banks, 0xC000 and 0xE000.
     this.load8kRomBank(((nes.rom.romCount-1)*2),0xC000);
