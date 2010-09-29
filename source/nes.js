@@ -180,7 +180,7 @@ nes = {
                             this.ppu.requestEndFrame = false;
 
                             //Start the vBlank period.
-                            this.ppu.startVBlank();
+                            this.ppu.endFrame();
 
                             //Break the frame loop.
                             break FRAMELOOP;

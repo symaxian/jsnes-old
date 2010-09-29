@@ -49,7 +49,7 @@ nes.ppu = {
         this.f_nTblAddress = 0;    //Name Table Address. 0=0x2000,1=0x2400,2=0x2800,3=0x2C00
 
         //Masking Register
-        this.f_color = 0;         //Background color. 0=black, 1=blue, 2=green, 4=red
+        this.f_color = 0;          //Color emphasis, bg color in monochrome. 0=black, 1=blue, 2=green, 4=red
         this.f_spVisibility = 0;   //Sprite visibility. 0=not displayed,1=displayed
         this.f_bgVisibility = 0;   //Background visibility. 0=Not Displayed,1=displayed
         this.f_spClipping = 0;     //Sprite clipping. 0=Sprites invisible in left 8-pixel column,1=No clipping
@@ -79,9 +79,9 @@ nes.ppu = {
 
         //Variables used when rendering.
         this.attrib = new Array(32);
-        this.buffer = new Array(256*240);
-        this.bgbuffer = new Array(256*240);
-        this.pixrendered = new Array(256*240);
+        this.buffer = new Array(61440);
+        this.bgbuffer = new Array(61440);
+        this.pixrendered = new Array(61440);
 
         this.validTileData = null;
 
@@ -102,9 +102,10 @@ nes.ppu = {
         this.bgPriority = new Array(64); //Background priority
         this.spr0HitX = 0; //Sprite #0 hit X coordinate
         this.spr0HitY = 0; //Sprite #0 hit Y coordinate
+
         this.hitSpr0 = false;
 
-        //Palette data.
+        //Buffered color palettes.
         this.sprPalette = new Array(16);
         this.imgPalette = new Array(16);
 
@@ -222,7 +223,45 @@ nes.ppu = {
         }
     },
 
-    startVBlank:function ppu_startVBlank(){
+    startFrame:function ppu_startFrame(){
+
+        //Set the default bg color to black.
+        var bgColor = 0;
+
+        //Check if monochrome.
+        if(this.f_dispType === 0){
+            //No, use first entry of image palette as bg color.
+            bgColor = this.imgPalette[0];
+        }
+        else{
+            //Yes, color emphasis determines the bg color.
+            switch(this.f_color){
+                case 1:
+                    //Green
+                    bgColor = 0x00FF00;
+                    break;
+                case 2:
+                    //Blue
+                    bgColor = 0xFF0000;
+                    break;
+                case 4:
+                    //Red
+                    bgColor = 0x0000FF;
+                    break;
+            }
+        }
+
+        //Loop through each pixel.
+        for(var i=0;i<61440;i++){
+            //Set the bg color.
+            this.buffer[i] = bgColor;
+            //???
+            this.pixrendered[i] = 65;
+        }
+
+    },
+
+    endFrame:function ppu_endFrame(){
 
         //Do NMI.
         nes.cpu.requestIrq(1);
@@ -378,44 +417,6 @@ nes.ppu = {
         //???
         this.regsToAddress();
         this.cntsToAddress();
-
-    },
-
-    startFrame:function ppu_startFrame(){
-
-        //Set the default bg color to black.
-        var bgColor = 0;
-
-        //Check if monochrome.
-        if(this.f_dispType === 0){
-            //No, use first entry of image palette as bg color.
-            bgColor = this.imgPalette[0];
-        }
-        else{
-            //Yes, color emphasis determines the bg color.
-            switch(this.f_color){
-                case 1:
-                    //Green
-                    bgColor = 0x00FF00;
-                    break;
-                case 2:
-                    //Blue
-                    bgColor = 0xFF0000;
-                    break;
-                case 4:
-                    //Red
-                    bgColor = 0x0000FF;
-                    break;
-            }
-        }
-
-        //Loop through each pixel.
-        for(var i=0;i<61440;i++){
-            //Set the bg color.
-            this.buffer[i] = bgColor;
-            //???
-            this.pixrendered[i] = 65;
-        }
 
     },
 
@@ -738,7 +739,7 @@ nes.ppu = {
 
     //???
     renderBgScanline:function(buffer,scan){
-        var baseTile = this.regS*256;
+        var basetile = this.regS*256;
         var destIndex = (scan<<8)-this.regFH;
         this.curNt = this.ntable1[this.cntV+this.cntV+this.cntH];
         this.cntHT = this.regHT;
@@ -757,8 +758,7 @@ nes.ppu = {
                     }
                     else{
                         //Fetch data:
-                        var t = this.ptTile[baseTile+this.nameTable[this.curNt].getTileIndex(this.cntHT,this.cntVT)];
-                        var tpix = t.pix;
+                        var t = this.ptTile[basetile+this.nameTable[this.curNt].getTileIndex(this.cntHT,this.cntVT)];
                         var att = this.nameTable[this.curNt].getAttrib(this.cntHT,this.cntVT);
                         this.scantile[tile] = t;
                         this.attrib[tile] = att;
@@ -773,14 +773,14 @@ nes.ppu = {
                         }
                         if(t.opaque[this.cntFV]){
                             for(;sx<8;sx++){
-                                this.buffer[destIndex] = this.imgPalette[tpix[tscanoffset+sx]+att];
+                                this.buffer[destIndex] = this.imgPalette[t.pix[tscanoffset+sx]+att];
                                 this.pixrendered[destIndex] |= 256;
                                 destIndex++;
                             }
                         }
                         else{
                             for(;sx<8;sx++){
-                                var col = tpix[tscanoffset+sx];
+                                var col = t.pix[tscanoffset+sx];
                                 if(col !== 0) {
                                     buffer[destIndex] = this.imgPalette[col+att];
                                     this.pixrendered[destIndex] |= 256;
@@ -809,7 +809,7 @@ nes.ppu = {
             if(this.cntVT === 30){
                 this.cntVT = 0;
                 this.cntV++;
-                this.cntV%=2;
+                this.cntV %= 2;
                 this.curNt = this.ntable1[(this.cntV<<1)+this.cntH];
             }
             else if(this.cntVT === 32){
@@ -907,8 +907,6 @@ nes.ppu = {
         this.spr0HitX = -1;
         this.spr0HitY = -1;
         //???
-        var tIndexAdd = this.f_spPatternTable*256;
-        //???
         x = this.sprX[0];
         y = this.sprY[0]+1;
         //Check if sprite size is 8x8.
@@ -916,7 +914,7 @@ nes.ppu = {
             //Check if its in range.
             if(y <= scan && y+8 > scan && x >= -7 && x < 256){
                 //Sprite is in range, draw the scanline.
-                var t = this.ptTile[this.sprTile[0]+tIndexAdd];
+                var t = this.ptTile[this.sprTile[0]+this.f_spPatternTable*256];
                 var col = this.sprCol[0];
                 var bgPri = this.bgPriority[0];
                 if(this.vertFlip[0]){
@@ -961,13 +959,14 @@ nes.ppu = {
         }
         //Else 8x16 sprite, check if its in range.
         else if(y <= scan && y+16 > scan && x >= -7 && x < 256){
-            //Draw scanline.
+            //Draw the scanline.
             if(this.vertFlip[0]){
                 var toffset = 15-(scan-y);
             }
             else{
                 var toffset = scan-y;
             }
+            //???
             if(toffset < 8){
                 //First half of sprite.
                 var t = this.ptTile[this.sprTile[0]+(this.vertFlip[0]?1:0)+((this.sprTile[0]&1)!==0?255:0)];
@@ -982,9 +981,8 @@ nes.ppu = {
                     toffset -= 8;
                 }
             }
+            //???
             toffset *= 8;
-            var col = this.sprCol[0];
-            var bgPri = this.bgPriority[0];
             var bufferIndex = scan*256+x;
             if(this.horiFlip[0]){
                 for(var i=7;i>=0;i--){
@@ -1058,15 +1056,15 @@ nes.ppu = {
     },
 
     updatePalettes:function(){
-        //Updates the image and sprite palettes from 0x3f00 to 0x3f20.
+        //Updates the image and sprite color palettes from 0x3f00 to 0x3f20.
         for(var i=0;i<16;i++){
             if(this.f_dispType === 0){
-                this.imgPalette[i] = this.palTable.getEntry(this.vramMem[0x3f00+i]&63);
-                this.sprPalette[i] = this.palTable.getEntry(this.vramMem[0x3f10+i]&63);
+                this.imgPalette[i] = this.palTable.getEntry(this.vramMem[0x3f00+i]);
+                this.sprPalette[i] = this.palTable.getEntry(this.vramMem[0x3f10+i]);
             }
             else{
-                this.imgPalette[i] = this.palTable.getEntry(this.vramMem[0x3f00+i]&32);
-                this.sprPalette[i] = this.palTable.getEntry(this.vramMem[0x3f10+i]&32);
+                this.imgPalette[i] = this.palTable.getEntry(this.vramMem[0x3f00+i]&48);
+                this.sprPalette[i] = this.palTable.getEntry(this.vramMem[0x3f10+i]&48);
             }
         }
     },
@@ -1185,7 +1183,6 @@ nes.ppu.NameTable.prototype = {
 nes.ppu.PaletteTable = function(){
     this.curTable = new Array(64);
     this.emphTable = new Array(8);
-    this.currentEmph = -1;
 };
 
 nes.ppu.PaletteTable.prototype = {
@@ -1224,9 +1221,9 @@ nes.ppu.PaletteTable.prototype = {
                 gFactor = 0.75;
                 bFactor = 0.75;
             }
-            
+
             this.emphTable[emph] = new Array(64);
-            
+
             //Calculate table:
             for(var i=0;i<64;i++){
                 var col = this.curTable[i];
