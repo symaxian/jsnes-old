@@ -25,14 +25,16 @@ nes.ppu = {
             this.spriteMem[i] = 0;
         }
 
-        //VRAM I/O:
+        //VRAM I/O
         this.vramAddress = null;
         this.vramTmpAddress = null;
         this.vramBufferedReadValue = 0;
-        this.firstWrite = true;       //VRAM/Scroll Hi/Lo latch
 
-        //SPR-RAM I/O:
-        this.sramAddress = 0; //8-bit only.
+        //VRAM/Scroll High/Low Byte latch
+        this.firstWrite = true;
+
+        //SPR-RAM I/O
+        this.sramAddress = 0;
 
         this.mapperIrqCounter = 0;
         this.requestEndFrame = false;
@@ -100,7 +102,7 @@ nes.ppu = {
         this.sprCol = new Array(64); //Upper two bits of color
         this.vertFlip = new Array(64); //Vertical Flip
         this.horiFlip = new Array(64); //Horizontal Flip
-        this.bgPriority = new Array(64); //Background priority
+        this.bgPriority = new Array(64); //Background Priority
 
         //Sprite 0 hit flags.
         this.hitSpr0 = false;
@@ -364,10 +366,9 @@ nes.ppu = {
 
         //Else check if its the dummy scanline.
         else if(this.scanline === 19){
-            //May be variable length:
+            //May be variable length.
             if(this.dummyCycleToggle){
-                //Remove dead cycle at end of scanline,
-                //for next scanline:
+                //Remove dead cycle at end of scanline, for next scanline.
                 this.curX = 1;
                 this.dummyCycleToggle = false;
             }
@@ -376,9 +377,9 @@ nes.ppu = {
         //Else check if its the first scanline.
         else if(this.scanline === 20){
             //Clear VBlank flag.
-            this.setStatusFlag(7,false);
-            //Clear Sprite #0 hit flag.
-            this.setStatusFlag(6,false);
+            nes.cpu.mem[0x2002] &= 127;
+            //Clear Sprite 0 hit flag.
+            nes.cpu.mem[0x2002] &= 191;
             this.hitSpr0 = false;
             this.spr0HitX = -1;
             this.spr0HitY = -1;
@@ -404,8 +405,8 @@ nes.ppu = {
 
         //Else check if its the dead scanline(261).
         else if(this.scanline === 261){
-            //Set VINT.
-            this.setStatusFlag(7,true);
+            //Set the vBlank flag.
+            nes.cpu.mem[0x2002] |= 128;
             this.requestEndFrame = true;
             this.nmiCounter = 9;
             //Reset the scanline counter, will be incremented to 0.
@@ -558,20 +559,16 @@ nes.ppu = {
         this.updatePalettes();
     },
 
-    setStatusFlag:function(flag,value){
-        nes.cpu.mem[0x2002] = (nes.cpu.mem[0x2002]&(255-(1<<flag)))|(value?(1<<flag):0);
-    },
-
     //CPU Register $2002:
     //Read the Status Register.
     readStatusRegister:function(){
         //Get the value from memory.
         var tmp = nes.cpu.mem[0x2002];
-        //Reset scroll & VRAM Address toggle:
+        //Reset scroll & VRAM Address toggle.
         this.firstWrite = true;
-        //Clear VBlank flag:
-        this.setStatusFlag(7,false);
-        //Fetch status data:
+        //Clear the vBlank flag.
+        nes.cpu.mem[0x2002] &= 127;
+        //Return the status.
         return tmp;
     },
 
@@ -581,7 +578,7 @@ nes.ppu = {
         //???
         this.cntsToAddress();
         this.regsToAddress();
-        //If address is in range 0x0000-0x3EFF, return buffered values:
+        //If address is in range 0x0000-0x3EFF, return buffered values.
         if(this.vramAddress <= 0x3EFF){
             //Get the value from the previous read?
             var tmp = this.vramBufferedReadValue;

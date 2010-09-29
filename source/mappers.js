@@ -103,6 +103,9 @@ nes.mappers[0].prototype = {
     },
 
     regLoad:function mmc0_regLoad(address){
+        if(address === 0x2002){
+            return nes.ppu.readStatusRegister();
+        }
         //use fourth nibble (0xF000)
         switch(address>>12){
             case 0:

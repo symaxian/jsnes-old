@@ -185,7 +185,8 @@ nes = {
 
                     //Check for a sprite 0 hit.
                     if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
-                        this.ppu.setStatusFlag(6,true);
+                        //Set the sprite 0 hit flag.
+                        nes.cpu.mem[0x2002] |= 64;
                     }
 
                     //Check if the ppu is done rendering.
