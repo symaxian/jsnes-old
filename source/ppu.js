@@ -1233,26 +1233,18 @@ nes.ppu.PaletteTable.prototype = {
                 var r = parseInt(((col>>16)&0xFF)*rFactor,10);
                 var g = parseInt(((col>>8)&0xFF)*gFactor,10);
                 var b = parseInt((col&0xFF)*bFactor,10);
-                this.emphTable[emph][i] = this.getRgb(r,g,b);
+                this.emphTable[emph][i] = (r<<16)|(g<<8)|(b);
             }
+
         }
     },
 
     setEmphasis:function(emph){
-        if(emph !== this.currentEmph){
-            this.currentEmph = emph;
-            for(var i=0;i<64;i++){
-                this.curTable[i] = this.emphTable[emph][i];
-            }
-        }
+        this.curTable = this.emphTable[emph];
     },
 
     getEntry:function(color){
         return this.curTable[color];
-    },
-
-    getRgb:function(r,g,b){
-        return ((r<<16)|(g<<8)|(b));
     },
 
 };
