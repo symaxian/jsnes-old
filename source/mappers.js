@@ -129,7 +129,7 @@ nes.mappers[0].prototype = {
                     case 0x3: return 0;
 
                     //Read 0x2004, Sprite Memory
-                    case 0x4: return nes.ppu.sramLoad();
+                    case 0x4: return nes.ppu.spriteMem[nes.ppu.sramAddress];
 
                     //Read 0x2005, Return 0
                     case 0x5: return 0;
