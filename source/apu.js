@@ -389,7 +389,7 @@ nes.apu = {
 
         //Frame IRQ handling:
         if(this.frameIrqEnabled && this.frameIrqActive){
-            nes.cpu.requestIrq(0);
+            nes.cpu.requestInterrupt(0);
         }
 
         //Clock frame counter at double CPU speed:
@@ -837,7 +837,7 @@ JSNES.PAPU.ChannelDM.prototype = {
         }
     
         if(this.irqGenerated){
-            this.papu.nes.cpu.requestIrq(0);
+            this.papu.nes.cpu.requestInterrupt(0);
         }
     
     },

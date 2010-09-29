@@ -9,11 +9,6 @@
 //  The 6th bit of the CPU status has been removed, it was originally stored as the F_NOTUSED flag.
 //  Pushing the processor status onto the stack pushes a 1 as the 6th bit, otherwise a stack read error results.
 
-//  Check if moving the 7 status flags into one number would be faster.
-//      More bitwise operations.
-//      Setting and getting the status as a whole would be one operation.
-//      Less memory.
-
 nes.cpu = {
 
 //Properties
@@ -68,8 +63,8 @@ nes.cpu = {
         this.F_CARRY = 0;
 
         //Reset the interrupt flags.
-        this.irqRequested = false;
-        this.irqType = null;
+        this.interruptRequested = false;
+        this.interruptType = null;
 
         //Reset the cycles to halt number to 0.
         this.cyclesToHalt = 0;
@@ -83,14 +78,14 @@ nes.cpu = {
 
     },
 
-    requestIrq:function(type){
+    requestInterrupt:function(type){
 
         //Check if an interrupt is not already requested and the new interrupt is normal.
-        if(!this.irqRequested && type !== 0){
+        if(!this.interruptRequested && type !== 0){
 
             //Set the request.
-            this.irqRequested = true;
-            this.irqType = type;
+            this.interruptRequested = true;
+            this.interruptType = type;
 
         }
 
@@ -126,10 +121,10 @@ nes.cpu = {
     emulate:function nes_cpu_emulate(){
 
         //Check if an interrupt was requested.
-        if(this.irqRequested){
+        if(this.interruptRequested){
 
             //Switch between the interrupt types.
-            switch(this.irqType){
+            switch(this.interruptType){
 
                 //Normal Interrupt
                 case 0:{
@@ -174,7 +169,7 @@ nes.cpu = {
             }
 
             //Reset the interrupt requested flag.
-            this.irqRequested = false;
+            this.interruptRequested = false;
 
         }
 
@@ -439,7 +434,6 @@ nes.cpu = {
                 this.F_BRK = 1;
                 this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|(this.F_ZERO<<1)|this.F_CARRY);
                 this.F_INTERRUPT = 1;
-                //this.REG_PC = load(0xFFFE)|(load(0xFFFF)<<8);
                 this.REG_PC = this.load16bit(0xFFFE)-1;
                 break;
             }
@@ -448,7 +442,7 @@ nes.cpu = {
             case 11:{
                 //Branch on overflow clear.
                 if(this.F_OVERFLOW === 0){
-                    cycleCount += ((opaddr&0xFF00)!==(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -458,7 +452,7 @@ nes.cpu = {
             case 12:{
                 //Branch on overflow set.
                 if(this.F_OVERFLOW === 1){
-                    cycleCount += ((opaddr&0xFF00)!==(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -507,7 +501,7 @@ nes.cpu = {
             case 18:{
                 //Compare memory and index X.
                 temp = this.REG_X - nes.mmc.load(addr);
-                this.F_CARRY = (temp>=0?1:0);
+                this.F_CARRY = (temp >= 0?1:0);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
                 break;
@@ -517,7 +511,7 @@ nes.cpu = {
             case 19:{
                 //Compare memory and index Y.
                 temp = this.REG_Y - nes.mmc.load(addr);
-                this.F_CARRY = (temp>=0?1:0);
+                this.F_CARRY = (temp >= 0?1:0);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
                 break;
@@ -639,19 +633,17 @@ nes.cpu = {
             case 32:{
                 //Shift right one bit.
                 if(addrMode === 4){
-                    temp = this.REG_ACC&0xFF;
+                    var temp = this.REG_ACC&0xFF;
                     this.F_CARRY = temp&1;
-                    temp >>= 1;
-                    this.REG_ACC = temp;
+                    this.REG_ACC = temp>>1;
                 }
                 else{
-                    temp = nes.mmc.load(addr)&0xFF;
+                    var temp = nes.mmc.load(addr)&0xFF;
                     this.F_CARRY = temp&1;
-                    temp >>= 1;
-                    nes.mmc.write(addr,temp);
+                    nes.mmc.write(addr,temp>>1);
                 }
                 this.F_SIGN = 0;
-                this.F_ZERO = temp;
+                this.F_ZERO = temp>>1;
                 break;
             }
 
@@ -716,15 +708,14 @@ nes.cpu = {
             case 39:{
                 //Rotate one bit left.
                 if(addrMode === 4){
-                    temp = this.REG_ACC;
-                    add = this.F_CARRY;
-                    this.F_CARRY = (temp>>7)&1;
-                    temp = ((temp<<1)&0xFF)+add;
+                    var add = this.F_CARRY;
+                    this.F_CARRY = (this.REG_ACC>>7)&1;
+                    var temp = ((this.REG_ACC<<1)&0xFF)+add;
                     this.REG_ACC = temp;
                 }
                 else{
-                    temp = nes.mmc.load(addr);
-                    add = this.F_CARRY;
+                    var temp = nes.mmc.load(addr);
+                    var add = this.F_CARRY;
                     this.F_CARRY = (temp>>7)&1;
                     temp = ((temp<<1)&0xFF)+add;
                     nes.mmc.write(addr,temp);
@@ -738,14 +729,13 @@ nes.cpu = {
             case 40:{
                 //Rotate one bit right.
                 if(addrMode === 4){
-                    add = this.F_CARRY<<7;
+                    temp = (this.REG_ACC>>1)+(this.F_CARRY<<7);
                     this.F_CARRY = this.REG_ACC&1;
-                    temp = (this.REG_ACC>>1)+add;
                     this.REG_ACC = temp;
                 }
                 else{
-                    temp = nes.mmc.load(addr);
-                    add = this.F_CARRY<<7;
+                    var temp = nes.mmc.load(addr);
+                    var add = this.F_CARRY<<7;
                     this.F_CARRY = temp&1;
                     temp = (temp>>1)+add;
                     nes.mmc.write(addr,temp);
@@ -757,7 +747,7 @@ nes.cpu = {
 
             //RTI
             case 41:{
-                //Return from interrupt, pull status and PC from stack.
+                //Return from interrupt, pull the status and program counter from the stack.
                 temp = this.pull();
                 this.F_SIGN = (temp>>7)&1;
                 this.F_OVERFLOW = (temp>>6)&1;

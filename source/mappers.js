@@ -238,7 +238,7 @@ nes.mappers[0].prototype = {
         this.loadBatteryRam();
 
         //Do Reset-Interrupt.
-        nes.cpu.requestIrq(2);
+        nes.cpu.requestInterrupt(2);
 
     },
 
@@ -565,7 +565,7 @@ nes.mappers[1].prototype.loadROM = function mmc1_loadROM(){
     this.loadBatteryRam();
 
     //Do Reset-Interrupt.
-    nes.cpu.requestIrq(2);
+    nes.cpu.requestInterrupt(2);
 
 };
 
@@ -608,7 +608,7 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
     this.loadCHRROM();
 
     //Do Reset-Interrupt.
-    nes.cpu.requestIrq(2);
+    nes.cpu.requestInterrupt(2);
 
 };
 
@@ -826,6 +826,6 @@ nes.mappers[4].prototype.loadROM = function mmc4_loadROM(){
     this.loadBatteryRam();
 
     //Do Reset-Interrupt.
-    nes.cpu.requestIrq(2);
+    nes.cpu.requestInterrupt(2);
 
 };

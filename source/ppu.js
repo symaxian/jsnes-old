@@ -265,7 +265,7 @@ nes.ppu = {
     endFrame:function ppu_endFrame(){
 
         //Do NMI.
-        nes.cpu.requestIrq(1);
+        nes.cpu.requestInterrupt(1);
 
         //Make sure everything is rendered.
         if(this.lastRenderedScanline < 239){
