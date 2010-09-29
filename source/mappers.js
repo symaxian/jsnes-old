@@ -25,24 +25,25 @@ nes.mappers[0].prototype = {
 
     load:function mmc0_load(address){
 
-        //Wrap around.
-        //address &= 0xFFFF;
+        //ROM
+        if(address > 0x4017){
+            return nes.cpu.mem[address];
+        }
 
-        //Check the address.
+        //RAM
         if(address < 0x2000){
-            //RAM
             return nes.cpu.mem[address&0x7FF];
         }
-        if(address < 0x4018){
-            //Registers
-            return this.regLoad(address);
-        }
-        //ROM
-        return nes.cpu.mem[address];
+
+        //Registers
+        return this.regLoad(address);
 
     },
 
     write:function mmc0_write(address,value){
+
+        //Write the value into memory.
+        nes.cpu.mem[address] = value;
 
         //Check the address.
         if(address < 0x2000){

@@ -58,10 +58,11 @@ nes.ppu = {
 
         //Counters
         this.cntFV = 0;
-        this.cntV = 0;
-        this.cntH = 0;
         this.cntVT = 0;
         this.cntHT = 0;
+
+        this.cntV = 0;
+        this.cntH = 0;
 
         //Registers
         this.regFV = 0;
@@ -173,7 +174,7 @@ nes.ppu = {
         }
 
         //Vertical mirroring
-        else if (mirroring === 0){
+        else if(mirroring === 0){
             this.ntable1[0] = 0;
             this.ntable1[1] = 1;
             this.ntable1[2] = 0;
@@ -344,7 +345,7 @@ nes.ppu = {
                 this.cntH = this.regH;
                 this.renderBgScanline(this.bgbuffer,this.scanline+1-21);
                 //Check for sprite 0 hit on next scanline.
-                if(!this.hitSpr0 && this.f_spVisibility == 1){
+                if(!this.hitSpr0 && this.f_spVisibility === 1){
                     if(this.sprX[0] >= -7 && this.sprX[0] < 256 && this.sprY[0] + 1 <= (this.scanline - 20) && (this.sprY[0] + 1 + (this.f_spriteSize === 0 ? 8 : 16)) >= (this.scanline - 20)){
                         if(this.checkSprite0(this.scanline - 20)){
                             this.hitSpr0 = true;
@@ -382,7 +383,7 @@ nes.ppu = {
             this.spr0HitX = -1;
             this.spr0HitY = -1;
             //Check if either the bg or sprites are visible.
-            if(this.f_bgVisibility == 1 || this.f_spVisibility==1){
+            if(this.f_bgVisibility === 1 || this.f_spVisibility === 1){
                 //Update counters:
                 this.cntFV = this.regFV;
                 this.cntV = this.regV;
@@ -655,7 +656,7 @@ nes.ppu = {
             if(this.cntHT === 32){
                 this.cntHT = 0;
                 this.cntVT++;
-                if (this.cntVT >= 30){
+                if(this.cntVT >= 30){
                     this.cntH++;
                     if(this.cntH === 2){
                         this.cntH = 0;
@@ -781,7 +782,7 @@ nes.ppu = {
                         else{
                             for(;sx<8;sx++){
                                 var col = t.pix[tscanoffset+sx];
-                                if(col !== 0) {
+                                if(col !== 0){
                                     buffer[destIndex] = this.imgPalette[col+att];
                                     this.pixrendered[destIndex] |= 256;
                                 }
@@ -1022,7 +1023,7 @@ nes.ppu = {
         //Write to the vram.
         this.vramMem[address] = value;
         //Update internally buffered data.
-        if (address < 0x2000){
+        if(address < 0x2000){
             this.vramMem[address] = value;
             this.patternWrite(address,value);
         }
@@ -1338,7 +1339,7 @@ Tile.prototype = {
                 this.tIndex = 7;
                 for(var y=0;y<8;y++){
                     for(var x=0;x<8;x++){
-                        if (x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
+                        if(x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
                             this.palIndex = this.pix[this.tIndex];
                             this.tpri = priTable[this.fbIndex];
                             if(this.palIndex!==0 && pri<=(this.tpri&0xFF)){
@@ -1369,7 +1370,7 @@ Tile.prototype = {
                     if(x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
                         this.palIndex = this.pix[this.tIndex];
                         this.tpri = priTable[this.fbIndex];
-                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)){
+                        if(this.palIndex!==0 && pri<=(this.tpri&0xFF)){
                             nes.ppu.buffer[this.fbIndex] = palette[this.palIndex+palAdd];
                             this.tpri = (this.tpri&0xF00)|pri;
                             priTable[this.fbIndex] = this.tpri;
@@ -1395,7 +1396,7 @@ Tile.prototype = {
                     if(x>=srcx1 && x<srcx2 && y>=srcy1 && y<srcy2){
                         this.palIndex = this.pix[this.tIndex];
                         this.tpri = priTable[this.fbIndex];
-                        if (this.palIndex!==0 && pri<=(this.tpri&0xFF)){
+                        if(this.palIndex!==0 && pri<=(this.tpri&0xFF)){
                             nes.ppu.buffer[this.fbIndex] = palette[this.palIndex+palAdd];
                             this.tpri = (this.tpri&0xF00)|pri;
                             priTable[this.fbIndex] = this.tpri;

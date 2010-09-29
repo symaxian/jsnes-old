@@ -9,11 +9,14 @@
 //      Setting and getting the status would be one operation.
 //      Less memory.
 
+//  Wherever the comment //! follows a line of code, the memory read on that line originally read through the nes.mmc.load() method.
+
 nes.cpu = {
 
 //Properties
 
     //Operation Info
+
     opInfo:[117506570,100796962,255,255,255,50462754,84017154,255,50397732,33686818,33620994,255,255,67306274,100860674,255,33685769,84020002,255,255,255,67241506,100795906,255,33620493,67307810,255,255,255,67307554,117639170,255,100860700,100796929,255,255,50462726,50462721,84017191,255,67174950,33686785,33621031,255,67306246,67306241,100860711,255,33685767,84019969,255,255,255,67241473,100795943,255,33620524,67307777,255,255,255,67307521,117639207,255,100729385,100796951,255,255,255,50462743,84017184,255,50397731,33686807,33621024,255,50529051,67306263,100860704,255,33685771,84019991,255,255,255,67241495,100795936,255,33620495,67307799,255,255,255,67307543,117639200,255,100729386,100796928,255,255,255,50462720,84017192,255,67174949,33686784,33621032,255,84085787,67306240,100860712,255,33685772,84019968,255,255,255,67241472,100795944,255,33620526,67307776,255,255,255,67307520,117639208,255,255,100796975,255,255,50462769,50462767,50462768,255,33620502,255,33620533,255,67306289,67306287,67306288,255,33685763,100797231,255,255,67241521,67241519,67241776,255,33620535,84085039,33620534,255,255,84084783,255,255,33686815,100796957,33686814,255,50462751,50462749,50462750,255,33620531,33686813,33620530,255,67306271,67306269,67306270,255,33685764,84019997,255,255,67241503,67241501,67241758,255,33620496,67307805,33620532,255,67307551,67307549,67307806,255,33686803,100796945,255,255,50462739,50462737,84017172,255,33620506,33686801,33620501,255,67306259,67306257,100860692,255,33685768,84019985,255,255,255,67241489,100795924,255,33620494,67307793,255,255,255,67307537,117639188,255,33686802,100796971,255,255,50462738,50462763,84017176,255,33620505,33686827,33620513,255,67306258,67306283,100860696,255,33685765,84020011,255,255,255,67241515,100795928,255,33620525,67307819,255,255,255,67307563,117639192,255],
 
 //Methods
@@ -93,7 +96,7 @@ nes.cpu = {
 
     push:function nes_cpu_push(value){
 
-        //???
+        //Write the value to the memory at the stack pointer.
         nes.mmc.write(this.REG_SP,value);
 
         //???
@@ -118,54 +121,10 @@ nes.cpu = {
 
     },
 
-    doNonMaskableInterrupt:function nes_cpu_doNonMaskableInterrupt(status){
-
-        //Check whether vBlank interrupts are enabled.
-        if((nes.mmc.load(0x2000)&128) !== 0){
-
-            //???
-            this.REG_PC++;
-            this.push((this.REG_PC>>8)&0xFF);
-            this.push(this.REG_PC&0xFF);
-            //this.F_INTERRUPT = 1;
-            this.push(status);
-
-            //???
-            this.REG_PC = (nes.mmc.load(0xFFFA)|(nes.mmc.load(0xFFFB)<<8))-1;
-
-        }
-
-    },
-
-    doResetInterrupt:function doResetInterrupt(){
-
-        //???
-        this.REG_PC = (nes.mmc.load(0xFFFC)|(nes.mmc.load(0xFFFD)<<8))-1;
-
-    },
-
-    doIrq:function nes_cpu_doIrq(status){
-
-        //???
-        this.REG_PC++;
-        this.push((this.REG_PC>>8)&0xFF);
-        this.push(this.REG_PC&0xFF);
-        this.push(status);
-        this.F_INTERRUPT = 1;
-        this.F_BRK = 0;
-
-        //???
-        this.REG_PC = (nes.mmc.load(0xFFFE)|(nes.mmc.load(0xFFFF)<<8))-1;
-
-    },
-
     emulate:function nes_cpu_emulate(){
 
         //Check if an interrupt was requested.
         if(this.irqRequested){
-
-            //Cache the cpu status.
-            var temp = this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7);
 
             //Switch between the interrupt types.
             switch(this.irqType){
@@ -173,20 +132,40 @@ nes.cpu = {
                 //Normal Interrupt
                 case 0:{
                     if(this.F_INTERRUPT === 0){
-                        doIrq(temp);
+                        //???
+                        this.REG_PC++;
+                        this.push((this.REG_PC>>8)&0xFF);
+                        this.push(this.REG_PC&0xFF);
+                        //Push the cpu status onto the stack.
+                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.F_INTERRUPT = 1;
+                        this.F_BRK = 0;
+                        //???
+                        this.REG_PC = (this.mem[0xFFFE]|(this.mem[0xFFFF]<<8))-1;
                     }
                     break;
                 }
 
                 //Non-Maskable Interrupt
                 case 1:{
-                    this.doNonMaskableInterrupt(temp);
+                    //Check whether vBlank interrupts are enabled.
+                    if((this.mem[0x2000]&128) !== 0){
+                        //???
+                        this.REG_PC++;
+                        this.push((this.REG_PC>>8)&0xFF);
+                        this.push(this.REG_PC&0xFF);
+                        //Push the cpu status onto the stack.
+                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        //???
+                        this.REG_PC = (this.mem[0xFFFA]|(this.mem[0xFFFB]<<8))-1;
+                    }
                     break;
                 }
 
                 //Reset Interrupt
                 case 2:{
-                    this.doResetInterrupt();
+                    //???
+                    this.REG_PC = (this.mem[0xFFFC]|(this.mem[0xFFFD]<<8))-1;
                     break;
                 }
 
@@ -198,7 +177,7 @@ nes.cpu = {
         }
 
         //???
-        var opinf = this.opInfo[nes.mmc.load(this.REG_PC+1)];
+        var opinf = this.opInfo[this.mem[this.REG_PC+1]];
         var cycleCount = opinf>>24;
         var cycleAdd = 0;
 
@@ -209,24 +188,21 @@ nes.cpu = {
         var opaddr = this.REG_PC;
         this.REG_PC += (opinf>>16)&0xFF;
 
-        //Initiate the address at 0.
-        var addr = 0;
-
         //Switch between the address modes.
         switch(addrMode){
 
             //Zero Page Mode
             //Use the address given after the opcode, but without high byte.
             case 0:{
-                addr = nes.mmc.load(opaddr+2);
+                var addr = this.mem[opaddr+2];//!
                 break;
             }
 
             //Relative Mode
             //???
             case 1:{
-                addr = nes.mmc.load(opaddr+2);
-                if(addr<0x80){
+                var addr = this.mem[opaddr+2];//!
+                if(addr < 0x80){
                     addr += this.REG_PC;
                 }
                 else{
@@ -244,42 +220,42 @@ nes.cpu = {
             //Absolute Mode
             //Use the two bytes following the operation code as the address.
             case 3:{
-                addr = this.load16bit(opaddr+2);
+                var addr = this.load16bit(opaddr+2);
                 break;
             }
 
             //Accumulator Mode
             //The address is in the accumulator register.
             case 4:{
-                addr = this.REG_ACC;
+                var addr = this.REG_ACC;
                 break;
             }
 
             //Imediate Mode
             //The address is given after the operation code.
             case 5:{
-                addr = this.REG_PC;
+                var addr = this.REG_PC;
                 break;
             }
 
             //Zero Page Indexed Mode X
             //Use the address after the operation code plus the x register.
             case 6:{
-                addr = (nes.mmc.load(opaddr+2)+this.REG_X)&0xFF;
+                var addr = (this.mem[opaddr+2]+this.REG_X)&0xFF;//!
                 break;
             }
 
             //Zero Page Indexed Mode Y
             //Use the address after the operation code plus the y register.
             case 7:{
-                addr = (nes.mmc.load(opaddr+2)+this.REG_Y)&0xFF;
+                var addr = (this.mem[opaddr+2]+this.REG_Y)&0xFF;//!
                 break;
             }
 
             //Absolute Indexed Mode X
             //Same as zero page indexed x without the high byte.
             case 8:{
-                addr = this.load16bit(opaddr+2);
+                var addr = this.load16bit(opaddr+2);
                 if((addr&0xFF00) !== ((addr+this.REG_X)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -290,7 +266,7 @@ nes.cpu = {
             //Absolute Indexed Mode Y
             //Same as zero page indexed y without the high byte.
             case 9:{
-                addr = this.load16bit(opaddr+2);
+                var addr = this.load16bit(opaddr+2);
                 if((addr&0xFF00) !== ((addr+this.REG_Y)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -301,20 +277,18 @@ nes.cpu = {
             //Pre-Indexed Indirect Mode
             //The address is in the 16-bit address starting at the given location plus the x register.
             case 10:{
-                addr = nes.mmc.load(opaddr+2);
+                var addr = this.mem[opaddr+2];//!
                 if((addr&0xFF00) !== ((addr+this.REG_X)&0xFF00)){
                     cycleAdd = 1;
                 }
-                addr += this.REG_X;
-                addr &= 0xFF;
-                addr = this.load16bit(addr);
+                addr = this.load16bit((addr+this.REG_X)&0xFF);
                 break;
             }
 
             //Post-Indexed Indirect Mode
             case 11:{
                 //The address is in the 16-bit address starting at the given location plus the y register.
-                addr = this.load16bit(nes.mmc.load(opaddr+2));
+                var addr = this.load16bit(this.mem[opaddr+2]);//!
                 if((addr&0xFF00) !== ((addr+this.REG_Y)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -325,13 +299,8 @@ nes.cpu = {
             //Indirect Absolute Mode
             //Use the 16-bit address specified at the given location.
             case 12:{
-                addr = this.load16bit(opaddr+2);
-                if(addr < 0x1FFF){
-                    addr = this.mem[addr]+(this.mem[(addr&0xFF00)|(((addr&0xFF)+1)&0xFF)]<<8);
-                }
-                else{
-                    addr = nes.mmc.load(addr)+(nes.mmc.load((addr&0xFF00)|(((addr & 0xFF)+1)&0xFF))<<8);
-                }
+                var addr = this.load16bit(opaddr+2);
+                addr = this.mem[addr]+(this.mem[(addr&0xFF00)|(((addr&0xFF)+1)&0xFF)]<<8);//!
                 break;
             }
 
@@ -340,21 +309,20 @@ nes.cpu = {
         //Wrap around for addresses above 0xFFFF.
         addr &= 0xFFFF;
 
-        //This should be compiled to a jump table.
+        //Switch between the operations.
         switch(opinf&0xFF){
 
             //ADC
             case 0:{
                 //Add with carry.
-                temp = this.REG_ACC + nes.mmc.load(addr) + this.F_CARRY;
-                this.F_OVERFLOW = ((!(((this.REG_ACC ^ nes.mmc.load(addr)) & 0x80)!=0) && (((this.REG_ACC ^ temp) & 0x80))!=0)?1:0);
-                this.F_CARRY = temp>255?1:0;
+                temp = this.REG_ACC+nes.mmc.load(addr)+this.F_CARRY;
+                this.F_OVERFLOW = ((!(((this.REG_ACC^nes.mmc.load(addr))&0x80) !== 0) && (((this.REG_ACC^temp)&0x80)) !== 0)?1:0);
+                this.F_CARRY = temp > 255?1:0;
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
                 this.REG_ACC = temp&255;
                 cycleCount += cycleAdd;
                 break;
-
             }
 
             //AND
@@ -363,7 +331,6 @@ nes.cpu = {
                 this.REG_ACC = this.REG_ACC & nes.mmc.load(addr);
                 this.F_SIGN = (this.REG_ACC>>7)&1;
                 this.F_ZERO = this.REG_ACC;
-                //this.REG_ACC = temp;
                 if(addrMode !== 11){
                     cycleCount += cycleAdd;
                 }
@@ -373,19 +340,19 @@ nes.cpu = {
             //ASL
             case 2:{
                 //Shift left one bit.
-                if(addrMode == 4){
+                if(addrMode === 4){
                     this.F_CARRY = (this.REG_ACC>>7)&1;
                     this.REG_ACC = (this.REG_ACC<<1)&255;
                     this.F_SIGN = (this.REG_ACC>>7)&1;
                     this.F_ZERO = this.REG_ACC;
                 }
                 else{
-                    temp = nes.mmc.load(addr);
+                    var temp = nes.mmc.load(addr);
                     this.F_CARRY = (temp>>7)&1;
                     temp = (temp<<1)&255;
                     this.F_SIGN = (temp>>7)&1;
                     this.F_ZERO = temp;
-                    nes.mmc.write(addr, temp);
+                    nes.mmc.write(addr,temp);
                 }
                 break;
             }
@@ -394,7 +361,7 @@ nes.cpu = {
             case 3:{
                 //Branch on carry clear.
                 if(this.F_CARRY === 0){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -404,7 +371,7 @@ nes.cpu = {
             case 4:{
                 //Branch on carry set.
                 if(this.F_CARRY === 1){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -414,7 +381,7 @@ nes.cpu = {
             case 5:{
                 //Branch on zero.
                 if(this.F_ZERO === 0){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -423,7 +390,7 @@ nes.cpu = {
             //BIT
             case 6:{
                 //???
-                temp = nes.mmc.load(addr);
+                var temp = nes.mmc.load(addr);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_OVERFLOW = (temp>>6)&1;
                 temp &= this.REG_ACC;
@@ -445,7 +412,7 @@ nes.cpu = {
             case 8:{
                 //Branch on not zero.
                 if(this.F_ZERO !== 0){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -455,7 +422,7 @@ nes.cpu = {
             case 9:{
                 //Branch on positive result.
                 if(this.F_SIGN === 0){
-                    cycleCount += ((opaddr&0xFF00)!=(addr&0xFF00)?2:1);
+                    cycleCount += ((opaddr&0xFF00) !== (addr&0xFF00)?2:1);
                     this.REG_PC = addr;
                 }
                 break;
@@ -669,7 +636,7 @@ nes.cpu = {
             //LSR
             case 32:{
                 //Shift right one bit.
-                if(addrMode == 4){
+                if(addrMode === 4){
                     temp = this.REG_ACC&0xFF;
                     this.F_CARRY = temp&1;
                     temp >>= 1;
@@ -716,7 +683,7 @@ nes.cpu = {
             case 36:{
                 //Push processor status onto the stack.
                 this.F_BRK = 1;
-                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|(this.F_NOTUSED<<5)|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO==0?1:0)<<1)|this.F_CARRY);
+                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|(this.F_NOTUSED<<5)|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO===0?1:0)<<1)|this.F_CARRY);
                 break;
             }
 
@@ -739,7 +706,7 @@ nes.cpu = {
                 this.F_BRK = (temp>>4)&1;
                 this.F_DECIMAL = (temp>>3)&1;
                 this.F_INTERRUPT = (temp>>2)&1;
-                this.F_ZERO = (((temp>>1)&1)==1)?0:1;
+                this.F_ZERO = (((temp>>1)&1) === 1)?0:1;
                 this.F_CARRY = temp&1;
                 this.F_NOTUSED = 1;
                 break;
@@ -798,7 +765,7 @@ nes.cpu = {
                 this.F_BRK = (temp>>4)&1;
                 this.F_DECIMAL = (temp>>3)&1;
                 this.F_INTERRUPT = (temp>>2)&1;
-                this.F_ZERO = ((temp>>1)&1)==0?1:0;
+                this.F_ZERO = ((temp>>1)&1) === 0?1:0;
                 this.F_CARRY = temp&1;
                 this.REG_PC = this.pull()+(this.pull()<<8);
                 if(this.REG_PC === 0xFFFF){
@@ -827,7 +794,7 @@ nes.cpu = {
                 temp = this.REG_ACC-nes.mmc.load(addr)-(1-this.F_CARRY);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
-                this.F_OVERFLOW = ((((this.REG_ACC^temp)&0x80)!==0 && ((this.REG_ACC^nes.mmc.load(addr))&0x80)!==0)?1:0);
+                this.F_OVERFLOW = ((((this.REG_ACC^temp)&0x80)!==0 && ((this.REG_ACC^nes.mmc.load(addr))&0x80) !== 0)?1:0);
                 this.F_CARRY = (temp<0?0:1);
                 this.REG_ACC = (temp&0xFF);
                 if(addrMode !== 11){
