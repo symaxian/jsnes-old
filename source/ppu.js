@@ -11,7 +11,7 @@ nes.ppu = {
 
 //Methods
 
-    reset:function(){
+    reset:function ppu_reset(){
 
         //Reset the vram.
         this.vramMem = new Array(0x8000);
@@ -114,31 +114,35 @@ nes.ppu = {
             this.ptTile[i] = new Tile();
         }
 
-        //Create nametable buffers:
-        //Name table data:
+        //Create nametable buffers.
+        //Name table data.
         this.ntable1 = new Array(4);
         this.nameTable = new Array(4);
         for(var i=0;i<4;i++){
-            this.nameTable[i] = new JSNES.PPU.NameTable(32,32);
+            this.nameTable[i] = new this.NameTable(32,32);
         }
 
-        //Initialize mirroring lookup table:
+        //Initialize mirroring lookup table.
         this.vramMirrorTable = new Array(0x8000);
-        for (var i=0; i<0x8000; i++) {
+        for(var i=0;i<0x8000;i++){
             this.vramMirrorTable[i] = i;
         }
 
-        this.palTable = new JSNES.PPU.PaletteTable();
+        //Set the color pallette.
+        this.palTable = new this.PaletteTable();
         this.palTable.loadNTSCPalette();
 
+        //Reset the control register.
         this.setControlRegister(0);
+
+        //Reset the masking register.
         this.setMaskingRegister(0);
 
     },
 
-    setMirroring:function(mirroring){
+    setMirroring:function ppu_setMirroring(mirroring){
 
-        //??
+        //???
         this.triggerRendering();
 
         //Remove mirroring
@@ -212,13 +216,13 @@ nes.ppu = {
     //Defines a mirrored area in the address lookup table.
     //Assumes the regions don't overlap.
     //The 'to' region is the region that is physically in memory.
-    defineMirrorRegion:function(from,to,size){
+    defineMirrorRegion:function ppu_defineMirrorRegion(from,to,size){
         for(var i=0;i<size;i++){
             this.vramMirrorTable[from+i] = to+i;
         }
     },
 
-    startVBlank:function(){
+    startVBlank:function ppu_startVBlank(){
 
         //Do NMI.
         nes.cpu.requestIrq(1);
@@ -290,103 +294,88 @@ nes.ppu = {
 
     },
 
-    endScanline:function(){
-        switch(this.scanline){
-            case 19:
-                //Dummy scanline.
-                //May be variable length:
-                if (this.dummyCycleToggle) {
+    endScanline:function ppu_endScanline(){
 
-                    //Remove dead cycle at end of scanline,
-                    //for next scanline:
-                    this.curX = 1;
-                    this.dummyCycleToggle = !this.dummyCycleToggle;
-
-                }
-                break;
-                
-            case 20:
-                //Clear VBlank flag:
-                this.setStatusFlag(7,false);
-
-                //Clear Sprite #0 hit flag:
-                this.setStatusFlag(6,false);
-                this.hitSpr0 = false;
-                this.spr0HitX = -1;
-                this.spr0HitY = -1;
-
-                if (this.f_bgVisibility == 1 || this.f_spVisibility==1) {
-
-                    //Update counters:
-                    this.cntFV = this.regFV;
-                    this.cntV = this.regV;
-                    this.cntH = this.regH;
-                    this.cntVT = this.regVT;
-                    this.cntHT = this.regHT;
-
-                    if (this.f_bgVisibility==1) {
-                        //Render dummy scanline:
-                        this.renderBgScanline(this.buffer,0);
-                    }   
-
-                }
-
-                if (this.f_bgVisibility==1 && this.f_spVisibility==1) {
-
-                    //Check sprite 0 hit for first scanline:
-                    this.checkSprite0(0);
-
-                }
-
-                if (this.f_bgVisibility==1 || this.f_spVisibility==1) {
-                    //Clock mapper IRQ Counter:
-                    nes.mmc.clockIrqCounter();
-                }
-                break;
-                
-            case 261:
-                //Dead scanline, no rendering.
-                //Set VINT:
-                this.setStatusFlag(7,true);
-                this.requestEndFrame = true;
-                this.nmiCounter = 9;
-
-                //Reset the scanline counter, will be incremented to 0.
-                this.scanline = -1;
-
-                break;
-
-            default:
-                if(this.scanline >= 21 && this.scanline <= 260){
-
-                    //Render normally:
-                    if (this.f_bgVisibility == 1) {
-
-                        //update scroll:
-                        this.cntHT = this.regHT;
-                        this.cntH = this.regH;
-                        this.renderBgScanline(this.bgbuffer,this.scanline+1-21);
-
-                        //Check for sprite 0 (next scanline):
-                        if(!this.hitSpr0 && this.f_spVisibility == 1){
-                            if(this.sprX[0] >= -7 && this.sprX[0] < 256 && this.sprY[0] + 1 <= (this.scanline - 20) && (this.sprY[0] + 1 + (this.f_spriteSize === 0 ? 8 : 16)) >= (this.scanline - 20)){
-                                if(this.checkSprite0(this.scanline - 20)){
-                                    this.hitSpr0 = true;
-                                }
-                            }
+        //Check if its a normal scanline.
+        if(this.scanline > 20 && this.scanline < 261){
+            //Check if the bg is visible.
+            if(this.f_bgVisibility === 1){
+                //Update scroll.
+                this.cntHT = this.regHT;
+                this.cntH = this.regH;
+                this.renderBgScanline(this.bgbuffer,this.scanline+1-21);
+                //Check for sprite 0 hit on next scanline.
+                if(!this.hitSpr0 && this.f_spVisibility == 1){
+                    if(this.sprX[0] >= -7 && this.sprX[0] < 256 && this.sprY[0] + 1 <= (this.scanline - 20) && (this.sprY[0] + 1 + (this.f_spriteSize === 0 ? 8 : 16)) >= (this.scanline - 20)){
+                        if(this.checkSprite0(this.scanline - 20)){
+                            this.hitSpr0 = true;
                         }
-
                     }
-
-                    if(this.f_bgVisibility==1 || this.f_spVisibility==1){
-                        //Clock mapper IRQ Counter:
-                        nes.mmc.clockIrqCounter();
-                    }
-
                 }
+                //Clock mapper IRQ counter.
+                nes.mmc.clockIrqCounter();
+            }
+            //Else check if the sprites are visible.
+            else if(this.f_spVisibility === 1){
+                //Clock mapper IRQ counter.
+                nes.mmc.clockIrqCounter();
+            }
         }
 
+        //Else check if its the dummy scanline.
+        else if(this.scanline === 19){
+            //May be variable length:
+            if(this.dummyCycleToggle){
+                //Remove dead cycle at end of scanline,
+                //for next scanline:
+                this.curX = 1;
+                this.dummyCycleToggle = false;
+            }
+        }
+
+        //Else check if its the first scanline.
+        else if(this.scanline === 20){
+            //Clear VBlank flag.
+            this.setStatusFlag(7,false);
+            //Clear Sprite #0 hit flag.
+            this.setStatusFlag(6,false);
+            this.hitSpr0 = false;
+            this.spr0HitX = -1;
+            this.spr0HitY = -1;
+            //Check if either the bg or sprites are visible.
+            if(this.f_bgVisibility == 1 || this.f_spVisibility==1){
+                //Update counters:
+                this.cntFV = this.regFV;
+                this.cntV = this.regV;
+                this.cntH = this.regH;
+                this.cntVT = this.regVT;
+                this.cntHT = this.regHT;
+                //Check if the bg is visible.
+                if(this.f_bgVisibility === 1){
+                    //Render dummy scanline.
+                    this.renderBgScanline(this.buffer,0);
+                }
+                //Check sprite 0 hit on the first scanline.
+                this.checkSprite0(0);
+                //Clock mapper IRQ Counter.
+                nes.mmc.clockIrqCounter();
+            }
+        }
+
+        //Else check if its the dead scanline(261).
+        else if(this.scanline === 261){
+            //Set VINT.
+            this.setStatusFlag(7,true);
+            this.requestEndFrame = true;
+            this.nmiCounter = 9;
+            //Reset the scanline counter, will be incremented to 0.
+            this.scanline = -1;
+        }
+
+        //Increment the scanline.
         this.scanline++;
+
+        //???
         this.regsToAddress();
         this.cntsToAddress();
 
@@ -621,13 +610,13 @@ nes.ppu = {
 
     //Updates the scroll registers from a new VRAM address.
     regsFromAddress:function(){
-
+        //???
         var address = (this.vramTmpAddress>>8)&0xFF;
         this.regFV = (address>>4)&7;
         this.regV = (address>>3)&1;
         this.regH = (address>>2)&1;
         this.regVT = (this.regVT&7) | ((address&3)<<3);
-
+        //???
         address = this.vramTmpAddress&0xFF;
         this.regVT = (this.regVT&24) | ((address>>5)&7);
         this.regHT = address&31;
@@ -635,13 +624,13 @@ nes.ppu = {
 
     //Updates the scroll registers from a new VRAM address.
     cntsFromAddress:function(){
-
+        //???
         var address = (this.vramAddress>>8)&0xFF;
         this.cntFV = (address>>4)&3;
         this.cntV = (address>>3)&1;
         this.cntH = (address>>2)&1;
         this.cntVT = (this.cntVT&7) | ((address&3)<<3);
-
+        //???
         address = this.vramAddress&0xFF;
         this.cntVT = (this.cntVT&24) | ((address>>5)&7);
         this.cntHT = address&31;
@@ -658,6 +647,7 @@ nes.ppu = {
         this.vramAddress = (((((this.cntFV&7)<<4)|((this.cntV&1)<<3)|((this.cntH&1)<<2)|((this.cntVT>>3)&3))<<8)|(((this.cntVT&7)<<5)|(this.cntHT&31)))&0x7FFF;
     },
 
+    //???
     incTileCounter:function(count){
         for(var i=count;i!==0;i--){
             this.cntHT++;
@@ -715,22 +705,22 @@ nes.ppu = {
             }
         }
     },
-    
+
+    //???
     triggerRendering:function(){
-        //Check if this is a valid scanline.
-        if(this.scanline >= 21 && this.scanline <= 260){
+        //Check if this is a visible scanline.
+        if(this.scanline > 20 && this.scanline < 261){
             //Render sprites, and combine.
             this.renderFramePartially(this.lastRenderedScanline+1,this.scanline-21-this.lastRenderedScanline);
             //Set last rendered scanline.
             this.lastRenderedScanline = this.scanline-21;
         }
     },
-    
-    renderFramePartially:function(startScan, scanCount){
-        //Check if the sprites are visible.
-        if(this.f_spVisibility === 1){
-            this.renderSpritesPartially(startScan,scanCount,true);
-        }
+
+    //???
+    renderFramePartially:function(startScan,scanCount){
+        //???
+        this.renderSpritesPartially(startScan,scanCount,true);
         //Check if the bg is visible.
         if(this.f_bgVisibility === 1){
             var endIndex = Math.min((startScan+scanCount)<<8,0xF000);
@@ -740,14 +730,13 @@ nes.ppu = {
                 }
             }
         }
-        //Check if the sprites are visible.
-        if(this.f_spVisibility === 1){
-            this.renderSpritesPartially(startScan,scanCount,false);
-        }
+        //???
+        this.renderSpritesPartially(startScan,scanCount,false);
         //Invalidate the tile data.
         this.validTileData = false;
     },
 
+    //???
     renderBgScanline:function(buffer,scan){
         var baseTile = this.regS*256;
         var destIndex = (scan<<8)-this.regFH;
@@ -831,6 +820,7 @@ nes.ppu = {
         }
     },
 
+    //???
     renderSpritesPartially:function(startscan,scancount,bgPri){
         //Check if the sprites are visible.
         if(this.f_spVisibility === 1){
@@ -925,8 +915,7 @@ nes.ppu = {
         if(this.f_spriteSize === 0){
             //Check if its in range.
             if(y <= scan && y+8 > scan && x >= -7 && x < 256){
-                //Sprite is in range.
-                //Draw scanline:
+                //Sprite is in range, draw the scanline.
                 var t = this.ptTile[this.sprTile[0]+tIndexAdd];
                 var col = this.sprCol[0];
                 var bgPri = this.bgPriority[0];
@@ -979,7 +968,7 @@ nes.ppu = {
             else{
                 var toffset = scan-y;
             }
-            if(toffset<8){
+            if(toffset < 8){
                 //First half of sprite.
                 var t = this.ptTile[this.sprTile[0]+(this.vertFlip[0]?1:0)+((this.sprTile[0]&1)!==0?255:0)];
             }
@@ -1084,13 +1073,11 @@ nes.ppu = {
 
     //Updates the internal pattern table buffers with this new byte.
     patternWrite:function(address,value){
-        var tileIndex = parseInt(address/16,10);
-        var leftOver = address%16;
-        if(leftOver < 8){
-            this.ptTile[tileIndex].setScanline(leftOver,value,this.vramMem[address+8]);
+        if(address%16 < 8){
+            this.ptTile[parseInt(address/16,10)].setScanline(address%16,value,this.vramMem[address+8]);
         }
         else{
-            this.ptTile[tileIndex].setScanline(leftOver-8,this.vramMem[address-8],value);
+            this.ptTile[parseInt(address/16,10)].setScanline((address%16)-8,this.vramMem[address-8],value);
         }
     },
 
@@ -1109,12 +1096,16 @@ nes.ppu = {
 
     //Updates the internally buffered sprite data with this new byte of info.
     spriteRamWriteUpdate:function(address,value){
+        //???
         var tIndex = parseInt(address/4,10);
+        //???
         address %= 4;
+        //???
         if(tIndex === 0){
             //updateSpr0Hit();
             this.checkSprite0(this.scanline-20);
         }
+        //???
         if(address === 0){
             //Y coordinate
             this.sprY[tIndex] = value;
@@ -1142,7 +1133,7 @@ nes.ppu = {
 //== Name Table ==
 //================
 
-JSNES.PPU.NameTable = function(width,height){
+nes.ppu.NameTable = function(width,height){
 
     this.width = width;
     this.height = height;
@@ -1152,7 +1143,7 @@ JSNES.PPU.NameTable = function(width,height){
 
 };
 
-JSNES.PPU.NameTable.prototype = {
+nes.ppu.NameTable.prototype = {
 
     getTileIndex:function(x,y){
         //???
@@ -1191,26 +1182,22 @@ JSNES.PPU.NameTable.prototype = {
 //== Color Palette ==
 //===================
 
-JSNES.PPU.PaletteTable = function(){
+nes.ppu.PaletteTable = function(){
     this.curTable = new Array(64);
     this.emphTable = new Array(8);
     this.currentEmph = -1;
 };
 
-JSNES.PPU.PaletteTable.prototype = {
-
-    reset:function(){
-        this.setEmphasis(0);
-    },
+nes.ppu.PaletteTable.prototype = {
 
     loadNTSCPalette:function(){
-        this.curTable = [0x525252,0xB40000,0xA00000,0xB1003D,0x740069,0x00005B,0x00005F,0x001840,0x002F10,0x084A08,0x006700,0x124200,0x6D2800,0x000000,0x000000,0x000000,0xC4D5E7,0xFF4000,0xDC0E22,0xFF476B,0xD7009F,0x680AD7,0x0019BC,0x0054B1,0x006A5B,0x008C03,0x00AB00,0x2C8800,0xA47200,0x000000,0x000000,0x000000,0xF8F8F8,0xFFAB3C,0xFF7981,0xFF5BC5,0xFF48F2,0xDF49FF,0x476DFF,0x00B4F7,0x00E0FF,0x00E375,0x03F42B,0x78B82E,0xE5E218,0x787878,0x000000,0x000000,0xFFFFFF,0xFFF2BE,0xF8B8B8,0xF8B8D8,0xFFB6FF,0xFFC3FF,0xC7D1FF,0x9ADAFF,0x88EDF8,0x83FFDD,0xB8F8B8,0xF5F8AC,0xFFFFB0,0xF8D8F8,0x000000,0x000000];
+        this.curTable = [5395026,11796480,10485760,11599933,7602281,91,95,6208,12048,543240,26368,1196544,7153664,0,0,0,12899815,16728064,14421538,16729963,14090399,6818519,6588,21681,27227,35843,43776,2918400,10777088,0,0,0,16316664,16755516,16742785,16735173,16730354,14633471,4681215,46327,57599,58229,259115,7911470,15065624,7895160,0,0,16777215,16773822,16300216,16300248,16758527,16761855,13095423,10148607,8973816,8650717,12122296,16119980,16777136,16308472,0,0];
         this.makeTables();
         this.setEmphasis(0);
     },
 
-    loadPALPalette:function(){
-        this.curTable = [0x525252,0xB40000,0xA00000,0xB1003D,0x740069,0x00005B,0x00005F,0x001840,0x002F10,0x084A08,0x006700,0x124200,0x6D2800,0x000000,0x000000,0x000000,0xC4D5E7,0xFF4000,0xDC0E22,0xFF476B,0xD7009F,0x680AD7,0x0019BC,0x0054B1,0x006A5B,0x008C03,0x00AB00,0x2C8800,0xA47200,0x000000,0x000000,0x000000,0xF8F8F8,0xFFAB3C,0xFF7981,0xFF5BC5,0xFF48F2,0xDF49FF,0x476DFF,0x00B4F7,0x00E0FF,0x00E375,0x03F42B,0x78B82E,0xE5E218,0x787878,0x000000,0x000000,0xFFFFFF,0xFFF2BE,0xF8B8B8,0xF8B8D8,0xFFB6FF,0xFFC3FF,0xC7D1FF,0x9ADAFF,0x88EDF8,0x83FFDD,0xB8F8B8,0xF5F8AC,0xFFFFB0,0xF8D8F8,0x000000,0x000000];
+    loadDefaultPalette:function(){
+        this.curTable = [7697781,2562959,171,4653215,9371767,11206675,10944512,8325888,4402944,18176,20736,16151,1785695,0,0,0,12369084,29679,2309103,8585459,12517567,15138907,14363392,13324047,9138944,38656,43776,37691,33675,0,0,0,16777215,4177919,6264831,10980349,16219135,16742327,16742243,16751419,15974207,8639251,5234507,5830808,60379,0,0,0,16777215,11266047,13096959,14142463,16762879,16762843,16760755,16767915,16770979,14942115,11269055,11796431,10485747,0,0,0];
         this.makeTables();
         this.setEmphasis(0);
     },
@@ -1221,7 +1208,7 @@ JSNES.PPU.PaletteTable.prototype = {
         for(var emph=0;emph<8;emph++){
 
             //Determine color component factors:
-            var rFactor=1.0, gFactor=1.0, bFactor=1.0;
+            var rFactor = gFactor = bFactor = 1;
 
             if((emph&1) !== 0){
                 rFactor = 0.75;
@@ -1243,18 +1230,18 @@ JSNES.PPU.PaletteTable.prototype = {
             //Calculate table:
             for(var i=0;i<64;i++){
                 var col = this.curTable[i];
-                var r = parseInt(this.getRed(col)*rFactor,10);
-                var g = parseInt(this.getGreen(col)*gFactor,10);
-                var b = parseInt(this.getBlue(col)*bFactor,10);
+                var r = parseInt(((col>>16)&0xFF)*rFactor,10);
+                var g = parseInt(((col>>8)&0xFF)*gFactor,10);
+                var b = parseInt((col&0xFF)*bFactor,10);
                 this.emphTable[emph][i] = this.getRgb(r,g,b);
             }
         }
     },
 
     setEmphasis:function(emph){
-        if (emph != this.currentEmph) {
+        if(emph !== this.currentEmph){
             this.currentEmph = emph;
-            for (var i=0;i<64;i++) {
+            for(var i=0;i<64;i++){
                 this.curTable[i] = this.emphTable[emph][i];
             }
         }
@@ -1264,91 +1251,8 @@ JSNES.PPU.PaletteTable.prototype = {
         return this.curTable[color];
     },
 
-    getRed:function(rgb){
-        return (rgb>>16)&0xFF;
-    },
-
-    getGreen:function(rgb){
-        return (rgb>>8)&0xFF;
-    },
-
-    getBlue:function(rgb){
-        return rgb&0xFF;
-    },
-
     getRgb:function(r,g,b){
         return ((r<<16)|(g<<8)|(b));
-    },
-
-    loadDefaultPalette:function(){
-        this.curTable[ 0] = this.getRgb(117,117,117);
-        this.curTable[ 1] = this.getRgb( 39, 27,143);
-        this.curTable[ 2] = this.getRgb(  0,  0,171);
-        this.curTable[ 3] = this.getRgb( 71,  0,159);
-        this.curTable[ 4] = this.getRgb(143,  0,119);
-        this.curTable[ 5] = this.getRgb(171,  0, 19);
-        this.curTable[ 6] = this.getRgb(167,  0,  0);
-        this.curTable[ 7] = this.getRgb(127, 11,  0);
-        this.curTable[ 8] = this.getRgb( 67, 47,  0);
-        this.curTable[ 9] = this.getRgb(  0, 71,  0);
-        this.curTable[10] = this.getRgb(  0, 81,  0);
-        this.curTable[11] = this.getRgb(  0, 63, 23);
-        this.curTable[12] = this.getRgb( 27, 63, 95);
-        this.curTable[13] = this.getRgb(  0,  0,  0);
-        this.curTable[14] = this.getRgb(  0,  0,  0);
-        this.curTable[15] = this.getRgb(  0,  0,  0);
-        this.curTable[16] = this.getRgb(188,188,188);
-        this.curTable[17] = this.getRgb(  0,115,239);
-        this.curTable[18] = this.getRgb( 35, 59,239);
-        this.curTable[19] = this.getRgb(131,  0,243);
-        this.curTable[20] = this.getRgb(191,  0,191);
-        this.curTable[21] = this.getRgb(231,  0, 91);
-        this.curTable[22] = this.getRgb(219, 43,  0);
-        this.curTable[23] = this.getRgb(203, 79, 15);
-        this.curTable[24] = this.getRgb(139,115,  0);
-        this.curTable[25] = this.getRgb(  0,151,  0);
-        this.curTable[26] = this.getRgb(  0,171,  0);
-        this.curTable[27] = this.getRgb(  0,147, 59);
-        this.curTable[28] = this.getRgb(  0,131,139);
-        this.curTable[29] = this.getRgb(  0,  0,  0);
-        this.curTable[30] = this.getRgb(  0,  0,  0);
-        this.curTable[31] = this.getRgb(  0,  0,  0);
-        this.curTable[32] = this.getRgb(255,255,255);
-        this.curTable[33] = this.getRgb( 63,191,255);
-        this.curTable[34] = this.getRgb( 95,151,255);
-        this.curTable[35] = this.getRgb(167,139,253);
-        this.curTable[36] = this.getRgb(247,123,255);
-        this.curTable[37] = this.getRgb(255,119,183);
-        this.curTable[38] = this.getRgb(255,119, 99);
-        this.curTable[39] = this.getRgb(255,155, 59);
-        this.curTable[40] = this.getRgb(243,191, 63);
-        this.curTable[41] = this.getRgb(131,211, 19);
-        this.curTable[42] = this.getRgb( 79,223, 75);
-        this.curTable[43] = this.getRgb( 88,248,152);
-        this.curTable[44] = this.getRgb(  0,235,219);
-        this.curTable[45] = this.getRgb(  0,  0,  0);
-        this.curTable[46] = this.getRgb(  0,  0,  0);
-        this.curTable[47] = this.getRgb(  0,  0,  0);
-        this.curTable[48] = this.getRgb(255,255,255);
-        this.curTable[49] = this.getRgb(171,231,255);
-        this.curTable[50] = this.getRgb(199,215,255);
-        this.curTable[51] = this.getRgb(215,203,255);
-        this.curTable[52] = this.getRgb(255,199,255);
-        this.curTable[53] = this.getRgb(255,199,219);
-        this.curTable[54] = this.getRgb(255,191,179);
-        this.curTable[55] = this.getRgb(255,219,171);
-        this.curTable[56] = this.getRgb(255,231,163);
-        this.curTable[57] = this.getRgb(227,255,163);
-        this.curTable[58] = this.getRgb(171,243,191);
-        this.curTable[59] = this.getRgb(179,255,207);
-        this.curTable[60] = this.getRgb(159,255,243);
-        this.curTable[61] = this.getRgb(  0,  0,  0);
-        this.curTable[62] = this.getRgb(  0,  0,  0);
-        this.curTable[63] = this.getRgb(  0,  0,  0);
-
-        this.makeTables();
-        this.setEmphasis(0);
-
     },
 
 };

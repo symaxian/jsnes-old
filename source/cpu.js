@@ -4,10 +4,10 @@
 
 //Notes
 
-// Check if moving the 8 status flags into one number would be faster.
-//     More bitwise operations.
-//     Setting and getting the status would be one operation.
-//     Less memory.
+//  Check if moving the 8 status flags into one number would be faster.
+//      More bitwise operations.
+//      Setting and getting the status would be one operation.
+//      Less memory.
 
 nes.cpu = {
 
