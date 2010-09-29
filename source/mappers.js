@@ -16,10 +16,10 @@ nes.mappers[0].prototype = {
         this.joy2Strobe = 0;
         this.joypadLastWrite = 0;
 
-        //Reset the mouse flags.
-        this.mousePressed = false;
-        this.mouseX = null;
-        this.mouseY = null;
+        //Reset the mouse flags, FIXME.
+        //this.mousePressed = false;
+        //this.mouseX = null;
+        //this.mouseY = null;
 
     },
 
@@ -41,9 +41,6 @@ nes.mappers[0].prototype = {
     },
 
     write:function mmc0_write(address,value){
-
-        //Write the value into memory.
-        nes.cpu.mem[address] = value;
 
         //Check the address.
         if(address < 0x2000){
@@ -222,13 +219,13 @@ nes.mappers[0].prototype = {
         //Load PRG-ROM.
         if(nes.rom.romCount > 1){
             //Load the two first banks into memory.
-            this.loadRomBank(0,0x8000);
-            this.loadRomBank(1,0xC000);
+            this.load16kRomBank(0,0x8000);
+            this.load16kRomBank(1,0xC000);
         }
         else{
             //Load the one bank into both memory locations:
-            this.loadRomBank(0,0x8000);
-            this.loadRomBank(0,0xC000);
+            this.load16kRomBank(0,0x8000);
+            this.load16kRomBank(0,0xC000);
         }
 
         //Load CHR-ROM.
@@ -247,12 +244,12 @@ nes.mappers[0].prototype = {
     loadCHRROM:function mmc0_loadCHRROM(){
         if(nes.rom.vromCount > 0){
             if(nes.rom.vromCount === 1){
-                this.loadVromBank(0,0x0000);
-                this.loadVromBank(0,0x1000);
+                this.load4kVromBank(0,0x0000);
+                this.load4kVromBank(0,0x1000);
             }
             else{
-                this.loadVromBank(0,0x0000);
-                this.loadVromBank(1,0x1000);
+                this.load4kVromBank(0,0x0000);
+                this.load4kVromBank(1,0x1000);
             }
         }
     },
@@ -271,79 +268,71 @@ nes.mappers[0].prototype = {
 
     //Load ROM Banks
 
-    loadRomBank:function mmc0_loadRomBank(bank,address){
-        bank %= nes.rom.romCount;
+    load8kRomBank:function mmc0_load8kRomBank(bank,address){
         //Load the rom bank into the specified address.
-        arraycopy(nes.rom.rom[bank],0,nes.cpu.mem,address,16384);
+        arraycopy(nes.rom.rom[parseInt(bank/2,10)%nes.rom.romCount],(bank%2)*8192,nes.cpu.mem,address,8192);
     },
 
-    load8kRomBank:function mmc0_load8kRomBank(bank8k,address){
-        //???
-        var bank16k = parseInt(bank8k/2,10)%nes.rom.romCount;
-        var offset = (bank8k%2)*8192;
-        arraycopy(nes.rom.rom[bank16k],offset,nes.cpu.mem,address,8192);
+    load16kRomBank:function mmc0_load16kRomBank(bank,address){
+        //Load the rom bank into the specified address.
+        arraycopy(nes.rom.rom[bank%nes.rom.romCount],0,nes.cpu.mem,address,16384);
     },
 
     load32kRomBank:function mmc0_load32kRomBank(bank,address){
-        //Load two 16kb banks.
-        this.loadRomBank((bank*2)%nes.rom.romCount,address);
-        this.loadRomBank((bank*2+1)%nes.rom.romCount,address+16384);
+        //Load two 16kb banks into the specified address.
+        this.load16kRomBank(bank*2,address);
+        this.load16kRomBank(bank*2+1,address+16384);
     },
 
     //Load VROM Banks
 
-    loadVromBank:function mmc0_loadVromBank(bank,address){
+    load1kVromBank:function mmc0_load8kVromBank(bank,address){
+        if(nes.rom.vromCount !== 0){
+            //???
+            nes.ppu.triggerRendering();
+            //???
+            arraycopy(nes.rom.vrom[parseInt(bank/4,10)%nes.rom.vromCount],0,nes.ppu.vramMem,(bank%4)*1024,1024);
+            //Update vrom tiles.
+            var vromTile = nes.rom.vromTile[bank4k];
+            var baseIndex = address>>4;
+            for(var i=0;i<64;i++){
+                nes.ppu.ptTile[baseIndex+i] = vromTile[((bank%4)<<6)+i];
+            }
+        }
+    },
+
+    load2kVromBank:function mmc0_load2kVromBank(bank,address){
+        if(nes.rom.vromCount !== 0){
+            //???
+            nes.ppu.triggerRendering();
+            //???
+            arraycopy(nes.rom.vrom[parseInt(bank/2,10)%nes.rom.vromCount],(bank%2)*2048,nes.ppu.vramMem,address,2048);
+            //Update tiles.
+            var vromTile = nes.rom.vromTile[bank4k];
+            var baseIndex = address>>4;
+            for(var i=0;i<128;i++){
+                nes.ppu.ptTile[baseIndex+i] = vromTile[((bank%2)<<7)+i];
+            }
+        }
+    },
+
+    load4kVromBank:function mmc0_load4kVromBank(bank,address){
         if(nes.rom.vromCount !== 0){
             //???
             nes.ppu.triggerRendering();
             //???
             arraycopy(nes.rom.vrom[bank%nes.rom.vromCount],0,nes.ppu.vramMem,address,4096);
-            var vromTile = nes.rom.vromTile[bank % nes.rom.vromCount];
-            arraycopy(vromTile,0,nes.ppu.ptTile,address>>4,256);
+            arraycopy(nes.rom.vromTile[bank%nes.rom.vromCount],0,nes.ppu.ptTile,address>>4,256);
         }
     },
 
-    load1kVromBank:function mmc0_load8kVromBank(bank1k,address){
+    load8kVromBank:function mmc0_load8kVromBank(bankStart,address){
         if(nes.rom.vromCount !== 0){
             //???
             nes.ppu.triggerRendering();
-            //???
-            var bank4k = parseInt(bank1k/4,10)%nes.rom.vromCount;
-            var bankoffset = (bank1k%4)*1024;
-            arraycopy(nes.rom.vrom[bank4k],0,nes.ppu.vramMem,bankoffset,1024);
-            //Update tiles.
-            var vromTile = nes.rom.vromTile[bank4k];
-            var baseIndex = address>>4;
-            for(var i=0;i<64;i++){
-                nes.ppu.ptTile[baseIndex+i] = vromTile[((bank1k%4)<<6)+i];
-            }
-        }
-    },
-
-    load2kVromBank:function mmc0_load2kVromBank(bank2k,address){
-        if(nes.rom.vromCount !== 0){
-            //???
-            nes.ppu.triggerRendering();
-            //???
-            var bank4k = parseInt(bank2k/2,10)%nes.rom.vromCount;
-            var bankoffset = (bank2k%2)*2048;
-            arraycopy(nes.rom.vrom[bank4k],bankoffset,nes.ppu.vramMem,address,2048);
-            //Update tiles.
-            var vromTile = nes.rom.vromTile[bank4k];
-            var baseIndex = address >> 4;
-            for(var i=0;i<128;i++){
-                nes.ppu.ptTile[baseIndex+i] = vromTile[((bank2k%2)<<7)+i];
-            }
-        }
-    },
-
-    load8kVromBank:function mmc0_load8kVromBank(bank4kStart,address){
-        if(nes.rom.vromCount !== 0){
-            //???
-            nes.ppu.triggerRendering();
-            //???
-            this.loadVromBank((bank4kStart)%nes.rom.vromCount,address);
-            this.loadVromBank((bank4kStart+1)%nes.rom.vromCount,address+4096);
+            //Load two 4kb banks into the specified address.
+            this.load4kVromBank((bankStart)%nes.rom.vromCount,address);
+            this.load4kVromBank((bankStart+1)%nes.rom.vromCount,address+4096);
         }
     },
 
@@ -469,10 +458,10 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
                 else{
                     //Swap 4kB VROM.
                     if(this.romSelectionReg0 === 0){
-                        this.loadVromBank((value&0xF),0x0000);
+                        this.load4kVromBank((value&0xF),0x0000);
                     }
                     else{
-                        this.loadVromBank(parseInt(nes.rom.vromCount/2,10)+(value&0xF),0x0000);
+                        this.load4kVromBank(parseInt(nes.rom.vromCount/2,10)+(value&0xF),0x0000);
                     }
                 }
             }
@@ -487,10 +476,10 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
                 if(this.vromSwitchingSize === 1){
                     //Swap 4kB of VROM.
                     if(this.romSelectionReg1 === 0){
-                        this.loadVromBank((value&0xF),0x1000);
+                        this.load4kVromBank((value&0xF),0x1000);
                     }
                     else{
-                        this.loadVromBank(parseInt(nes.rom.vromCount/2,10)+(value&0xF),0x1000);
+                        this.load4kVromBank(parseInt(nes.rom.vromCount/2,10)+(value&0xF),0x1000);
                     }
                 }
             }
@@ -527,10 +516,10 @@ nes.mappers[1].prototype.setReg = function mmc1_setReg(reg,value){
                 //16kB
                 var bank = baseBank*2+(value&0xF);
                 if(this.prgSwitchingArea === 0){
-                    this.loadRomBank(bank,0xC000);
+                    this.load16kRomBank(bank,0xC000);
                 }
                 else{
-                    this.loadRomBank(bank,0x8000);
+                    this.load16kRomBank(bank,0x8000);
                 }
             }
             break;
@@ -555,8 +544,8 @@ nes.mappers[1].prototype.getRegNumber = function mmc1_getRegNumber(address){
 nes.mappers[1].prototype.loadROM = function mmc1_loadROM(){
 
     //Load PRG-ROM, the first and last banks.
-    this.loadRomBank(0,0x8000);
-    this.loadRomBank(nes.rom.romCount-1,0xC000);
+    this.load16kRomBank(0,0x8000);
+    this.load16kRomBank(nes.rom.romCount-1,0xC000);
 
     //Load CHR-ROM.
     this.loadCHRROM();
@@ -581,7 +570,7 @@ nes.mappers[1].prototype.switch32to16 = function mmc1_switch32to16(){};
 //== Mapper 2 ==
 //==============
 
-nes.mappers[2] = function(){};
+nes.mappers[2] = function mmc2(){};
 
 nes.mappers[2].prototype = new nes.mappers[0]();
 
@@ -594,15 +583,15 @@ nes.mappers[2].prototype.write = function mmc2_write(address,value){
 
     //This is a ROM bank select command.
     //Swap in the given ROM bank at 0x8000:
-    this.loadRomBank(value,0x8000);
+    this.load16kRomBank(value,0x8000);
 
 };
 
 nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
 
     //Load PRG-ROM.
-    this.loadRomBank(0,0x8000);
-    this.loadRomBank(nes.rom.romCount-1,0xC000);
+    this.load16kRomBank(0,0x8000);
+    this.load16kRomBank(nes.rom.romCount-1,0xC000);
 
     //Load CHR-ROM.
     this.loadCHRROM();
@@ -616,7 +605,7 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
 //== Mapper 4 ==
 //==============
 
-nes.mappers[4] = function(){
+nes.mappers[4] = function mmc4(){
 
     this.command = null;
     this.prgAddressSelect = null;
@@ -648,12 +637,12 @@ nes.mappers[4].prototype.write = function mmc4_write(address,value){
             this.prgAddressSelect = tmp;
             this.chrAddressSelect = (value >> 7) & 1;
             break;
-    
+
         case 0x8001:
             //Page number for command
             this.executeCommand(this.command, value);
             break;
-    
+
         case 0xA000:
             //Mirroring select
             if((value & 1) !== 0){
@@ -665,39 +654,40 @@ nes.mappers[4].prototype.write = function mmc4_write(address,value){
                 nes.ppu.setMirroring(0);
             }
             break;
-        
+
         case 0xA001:
             //SaveRAM Toggle
-            //TODO
+            //FIXME
             //nes.getRom().setSaveState((value&1)!=0);
             break;
-    
+
         case 0xC000:
             //IRQ Counter register
             this.irqCounter = value;
             //nes.ppu.mapperIrqCounter = 0;
             break;
-    
+
         case 0xC001:
             //IRQ Latch register
             this.irqLatchValue = value;
             break;
-    
+
         case 0xE000:
             //IRQ Control Reg 0 (disable)
             //irqCounter = irqLatchValue;
             this.irqEnable = 0;
             break;
-    
-        case 0xE001:        
+
+        case 0xE001:
             //IRQ Control Reg 1 (enable)
             this.irqEnable = 1;
             break;
-    
+
         default:
             //Not a MMC3 register.
             //The game has probably crashed, since it tries to write to ROM..
             //IGNORE.
+
     }
 };
 

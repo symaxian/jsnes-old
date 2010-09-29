@@ -30,6 +30,8 @@ nes = {
     lastFrameTime:0,
     fpsDisplay:null,
 
+    mmc:null,
+
     //Mapper Names
     mapperNames:["Direct Access","Nintendo MMC1","UNROM","CNROM","Nintendo MMC3","Nintendo MMC5","FFE F4xxx","AOROM","FFE F3xxx","Nintendo MMC2","Nintendo MMC4","Color Dreams Chip","FFE F6xxx","Unknown Mapper","Unknown Mapper","100-in-1 switch","Bandai chip","FFE F8xxx","Jaleco SS8806 chip","Namcot 106 chip","Famicom Disk System","Konami VRC4a","Konami VRC2a","Konami VRC2a","Konami VRC6","Konami VRC4b","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem G-101 chip","Taito TC0190/TC0350","32kB ROM switch","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Tengen RAMBO-1 chip","Irem H-3001 chip","GNROM switch","SunSoft3 chip","SunSoft4 chip","SunSoft5 FME-7 chip","Unknown Mapper","Camerica chip","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem 74HC161/32-based","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Pirate HK-SF3 chip"],
 
@@ -54,8 +56,6 @@ nes = {
         //Initiate the audio wrapper, FIXME
         //this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
-        this.mmc = null;
-
         //Reset the system.
         this.reset();
 
@@ -72,17 +72,15 @@ nes = {
         //Reset the apu, FIXME.
         //this.apu.reset(true);
 
-        //Reset the mmc if its loaded.
-        if(this.mmc !== null){
-            this.mmc.reset();
-        }
+        //Reset(remove) the mmc.
+        this.mmc = null;
 
     },
 
     start:function nes_start(){
 
         //Check if a valid rom is loaded.
-        if(this.rom !== null){
+        if(this.hasRom()){
 
             //Set the nes to active.
             this.active = true;
@@ -101,6 +99,29 @@ nes = {
 
         }
     
+    },
+
+    stop:function nes_stop(){
+
+        //Set the active flag to false.
+        this.active = false;
+
+        //Clear the fps update interval.
+        clearInterval(this.fpsInterval);
+
+    },
+
+    restart:function nes_restart(){
+
+        //Stop the nes.
+        this.stop();
+
+        //Reset the nes.
+        this.reset();
+
+        //Start the nes.
+        this.start();
+
     },
 
     frame:function nes_frame(){
@@ -214,27 +235,9 @@ nes = {
 
     },
 
-    stop:function nes_stop(){
-
-        //Set the active flag to false.
-        this.active = false;
-
-        //Clear the fps update interval.
-        clearInterval(this.fpsInterval);
-
-    },
-
-    restart:function nes_restart(){
-
-        //Stop the nes.
-        this.stop();
-
-        //Reset the nes.
-        this.reset();
-
-        //Start the nes.
-        this.start();
-
+    hasRom:function nes_hasRom(){
+        //Return whether the current rom is not null.
+        return this.rom !== null;
     },
 
     loadRom:function nes_loadRom(src){
@@ -314,7 +317,7 @@ nes = {
                     if(offset+j >= data.length){
                         break;
                     }
-                    this.rom.rom[i][j] = data.charCodeAt(offset+j) & 0xFF;
+                    this.rom.rom[i][j] = data.charCodeAt(offset+j)&0xFF;
                 }
                 offset += 16384;
             }
@@ -380,18 +383,18 @@ nes = {
                     this.ppu.setMirroring(0);
                 }
 
-                //Return true, the rom was succesfully loaded.
+                //Rom was successfully loaded, return true.
                 return true;
 
             }
 
-            //Return false, rom requires unknown mapper.
+            //Rom requires an unknown mapper, return false.
             nes.updateStatus("This ROM uses a mapper not supported by JSNES: "+nes.mapperNames[this.rom.mapperType]+"("+this.rom.mapperType+")");
             return false;
 
         }
 
-        //Return false, the rom was not valid.
+        //Rom is not valid, return false.
         return false;
 
     },
@@ -444,7 +447,7 @@ nes = {
             //Get the pixel data.
             this.pixelData = this.imageData.data;
 
-            //Create the buffer.
+            //Create a pixel buffer.
             this.buffer = new Array(61440);
 
         },
