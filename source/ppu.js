@@ -100,10 +100,11 @@ nes.ppu = {
         this.vertFlip = new Array(64); //Vertical Flip
         this.horiFlip = new Array(64); //Horizontal Flip
         this.bgPriority = new Array(64); //Background priority
-        this.spr0HitX = 0; //Sprite #0 hit X coordinate
-        this.spr0HitY = 0; //Sprite #0 hit Y coordinate
 
+        //Sprite 0 hit flags.
         this.hitSpr0 = false;
+        this.spr0HitX = 0;
+        this.spr0HitY = 0;
 
         //Buffered color palettes.
         this.sprPalette = new Array(16);
@@ -129,8 +130,7 @@ nes.ppu = {
             this.vramMirrorTable[i] = i;
         }
 
-        //Set the color pallette.
-        this.palTable = new this.PaletteTable();
+        //Set the color palette.
         this.palTable.loadNTSCPalette();
 
         //Reset the control register.
@@ -1125,6 +1125,78 @@ nes.ppu = {
         }
     },
 
+    //===================
+    //== Color Palette ==
+    //===================
+
+    palTable:{
+
+    //Properties
+
+        curTable:[],
+        emphTable:[],
+
+    //Methods
+
+        loadNTSCPalette:function(){
+            this.curTable = [5395026,11796480,10485760,11599933,7602281,91,95,6208,12048,543240,26368,1196544,7153664,0,0,0,12899815,16728064,14421538,16729963,14090399,6818519,6588,21681,27227,35843,43776,2918400,10777088,0,0,0,16316664,16755516,16742785,16735173,16730354,14633471,4681215,46327,57599,58229,259115,7911470,15065624,7895160,0,0,16777215,16773822,16300216,16300248,16758527,16761855,13095423,10148607,8973816,8650717,12122296,16119980,16777136,16308472,0,0];
+            this.makeTables();
+            this.setEmphasis(0);
+        },
+
+        loadDefaultPalette:function(){
+            this.curTable = [7697781,2562959,171,4653215,9371767,11206675,10944512,8325888,4402944,18176,20736,16151,1785695,0,0,0,12369084,29679,2309103,8585459,12517567,15138907,14363392,13324047,9138944,38656,43776,37691,33675,0,0,0,16777215,4177919,6264831,10980349,16219135,16742327,16742243,16751419,15974207,8639251,5234507,5830808,60379,0,0,0,16777215,11266047,13096959,14142463,16762879,16762843,16760755,16767915,16770979,14942115,11269055,11796431,10485747,0,0,0];
+            this.makeTables();
+            this.setEmphasis(0);
+        },
+
+        makeTables:function(){
+
+            //Calculate a table for each possible emphasis setting:
+            for(var emph=0;emph<8;emph++){
+
+                //Determine color component factors:
+                var rFactor = gFactor = bFactor = 1;
+
+                if((emph&1) !== 0){
+                    rFactor = 0.75;
+                    bFactor = 0.75;
+                }
+
+                if((emph&2) !== 0){
+                    rFactor = 0.75;
+                    gFactor = 0.75;
+                }
+
+                if((emph&4) !== 0){
+                    gFactor = 0.75;
+                    bFactor = 0.75;
+                }
+
+                this.emphTable[emph] = new Array(64);
+
+                //Calculate table:
+                for(var i=0;i<64;i++){
+                    var col = this.curTable[i];
+                    var r = parseInt(((col>>16)&0xFF)*rFactor,10);
+                    var g = parseInt(((col>>8)&0xFF)*gFactor,10);
+                    var b = parseInt((col&0xFF)*bFactor,10);
+                    this.emphTable[emph][i] = (r<<16)|(g<<8)|(b);
+                }
+
+            }
+        },
+
+        setEmphasis:function(emph){
+            this.curTable = this.emphTable[emph];
+        },
+
+        getEntry:function(color){
+            return this.curTable[color];
+        },
+
+    },
+
 };
 
 //================
@@ -1172,76 +1244,6 @@ nes.ppu.NameTable.prototype = {
             }
         }
 
-    },
-
-};
-
-//===================
-//== Color Palette ==
-//===================
-
-nes.ppu.PaletteTable = function(){
-    this.curTable = new Array(64);
-    this.emphTable = new Array(8);
-};
-
-nes.ppu.PaletteTable.prototype = {
-
-    loadNTSCPalette:function(){
-        this.curTable = [5395026,11796480,10485760,11599933,7602281,91,95,6208,12048,543240,26368,1196544,7153664,0,0,0,12899815,16728064,14421538,16729963,14090399,6818519,6588,21681,27227,35843,43776,2918400,10777088,0,0,0,16316664,16755516,16742785,16735173,16730354,14633471,4681215,46327,57599,58229,259115,7911470,15065624,7895160,0,0,16777215,16773822,16300216,16300248,16758527,16761855,13095423,10148607,8973816,8650717,12122296,16119980,16777136,16308472,0,0];
-        this.makeTables();
-        this.setEmphasis(0);
-    },
-
-    loadDefaultPalette:function(){
-        this.curTable = [7697781,2562959,171,4653215,9371767,11206675,10944512,8325888,4402944,18176,20736,16151,1785695,0,0,0,12369084,29679,2309103,8585459,12517567,15138907,14363392,13324047,9138944,38656,43776,37691,33675,0,0,0,16777215,4177919,6264831,10980349,16219135,16742327,16742243,16751419,15974207,8639251,5234507,5830808,60379,0,0,0,16777215,11266047,13096959,14142463,16762879,16762843,16760755,16767915,16770979,14942115,11269055,11796431,10485747,0,0,0];
-        this.makeTables();
-        this.setEmphasis(0);
-    },
-
-    makeTables:function(){
-
-        //Calculate a table for each possible emphasis setting:
-        for(var emph=0;emph<8;emph++){
-
-            //Determine color component factors:
-            var rFactor = gFactor = bFactor = 1;
-
-            if((emph&1) !== 0){
-                rFactor = 0.75;
-                bFactor = 0.75;
-            }
-
-            if((emph&2) !== 0){
-                rFactor = 0.75;
-                gFactor = 0.75;
-            }
-
-            if((emph&4) !== 0){
-                gFactor = 0.75;
-                bFactor = 0.75;
-            }
-
-            this.emphTable[emph] = new Array(64);
-
-            //Calculate table:
-            for(var i=0;i<64;i++){
-                var col = this.curTable[i];
-                var r = parseInt(((col>>16)&0xFF)*rFactor,10);
-                var g = parseInt(((col>>8)&0xFF)*gFactor,10);
-                var b = parseInt((col&0xFF)*bFactor,10);
-                this.emphTable[emph][i] = (r<<16)|(g<<8)|(b);
-            }
-
-        }
-    },
-
-    setEmphasis:function(emph){
-        this.curTable = this.emphTable[emph];
-    },
-
-    getEntry:function(color){
-        return this.curTable[color];
     },
 
 };
