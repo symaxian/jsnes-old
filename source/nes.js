@@ -2,6 +2,19 @@
 //== Nintendo Entertainment System ==
 //===================================
 
+//Todo
+
+    //Finish optimizing and cleaning up the rest of the nes.
+    //Merge the dynamicAudio wrapper into the apu.
+    //Merge the apu from its own class into the nes.
+    //Add the nes_ identifier to each components function names.
+    //Update the status displaying.
+        //Add statuses.
+    //Fix resetting the nes, it doesnt clear and reload the rom or something.
+    //Compile the color palettes, remove the colorPalette constructor function.
+
+//Notes
+
     //Mirroring Types
     //VERTICAL_MIRRORING:0,
     //HORIZONTAL_MIRRORING:1,
@@ -24,17 +37,21 @@ nes = {
 
 //Properties
 
-    active:false,
-
-    frameRate:20,
-
-    fps:0,
-    lastFrameTime:0,
-    fpsDisplay:null,
-
+    //The needed mmc for the rom.
     mmc:null,
 
+    //Sound sample rate, merge into apu.
     sampleRate:44100,
+
+    //Frame Interval
+    frameRate:100,
+    frameInterval:null,
+
+    //Status Display Update Interval
+    status:'Loading...',
+    statusUpdateRate:4,
+    statusUpdateInterval:null,
+    statusDisplay:null,
 
     //Mapper Names
     mapperNames:["Direct Access","Nintendo MMC1","UNROM","CNROM","Nintendo MMC3","Nintendo MMC5","FFE F4xxx","AOROM","FFE F3xxx","Nintendo MMC2","Nintendo MMC4","Color Dreams Chip","FFE F6xxx","Unknown Mapper","Unknown Mapper","100-in-1 switch","Bandai chip","FFE F8xxx","Jaleco SS8806 chip","Namcot 106 chip","Famicom Disk System","Konami VRC4a","Konami VRC2a","Konami VRC2a","Konami VRC6","Konami VRC4b","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem G-101 chip","Taito TC0190/TC0350","32kB ROM switch","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Tengen RAMBO-1 chip","Irem H-3001 chip","GNROM switch","SunSoft3 chip","SunSoft4 chip","SunSoft5 FME-7 chip","Unknown Mapper","Camerica chip","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem 74HC161/32-based","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Pirate HK-SF3 chip"],
@@ -43,12 +60,15 @@ nes = {
 
     init:function nes_init(){
 
-        //Get the fps display.
-        this.fpsDisplay = document.getElementById('fps');
+        //Set the status to initiating.
+        this.status = 'Initiating...';
+
+        //Get the status display.
+        this.statusDisplay = document.getElementById('statusDisplay');
 
         //Replace the fps display with a placeholder if its null.
-        if(this.fpsDisplay === null){
-            this.fpsDisplay = {innerHTML:''};
+        if(this.statusDisplay === null){
+            this.statusDisplay = {innerHTML:''};
         }
 
         //Initiate the screen.
@@ -60,10 +80,14 @@ nes = {
         //Initiate the audio wrapper, FIXME
         this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
+        //Add the apu in, REMOVE.
         this.apu = new JSNES.PAPU(this);
 
         //Reset the system.
         this.reset();
+
+        //Set the status to waiting.
+        this.status = 'Waiting to load a ROM...';
 
     },
 
@@ -88,20 +112,14 @@ nes = {
         //Check if a valid rom is loaded.
         if(this.hasRom()){
 
-            //Set the nes to active.
-            this.active = true;
+            //Start the frame interval.
+            this.frameInterval = setInterval(function(){nes.frame()},1000/nes.frameRate);
 
-            //Start the fps update interval.
-            this.fpsInterval = setInterval(function(){nes.fpsDisplay.innerHTML=nes.fps;},200);//<fpsUpdateInterval>
+            //Start the status update interval.
+            this.statusUpdateInterval = setInterval(function(){nes.updateStatus()},1000/nes.statusUpdateRate);
 
             //Run the first frame.
             this.frame();
-
-        }
-        else{
-
-            //Else no rom loaded.
-            this.updateStatus('Cannot start, there is no ROM loaded, or it is invalid.');
 
         }
     
@@ -109,11 +127,14 @@ nes = {
 
     stop:function nes_stop(){
 
-        //Set the active flag to false.
-        this.active = false;
+        //Clear the frame interval.
+        clearInterval(this.frameInterval);
 
-        //Clear the fps update interval.
-        clearInterval(this.fpsInterval);
+        //Clear the status update interval.
+        clearInterval(this.statusUpdateInterval);
+
+        //Set the status.
+        this.status = 'Stopped.';
 
     },
 
@@ -132,113 +153,107 @@ nes = {
 
     frame:function nes_frame(){
 
-        //Check if the nes is active.
-        if(this.active){
+        //Clear the ppu buffer.
+        this.ppu.startFrame();
 
-            //Clear the ppu buffer.
-            this.ppu.startFrame();
+        //Reset the cycle count to 0.
+        var cycles = 0;
 
-            //Reset the cycle count to 0.
-            var cycles = 0;
+        //Start the frame loop.
+        FRAMELOOP:for(;;){
 
-            //Start the frame loop.
-            FRAMELOOP:for(;;){
+            //Check if no cycles are to be halted.
+            if(this.cpu.cyclesToHalt === 0){
 
-                //Check if no cycles are to be halted.
-                if(this.cpu.cyclesToHalt === 0){
+                //Execute a CPU instruction.
+                cycles = this.cpu.emulate();
 
-                    //Execute a CPU instruction.
-                    cycles = this.cpu.emulate();
+                //Set the cycles to the apu if active.
+                //this.apu.clockFrameCounter(cycles);
 
-                    //Set the cycles to the apu if active.
-                    this.apu.clockFrameCounter(cycles);
+                //???
+                cycles *= 3;
 
-                    //???
-                    cycles *= 3;
-
-                }
-
-                //Else check if the number of cycles to halt is less than or equal to 8.
-                else if(this.cpu.cyclesToHalt < 9){
-
-                    //???
-                    cycles = this.cpu.cyclesToHalt*3;
-
-                    //Set the cycles to halt to the apu if active.
-                    this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
-
-                    //Set the cycles to halt to 0.
-                    this.cpu.cyclesToHalt = 0;
-
-                }
-
-                //Else the number of cycles to halt is greater than 8.
-                else{
-
-                    //Set the cycles to 24.
-                    cycles = 24;
-
-                    //Set the cycles to halt to the apu if active, FIXME.
-                    this.apu.clockFrameCounter(8);
-
-                    //Remove 8 from the cycles to halt counter.
-                    this.cpu.cyclesToHalt -= 8;
-
-                }
-
-                //Loop for every cycle executed by the cpu.
-                for(;cycles>0;cycles--){
-
-                    //Check for a sprite 0 hit.
-                    if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
-                        //Set the sprite 0 hit flag.
-                        nes.cpu.mem[0x2002] |= 64;
-                    }
-
-                    //Check if the ppu is done rendering.
-                    if(this.ppu.requestEndFrame){
-
-                        //Decrement the non-maskable interrupt counter.
-                        this.ppu.nmiCounter--;
-
-                        //???
-                        if(this.ppu.nmiCounter === 0){
-
-                            //Reset the end of frame flag.
-                            this.ppu.requestEndFrame = false;
-
-                            //Start the vBlank period.
-                            this.ppu.endFrame();
-
-                            //Break the frame loop.
-                            break FRAMELOOP;
-
-                        }
-
-                    }
-
-                    //Increment the current x.
-                    this.ppu.curX++;
-
-                    //???
-                    if(this.ppu.curX === 341){
-                        this.ppu.curX = 0;
-                        this.ppu.endScanline();
-                    }
-
-                }
             }
 
-            //Calculate the frames per second.
-            var now = new Date().getTime();
-            var frameDifference = this.lastFrameTime - now;
-            this.fps = (-1000/frameDifference).toFixed(2);//<fpsPrecision>
-            this.lastFrameTime = now;
+            //Else check if the number of cycles to halt is less than or equal to 8.
+            else if(this.cpu.cyclesToHalt < 9){
 
-            //Set the timeout for the next frame.
-            setTimeout(function(){nes.frame()},1000/this.frameRate);
+                //???
+                cycles = this.cpu.cyclesToHalt*3;
 
+                //Set the cycles to halt to the apu if active.
+                //this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
+
+                //Set the cycles to halt to 0.
+                this.cpu.cyclesToHalt = 0;
+
+            }
+
+            //Else the number of cycles to halt is greater than 8.
+            else{
+
+                //Set the cycles to 24.
+                cycles = 24;
+
+                //Set the cycles to halt to the apu if active, FIXME.
+                //this.apu.clockFrameCounter(8);
+
+                //Remove 8 from the cycles to halt counter.
+                this.cpu.cyclesToHalt -= 8;
+
+            }
+
+            //Loop for every cycle executed by the cpu.
+            for(;cycles>0;cycles--){
+
+                //Check for a sprite 0 hit.
+                if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
+                    //Set the sprite 0 hit flag.
+                    nes.cpu.mem[0x2002] |= 64;
+                }
+
+                //Check if the ppu is done rendering.
+                if(this.ppu.requestEndFrame){
+
+                    //Decrement the non-maskable interrupt counter.
+                    this.ppu.nmiCounter--;
+
+                    //???
+                    if(this.ppu.nmiCounter === 0){
+
+                        //Reset the end of frame flag.
+                        this.ppu.requestEndFrame = false;
+
+                        //Start the vBlank period.
+                        this.ppu.endFrame();
+
+                        //Break the frame loop.
+                        break FRAMELOOP;
+
+                    }
+
+                }
+
+                //Increment the current x.
+                this.ppu.curX++;
+
+                //???
+                if(this.ppu.curX === 341){
+                    this.ppu.curX = 0;
+                    this.ppu.endScanline();
+                }
+
+            }
         }
+
+        //Calculate the frames per second.
+        var now = new Date().getTime();
+        var frameDifference = this.lastFrameTime - now;
+        this.fps = (-1000/frameDifference).toFixed(2);//<fpsPrecision>
+        this.lastFrameTime = now;
+
+        this.status = 'Running, FPS: '+this.fps;
 
     },
 
@@ -253,6 +268,9 @@ nes = {
         if(this.active){
             this.stop();
         }
+
+        //Set the status.
+        this.status = 'Loading ROM...';
 
         //Create a new http request.
         var request = new XMLHttpRequest();
@@ -391,28 +409,33 @@ nes = {
                 }
 
                 //Rom was successfully loaded, return true.
+                this.status = 'ROM loaded, waiting to be started.';
                 return true;
 
             }
 
             //Rom requires an unknown mapper, return false.
-            nes.updateStatus("This ROM uses a mapper not supported by JSNES: "+nes.mapperNames[this.rom.mapperType]+"("+this.rom.mapperType+")");
+            this.status = 'ROM uses a mapper not supported by JSNES: '+this.mapperNames[this.rom.mapperType]+'('+this.rom.mapperType+')';
             return false;
 
         }
 
         //Rom is not valid, return false.
+        this.status = 'ROM is not valid.';
         return false;
 
     },
 
-    updateStatus:function nes_updateStatus(){},
+    updateStatus:function nes_updateStatus(){
+
+        //Set the status.
+        this.statusDisplay.innerHTML = this.status;
+
+    },
 
     writeAudio:function nes_writeAudio(samples){
 
-        console.log('writing samples, length: '+samples.length);
-
-        //Write the samples to the audio wrapper, FIXME.
+        //Write the samples to the audio wrapper.
         return this.dynamicAudio.writeInt(samples);
 
     },
