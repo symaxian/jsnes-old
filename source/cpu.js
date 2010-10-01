@@ -71,7 +71,7 @@ nes.cpu = {
 
     },
 
-    load16bit:function nes_cpu_load(addr){
+    load16bit:function nes_cpu_load16Bit(addr){
 
         //Load two addresses from memory and combine them.
         return nes.mmc.load(addr)|(nes.mmc.load(addr+1)<<8);

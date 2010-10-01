@@ -68,7 +68,7 @@ nes.mappers[0].prototype = {
 
                 //Write 0x4015, Sound Channel Switch, DMC Status
                 case 0x4015:
-                    //nes.apu.writeReg(address, value);
+                    nes.apu.writeReg(address, value);
                     break;
 
                 //Write 0x4016, Joystick Strobe Reset
@@ -82,12 +82,12 @@ nes.mappers[0].prototype = {
 
                 //Write 0x4017, Sound Channel Frame Sequencer
                 case 0x4017:
-                    //nes.apu.writeReg(address, value);
+                    nes.apu.writeReg(address, value);
                     break;
 
                 //Write 0x4000-0x4017, Sound Registers
                 default:
-                    //nes.apu.writeReg(address,value);
+                    nes.apu.writeReg(address,value);
 
             }
         }
@@ -149,7 +149,7 @@ nes.mappers[0].prototype = {
 
                     //Read 0x4015, Sound channel enable, DMC status
                     case 0x4015:
-                        return //nes.apu.readReg(address);
+                        return nes.apu.readReg(address);
 
                     //Read 0x4016, Joystick 1
                     case 0x4016:

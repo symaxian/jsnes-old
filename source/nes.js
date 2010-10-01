@@ -26,11 +26,15 @@ nes = {
 
     active:false,
 
+    frameRate:20,
+
     fps:0,
     lastFrameTime:0,
     fpsDisplay:null,
 
     mmc:null,
+
+    sampleRate:44100,
 
     //Mapper Names
     mapperNames:["Direct Access","Nintendo MMC1","UNROM","CNROM","Nintendo MMC3","Nintendo MMC5","FFE F4xxx","AOROM","FFE F3xxx","Nintendo MMC2","Nintendo MMC4","Color Dreams Chip","FFE F6xxx","Unknown Mapper","Unknown Mapper","100-in-1 switch","Bandai chip","FFE F8xxx","Jaleco SS8806 chip","Namcot 106 chip","Famicom Disk System","Konami VRC4a","Konami VRC2a","Konami VRC2a","Konami VRC6","Konami VRC4b","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem G-101 chip","Taito TC0190/TC0350","32kB ROM switch","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Tengen RAMBO-1 chip","Irem H-3001 chip","GNROM switch","SunSoft3 chip","SunSoft4 chip","SunSoft5 FME-7 chip","Unknown Mapper","Camerica chip","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem 74HC161/32-based","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Pirate HK-SF3 chip"],
@@ -54,7 +58,9 @@ nes = {
         this.controllers.init();
 
         //Initiate the audio wrapper, FIXME
-        //this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
+        this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
+
+        this.apu = new JSNES.PAPU(this);
 
         //Reset the system.
         this.reset();
@@ -69,8 +75,8 @@ nes = {
         //Reset the ppu.
         this.ppu.reset();
 
-        //Reset the apu, FIXME.
-        //this.apu.reset(true);
+        //Reset the apu.
+        this.apu.reset();
 
         //Reset(remove) the mmc.
         this.mmc = null;
@@ -144,8 +150,8 @@ nes = {
                     //Execute a CPU instruction.
                     cycles = this.cpu.emulate();
 
-                    //Set the cycles to the apu if active, FIXME.
-                    //this.apu.clockFrameCounter(cycles);
+                    //Set the cycles to the apu if active.
+                    this.apu.clockFrameCounter(cycles);
 
                     //???
                     cycles *= 3;
@@ -158,8 +164,8 @@ nes = {
                     //???
                     cycles = this.cpu.cyclesToHalt*3;
 
-                    //Set the cycles to halt to the apu if active, FIXME.
-                    //this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
+                    //Set the cycles to halt to the apu if active.
+                    this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
 
                     //Set the cycles to halt to 0.
                     this.cpu.cyclesToHalt = 0;
@@ -173,7 +179,7 @@ nes = {
                     cycles = 24;
 
                     //Set the cycles to halt to the apu if active, FIXME.
-                    //this.apu.clockFrameCounter(8);
+                    this.apu.clockFrameCounter(8);
 
                     //Remove 8 from the cycles to halt counter.
                     this.cpu.cyclesToHalt -= 8;
@@ -230,7 +236,7 @@ nes = {
             this.lastFrameTime = now;
 
             //Set the timeout for the next frame.
-            setTimeout(function(){nes.frame()},20);//<frameRate>
+            setTimeout(function(){nes.frame()},1000/this.frameRate);
 
         }
 
@@ -400,9 +406,11 @@ nes = {
 
     },
 
-    updateStatus:function(){},
+    updateStatus:function nes_updateStatus(){},
 
-    writeAudio:function(samples){
+    writeAudio:function nes_writeAudio(samples){
+
+        console.log('writing samples, length: '+samples.length);
 
         //Write the samples to the audio wrapper, FIXME.
         return this.dynamicAudio.writeInt(samples);

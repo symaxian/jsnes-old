@@ -345,13 +345,11 @@ nes.ppu = {
                 //Update scroll.
                 this.cntHT = this.regHT;
                 this.cntH = this.regH;
-                this.renderBgScanline(this.bgbuffer,this.scanline+1-21);
+                this.renderBgScanline(this.bgbuffer,this.scanline-20);
                 //Check for sprite 0 hit on next scanline.
                 if(!this.hitSpr0 && this.f_spVisibility === 1){
-                    if(this.sprX[0] >= -7 && this.sprX[0] < 256 && this.sprY[0] + 1 <= (this.scanline - 20) && (this.sprY[0] + 1 + (this.f_spriteSize === 0 ? 8 : 16)) >= (this.scanline - 20)){
-                        if(this.checkSprite0(this.scanline - 20)){
-                            this.hitSpr0 = true;
-                        }
+                    if(this.checkSprite0(this.scanline-20)){
+                        this.hitSpr0 = true;
                     }
                 }
                 //Clock mapper IRQ counter.
