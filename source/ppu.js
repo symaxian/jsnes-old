@@ -55,9 +55,6 @@ nes.ppu = {
     regFH:null,
     regS:null,
 
-    //Some Temporary Variable
-    curNt:null,
-
     //Rendering Variables
     attrib:null,
     buffer:null,
@@ -134,12 +131,6 @@ nes.ppu = {
         //SPR-RAM I/O
         this.sramAddress = 0;
 
-        this.mapperIrqCounter = 0;
-        this.requestEndFrame = false;
-        this.dummyCycleToggle = false;
-        this.validTileData = false;
-        this.nmiCounter = 0;
-
         //Control Register
         this.f_nmiOnVblank = 0;    //NMI on VBlank. 0=disable, 1=enable
         this.f_spriteSize = 0;     //Sprite size. 0=8x8, 1=8x16
@@ -173,18 +164,17 @@ nes.ppu = {
         this.regFH = 0;
         this.regS = 0;
 
-        //These are temporary variables used in rendering and sound procedures.
-        //Their states outside of those procedures can be ignored.
-        //TODO: the use of this is a bit weird, investigate
-        this.curNt = null;
-
         //Variables used when rendering.
         this.attrib = new Array(32);
         this.buffer = new Array(61440);
         this.bgbuffer = new Array(61440);
         this.pixrendered = new Array(61440);
 
-        this.validTileData = null;
+        this.mapperIrqCounter = 0;
+        this.requestEndFrame = false;
+        this.dummyCycleToggle = false;
+        this.validTileData = false;
+        this.nmiCounter = 0;
 
         this.scantile = new Array(32);
 
@@ -833,27 +823,33 @@ nes.ppu = {
 
     //???
     renderBgScanline:function(buffer,scan){
+        //???
         var basetile = this.regS*256;
         var destIndex = (scan<<8)-this.regFH;
-        this.curNt = this.ntable1[this.cntV+this.cntV+this.cntH];
+        //???
         this.cntHT = this.regHT;
         this.cntH = this.regH;
-        this.curNt = this.ntable1[this.cntV+this.cntV+this.cntH];
+        //???
         if(scan < 240 && (scan-this.cntFV) >= 0){
+            //Cache the curent name table index.
+            var curNt = this.ntable1[this.cntV+this.cntV+this.cntH];
+            //???
             var tscanoffset = this.cntFV<<3;
+            //Loop through the 32 tiles.
             for(var tile=0;tile<32;tile++){
+                //Check if the scanline is visible.
                 if(scan >= 0){
-                    //Fetch tile & attrib data:
+                    //Check if the tile and attribute data is cached.
                     if(this.validTileData){
-                        //Get data from array:
+                        //Yes, get it from the cache.
                         var t = this.scantile[tile];
                         var tpix = t.pix;
                         var att = this.attrib[tile];
                     }
                     else{
-                        //Fetch data:
-                        var t = this.ptTile[basetile+this.nameTable[this.curNt].getTileIndex(this.cntHT,this.cntVT)];
-                        var att = this.nameTable[this.curNt].getAttrib(this.cntHT,this.cntVT);
+                        //No, fetch the data.
+                        var t = this.ptTile[basetile+this.nameTable[curNt].getTileIndex(this.cntHT,this.cntVT)];
+                        var att = this.nameTable[curNt].getAttrib(this.cntHT,this.cntVT);
                         this.scantile[tile] = t;
                         this.attrib[tile] = att;
                     }
@@ -884,12 +880,13 @@ nes.ppu = {
                         }
                     }
                 }
-                //Increase Horizontal Tile Counter:
-                if(++this.cntHT === 32){
+                //Increment the horizontal tile counter.
+                this.cntHT++;
+                //Check to reset the horizontal tile counter.
+                if(this.cntHT === 32){
                     this.cntHT = 0;
                     this.cntH++;
                     this.cntH %= 2;
-                    this.curNt = this.ntable1[(this.cntV<<1)+this.cntH];
                 }
             }
             //Tile data for one row should now have been fetched, so the data in the array is valid.
@@ -904,7 +901,6 @@ nes.ppu = {
                 this.cntVT = 0;
                 this.cntV++;
                 this.cntV %= 2;
-                this.curNt = this.ntable1[(this.cntV<<1)+this.cntH];
             }
             else if(this.cntVT === 32){
                 this.cntVT = 0;

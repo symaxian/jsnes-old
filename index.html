@@ -24,8 +24,10 @@
 
         init = function(){
 
-            nes.init();
+            fpsDiv = document.getElementById('fps');
+            fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps},200);
 
+            nes.init();
             nes.loadRom('roms/lj65.nes');
             nes.start();
 
@@ -43,6 +45,6 @@
 </head>
 
 <body onload='init()'>
-<center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='statusDisplay'></div></center>
+<center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='fps'></div></center>
 </body>
 </html>

@@ -41,11 +41,9 @@ nes = {
     frameRate:60,
     frameInterval:null,
 
-    //Status Display Update Interval
-    status:'Loading...',
-    statusUpdateRate:4,
-    statusUpdateInterval:null,
-    statusDisplay:null,
+    //Frames Per Second
+    fps:0,
+    fpsPrecision:2,
 
     //The needed mmc for the rom.
     mmc:null,
@@ -59,17 +57,6 @@ nes = {
 //Methods
 
     init:function nes_init(){
-
-        //Set the status to initiating.
-        this.status = 'Initiating...';
-
-        //Get the status display.
-        this.statusDisplay = document.getElementById('statusDisplay');
-
-        //Replace the fps display with a placeholder if its null.
-        if(this.statusDisplay === null){
-            this.statusDisplay = {innerHTML:''};
-        }
 
         //Initiate the screen.
         this.screen.init();
@@ -85,9 +72,6 @@ nes = {
 
         //Reset the system.
         this.reset();
-
-        //Set the status to waiting.
-        this.status = 'Waiting to load a ROM...';
 
     },
 
@@ -117,9 +101,6 @@ nes = {
 
             //Start the frame interval.
             this.frameInterval = setInterval(function(){nes.frame()},1000/nes.frameRate);
-
-            //Start the status update interval.
-            this.statusUpdateInterval = setInterval(function(){nes.updateStatus()},1000/nes.statusUpdateRate);
 
             //Run the first frame.
             this.frame();
@@ -256,11 +237,8 @@ nes = {
         //Calculate the frames per second.
         var now = new Date().getTime();
         var frameDifference = this.lastFrameTime - now;
-        this.fps = (-1000/frameDifference).toFixed(2);
+        this.fps = (-1000/frameDifference).toFixed(this.fpsPrecision);
         this.lastFrameTime = now;
-
-        //Set the status.
-        this.status = 'Running, FPS: '+this.fps;
 
     },
 
@@ -277,9 +255,6 @@ nes = {
         if(this.active){
             this.stop();
         }
-
-        //Set the status.
-        this.status = 'Loading ROM...';
 
         //Create a new http request.
         var request = new XMLHttpRequest();
@@ -421,27 +396,17 @@ nes = {
                 this.romSource = src;
 
                 //Rom was successfully loaded, return true.
-                this.status = 'ROM loaded, waiting to be started.';
                 return true;
 
             }
 
             //Rom requires an unknown mapper, return false.
-            this.status = 'ROM uses a mapper not supported by JSNES: '+this.mapperNames[this.rom.mapperType]+'('+this.rom.mapperType+')';
             return false;
 
         }
 
         //Rom is not valid, return false.
-        this.status = 'ROM is not valid.';
         return false;
-
-    },
-
-    updateStatus:function nes_updateStatus(){
-
-        //Set the status.
-        this.statusDisplay.innerHTML = this.status;
 
     },
 
