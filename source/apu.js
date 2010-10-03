@@ -15,7 +15,6 @@ JSNES.PAPU = function(nes) {
 
     this.bufferSize = 8192;
     this.bufferIndex = 0;
-    this.sampleRate = 44100;
 
     this.lengthLookup = null;
     this.dmcFreqLookup = null;
@@ -101,8 +100,8 @@ JSNES.PAPU = function(nes) {
 
 JSNES.PAPU.prototype = {
     reset: function() {
-        this.sampleRate = this.nes.sampleRate;
-        this.sampleTimerMax = parseInt((1024.0*1789772.5*this.nes.frameRate) / (this.sampleRate * 60.0),10);//CPU_FREQ_NTSC
+
+        this.sampleTimerMax = parseInt((1024.0*1789772.5*nes.frameRate)/(44100*nes.frameRate),10);
     
         this.frameTime = parseInt((14915.0*this.nes.frameRate)/60.0,10);
 
