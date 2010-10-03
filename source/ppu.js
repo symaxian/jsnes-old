@@ -6,8 +6,106 @@ nes.ppu = {
 
 //Properties
 
+    //VRAM
+    vramMem:null,
+
+    //SpriteRAM
+    spriteMem:null,
+
+    //VRAM I/O
+    vramAddress:null,
+    vramTmpAddress:null,
+    vramBufferedReadValue:null,
+
+    //VRAM/Scroll High/Low Byte latch
+    firstWrite:null,
+
+    //SpriteRAM I/O
+    sramAddress:null,
+
+    //Control Register
+    f_nmiOnVblank:null,
+    f_spriteSize:null,
+    f_bgPatternTable:null,
+    f_spPatternTable:null,
+    f_addrInc:null,
+    f_nTblAddress:null,
+
+    //Masking Register
+    f_color:null,
+    f_spVisibility:null,
+    f_bgVisibility:null,
+    f_spClipping:null,
+    f_bgClipping:null,
+    f_dispType:null,
+
+    //Counters
+    cntFV:null,
+    cntVT:null,
+    cntHT:null,
+    cntV:null,
+    cntH:null,
+
+    //Registers
+    regFV:null,
+    regV:null,
+    regH:null,
+    regVT:null,
+    regHT:null,
+    regFH:null,
+    regS:null,
+
+    //Some Temporary Variable
+    curNt:null,
+
+    //Rendering Variables
+    attrib:null,
+    buffer:null,
+    bgbuffer:null,
+    pixrendered:null,
+    scantile:null,
+
+    //Misc Rendering Variables
+    scanline:null,
+    lastRenderedScanline:null,
+    curX:null,
+
+    mapperIrqCounter:null,
+    requestEndFrame:null,
+    dummyCycleToggle:null,
+    nmiCounter:null,
+    validTileData:null,
+
+    //Sprite Data
+    sprX:null,
+    sprY:null,
+    sprTile:null,
+    sprCol:null,
+    vertFlip:null,
+    horiFlip:null,
+    bgPriority:null,
+
+    //Sprite 0 Hit Flags
+    hitSpr0:null,
+    spr0HitX:null,
+    spr0HitY:null,
+
+    //Buffered Color Palettes
+    sprPalette:null,
+    imgPalette:null,
+
+    //Pattern Table Tile Buffers
+    ptTile:null,
+
+    //Nametable Buffers
+    ntable1:null,
+    nameTable:null,
+
+    //VRAM Mirror Table
+    vramMirrorTable:null,
+
+    //Rendering Options
     clipToTvSize:true,
-    showSpr0Hit:false,
 
 //Methods
 
