@@ -5,7 +5,7 @@
 //Notes
 
 //  The 6th bit of the CPU status has been removed, it was originally stored as the F_NOTUSED flag.
-//  Pushing the processor status onto the stack pushes a 1 as the 6th bit, otherwise a stack read error results.
+//  Pushing the processor status onto the stack pushes a 1 as the 6th bit, otherwise a stack read error results from the test ROM,
 
 nes.cpu = {
 
@@ -89,8 +89,6 @@ nes.cpu = {
         this.F_ZERO = 1;
         this.F_CARRY = 0;
 
-        this.F_NOTUSED = 1;
-
         //Reset the interrupt flags.
         this.interruptRequested = false;
         this.interruptType = null;
@@ -163,8 +161,7 @@ nes.cpu = {
                         this.push((this.REG_PC>>8)&0xFF);
                         this.push(this.REG_PC&0xFF);
                         //Push the cpu status onto the stack.
-                        //this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|(this.F_ZERO<<1)|this.F_CARRY);
-                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
                         this.F_INTERRUPT = 1;
                         this.F_BRK = 0;
                         //???
@@ -182,8 +179,7 @@ nes.cpu = {
                         this.push((this.REG_PC>>8)&0xFF);
                         this.push(this.REG_PC&0xFF);
                         //Push the cpu status onto the stack.
-                        //this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|(this.F_ZERO<<1)|this.F_CARRY);
-                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|(this.F_NOTUSED<<5)|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
                         //???
                         this.REG_PC = (this.mem[0xFFFA]|(this.mem[0xFFFB]<<8))-1;
                     }
@@ -463,8 +459,7 @@ nes.cpu = {
                 this.push((this.REG_PC>>8)&255);
                 this.push(this.REG_PC&255);
                 this.F_BRK = 1;
-                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|(this.F_NOTUSED<<5)|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO==0?1:0)<<1)|this.F_CARRY);
-                //this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|(this.F_ZERO<<1)|this.F_CARRY);
+                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO==0?1:0)<<1)|this.F_CARRY);
                 this.F_INTERRUPT = 1;
                 this.REG_PC = this.load16bit(0xFFFE)-1;
                 break;
@@ -709,8 +704,7 @@ nes.cpu = {
             case 36:{
                 //Push processor status onto the stack.
                 this.F_BRK = 1;
-                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|(this.F_NOTUSED<<5)|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO===0?1:0)<<1)|this.F_CARRY);
-                //this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|(this.F_ZERO<<1)|this.F_CARRY);
+                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO===0?1:0)<<1)|this.F_CARRY);
                 break;
             }
 
@@ -729,13 +723,11 @@ nes.cpu = {
                 temp = this.pull();
                 this.F_SIGN = (temp>>7)&1;
                 this.F_OVERFLOW = (temp>>6)&1;
-                this.F_NOTUSED = (temp>>5)&1;
                 this.F_BRK = (temp>>4)&1;
                 this.F_DECIMAL = (temp>>3)&1;
                 this.F_INTERRUPT = (temp>>2)&1;
                 this.F_ZERO = (((temp>>1)&1) === 1)?0:1;
                 this.F_CARRY = temp&1;
-                this.F_NOTUSED = 1;
                 break;
             }
 
@@ -786,12 +778,10 @@ nes.cpu = {
                 temp = this.pull();
                 this.F_SIGN = (temp>>7)&1;
                 this.F_OVERFLOW = (temp>>6)&1;
-                this.F_NOTUSED = (temp>>5)&1;
                 this.F_BRK = (temp>>4)&1;
                 this.F_DECIMAL = (temp>>3)&1;
                 this.F_INTERRUPT = (temp>>2)&1
                 this.F_ZERO = ((temp>>1)&1) === 0?1:0;
-                //this.F_ZERO = (temp>>1)&1;
                 this.F_CARRY = temp&1;
                 this.REG_PC = this.pull()+(this.pull()<<8);
                 if(this.REG_PC === 0xFFFF){
@@ -799,7 +789,6 @@ nes.cpu = {
                     return;
                 }
                 this.REG_PC--;
-                this.F_NOTUSED = 1;
                 break;
             }
 
