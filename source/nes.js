@@ -383,7 +383,7 @@ nes = {
                     //Set fourscreen mirroring.
                     this.ppu.setMirroring(2);
                 }
-                else if(this.rom.mirroring === 1){
+                else if(this.rom.mirroring === 0){
                     //Set horizontal mirroring.
                     this.ppu.setMirroring(1);
                 }

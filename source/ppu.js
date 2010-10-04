@@ -254,7 +254,7 @@ nes.ppu = {
         this.defineMirrorRegion(0x4000,0x0000,0x4000);
 
         //Horizontal mirroring
-        if(mirroring === 0){
+        if(mirroring === 1){
             this.ntable1[0] = 0;
             this.ntable1[1] = 0;
             this.ntable1[2] = 1;
