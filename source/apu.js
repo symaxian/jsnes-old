@@ -1,7 +1,9 @@
 
 JSNES.PAPU = function(nes) {
     this.nes = nes;
-    
+
+    active:false,
+
     this.square1 = new JSNES.PAPU.ChannelSquare(this, true);
     this.square2 = new JSNES.PAPU.ChannelSquare(this, false);
     this.triangle = new JSNES.PAPU.ChannelTriangle(this);
@@ -609,7 +611,8 @@ JSNES.PAPU.prototype = {
         
         // Write full buffer
         if (this.bufferIndex === this.sampleBuffer.length) {
-            this.nes.writeAudio(this.sampleBuffer);
+            //Write the samples to the audio wrapper.
+            nes.dynamicAudio.writeInt(this.sampleBuffer);
             this.sampleBuffer = new Array(this.bufferSize*2);
             this.bufferIndex = 0;
         }

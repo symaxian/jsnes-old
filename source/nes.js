@@ -8,9 +8,6 @@
     //Merge the dynamicAudio wrapper into the apu.
     //Merge the apu from its own class into the nes.
     //Add the nes_ identifier to each components function names.
-    //Update the status displaying.
-        //Add statuses.
-    //Fix resetting the nes, it doesnt clear and reload the rom or something.
     //Compile the color palettes, remove the colorPalette constructor function.
 
 //Notes
@@ -156,7 +153,8 @@ nes = {
                 cycles = this.cpu.emulate();
 
                 //Set the cycles to the apu if active.
-                this.apu.clockFrameCounter(cycles);
+                if(this.apu.active)
+                    this.apu.clockFrameCounter(cycles);
 
                 //???
                 cycles *= 3;
@@ -170,7 +168,8 @@ nes = {
                 cycles = this.cpu.cyclesToHalt*3;
 
                 //Set the cycles to halt to the apu if active.
-                this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
+                if(this.apu.active)
+                    this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
 
                 //Set the cycles to halt to 0.
                 this.cpu.cyclesToHalt = 0;
@@ -183,8 +182,9 @@ nes = {
                 //Set the cycles to 24.
                 cycles = 24;
 
-                //Set the cycles to halt to the apu if active, FIXME.
-                this.apu.clockFrameCounter(8);
+                //Set the cycles to halt to the apu if active.
+                if(this.apu.active)
+                    this.apu.clockFrameCounter(8);
 
                 //Remove 8 from the cycles to halt counter.
                 this.cpu.cyclesToHalt -= 8;
@@ -407,13 +407,6 @@ nes = {
 
         //Rom is not valid, return false.
         return false;
-
-    },
-
-    writeAudio:function nes_writeAudio(samples){
-
-        //Write the samples to the audio wrapper.
-        return this.dynamicAudio.writeInt(samples);
 
     },
 
