@@ -64,18 +64,22 @@ nes.mappers[0].prototype = {
 
                 //Write 0x4014, Sprite Memory DMA Access
                 case 0x4014:
+                    //Cache the base address.
                     var baseAddress = value*0x100;
-                    for(var i=nes.ppu.sramAddress;i<256;i++){
-                        var data = nes.cpu.mem[baseAddress+i];
-                        nes.ppu.spriteMem[i] = data;
-                        nes.ppu.spriteRamWriteUpdate(i,data);
+                    //Cache the end address.
+                    var endAddress = nes.ppu.sramAddress+256;
+                    //Loop 256 times, for each byte to copy.
+                    for(var i=nes.ppu.sramAddress;i<endAddress;i++){
+                        //Write the byte from memory to the sprite ram.
+                        nes.ppu.writeSpriteMem(i,nes.cpu.mem[baseAddress+i]);
                     }
+                    //???
                     nes.cpu.haltCycles(513);
                     break;
 
                 //Write 0x4015, Sound Channel Switch, DMC Status
                 case 0x4015:
-                    nes.apu.writeReg(address, value);
+                    nes.apu.writeReg(address,value);
                     break;
 
                 //Write 0x4016, Joystick Strobe Reset
@@ -85,11 +89,6 @@ nes.mappers[0].prototype = {
                         this.joy2Strobe = 0;
                     }
                     this.joypadLastWrite = value;
-                    break;
-
-                //Write 0x4017, Sound Channel Frame Sequencer
-                case 0x4017:
-                    nes.apu.writeReg(address, value);
                     break;
 
                 //Write 0x4000-0x4017, Sound Registers

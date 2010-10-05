@@ -144,8 +144,9 @@ nes = {
                 cycles = this.cpu.emulate();
 
                 //Set the cycles to the apu if active.
-                if(this.apu.active)
+                if(this.apu.active){
                     this.apu.clockFrameCounter(cycles);
+                }
 
                 //???
                 cycles *= 3;
@@ -159,8 +160,9 @@ nes = {
                 cycles = this.cpu.cyclesToHalt*3;
 
                 //Set the cycles to halt to the apu if active.
-                if(this.apu.active)
+                if(this.apu.active){
                     this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
+                }
 
                 //Set the cycles to halt to 0.
                 this.cpu.cyclesToHalt = 0;
@@ -174,8 +176,9 @@ nes = {
                 cycles = 24;
 
                 //Set the cycles to halt to the apu if active.
-                if(this.apu.active)
+                if(this.apu.active){
                     this.apu.clockFrameCounter(8);
+                }
 
                 //Remove 8 from the cycles to halt counter.
                 this.cpu.cyclesToHalt -= 8;
@@ -186,7 +189,7 @@ nes = {
             for(;cycles>0;cycles--){
 
                 //Check for a sprite 0 hit.
-                if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline - 21 === this.ppu.spr0HitY){
+                if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline-21 === this.ppu.spr0HitY){
                     //Set the sprite 0 hit flag.
                     nes.cpu.mem[0x2002] |= 64;
                 }
@@ -213,11 +216,12 @@ nes = {
 
                 }
 
-                //Increment the current x.
+                //Increment the horizontal pixel counter.
                 this.ppu.curX++;
 
-                //???
+                //Check if 341 pixels have been drawn, even though the scanlines are only 256 pixels wide.
                 if(this.ppu.curX === 341){
+                    //If so reset the horizontal pixel counter to 0 and have the ppu end the scanline.
                     this.ppu.curX = 0;
                     this.ppu.endScanline();
                 }

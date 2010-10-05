@@ -126,6 +126,13 @@ nes.cpu = {
 
     },
 
+    pushStatus:function nes_cpu_pushStatus(){
+
+        //Push the cpu status onto the stack.
+        this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO === 0?1:0)<<1)|this.F_CARRY);
+
+    },
+
     haltCycles:function nes_cpu_haltCycles(cycles){
 
         //Add the specified number of cycles to halt.
@@ -149,7 +156,7 @@ nes.cpu = {
                         this.push((this.REG_PC>>8)&0xFF);
                         this.push(this.REG_PC&0xFF);
                         //Push the cpu status onto the stack.
-                        this.push(this.F_CARRY|((this.F_ZERO === 0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.pushStatus();
                         this.F_INTERRUPT = 1;
                         this.F_BRK = 0;
                         //???
@@ -167,7 +174,7 @@ nes.cpu = {
                         this.push((this.REG_PC>>8)&0xFF);
                         this.push(this.REG_PC&0xFF);
                         //Push the cpu status onto the stack.
-                        this.push(this.F_CARRY|((this.F_ZERO === 0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.pushStatus();
                         //???
                         this.REG_PC = (this.mem[0xFFFA]|(this.mem[0xFFFB]<<8))-1;
                     }
@@ -447,7 +454,7 @@ nes.cpu = {
                 this.push((this.REG_PC>>8)&255);
                 this.push(this.REG_PC&255);
                 this.F_BRK = 1;
-                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO==0?1:0)<<1)|this.F_CARRY);
+                this.pushStatus();
                 this.F_INTERRUPT = 1;
                 this.REG_PC = nes.mmc.load16bit(0xFFFE)-1;
                 break;
@@ -692,7 +699,7 @@ nes.cpu = {
             case 36:{
                 //Push processor status onto the stack.
                 this.F_BRK = 1;
-                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO === 0?1:0)<<1)|this.F_CARRY);
+                this.pushStatus();
                 break;
             }
 
