@@ -2,11 +2,6 @@
 //== Central Processing Unit ==
 //=============================
 
-//Notes
-
-//  The 6th bit of the CPU status has been removed, it was originally stored as the F_NOTUSED flag.
-//  Pushing the processor status onto the stack pushes a 1 as the 6th bit, otherwise a stack read error results from the test ROM,
-
 nes.cpu = {
 
 //Properties
@@ -98,13 +93,6 @@ nes.cpu = {
 
     },
 
-    load16bit:function nes_cpu_load16Bit(addr){
-
-        //Load two addresses from memory and combine them.
-        return nes.mmc.load(addr)|(nes.mmc.load(addr+1)<<8);
-
-    },
-
     requestInterrupt:function(type){
 
         //Check if an interrupt is not already requested and the new interrupt is normal.
@@ -161,7 +149,7 @@ nes.cpu = {
                         this.push((this.REG_PC>>8)&0xFF);
                         this.push(this.REG_PC&0xFF);
                         //Push the cpu status onto the stack.
-                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.push(this.F_CARRY|((this.F_ZERO === 0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
                         this.F_INTERRUPT = 1;
                         this.F_BRK = 0;
                         //???
@@ -179,7 +167,7 @@ nes.cpu = {
                         this.push((this.REG_PC>>8)&0xFF);
                         this.push(this.REG_PC&0xFF);
                         //Push the cpu status onto the stack.
-                        this.push(this.F_CARRY|((this.F_ZERO===0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
+                        this.push(this.F_CARRY|((this.F_ZERO === 0?1:0)<<1)|(this.F_INTERRUPT<<2)|(this.F_DECIMAL<<3)|(this.F_BRK<<4)|32|(this.F_OVERFLOW<<6)|(this.F_SIGN<<7));
                         //???
                         this.REG_PC = (this.mem[0xFFFA]|(this.mem[0xFFFB]<<8))-1;
                     }
@@ -244,7 +232,7 @@ nes.cpu = {
             //Absolute Mode
             //Use the two bytes following the operation code as the address.
             case 3:{
-                var addr = this.load16bit(opaddr+2);
+                var addr = nes.mmc.load16bit(opaddr+2);
                 break;
             }
 
@@ -279,7 +267,7 @@ nes.cpu = {
             //Absolute Indexed Mode X
             //Same as zero page indexed x without the high byte.
             case 8:{
-                var addr = this.load16bit(opaddr+2);
+                var addr = nes.mmc.load16bit(opaddr+2);
                 if((addr&0xFF00) !== ((addr+this.REG_X)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -290,7 +278,7 @@ nes.cpu = {
             //Absolute Indexed Mode Y
             //Same as zero page indexed y without the high byte.
             case 9:{
-                var addr = this.load16bit(opaddr+2);
+                var addr = nes.mmc.load16bit(opaddr+2);
                 if((addr&0xFF00) !== ((addr+this.REG_Y)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -305,14 +293,14 @@ nes.cpu = {
                 if((addr&0xFF00) !== ((addr+this.REG_X)&0xFF00)){
                     cycleAdd = 1;
                 }
-                addr = this.load16bit((addr+this.REG_X)&0xFF);
+                addr = nes.mmc.load16bit((addr+this.REG_X)&0xFF);
                 break;
             }
 
             //Post-Indexed Indirect Mode
             case 11:{
                 //The address is in the 16-bit address starting at the given location plus the y register.
-                var addr = this.load16bit(nes.mmc.load(opaddr+2));
+                var addr = nes.mmc.load16bit(nes.mmc.load(opaddr+2));
                 if((addr&0xFF00) !== ((addr+this.REG_Y)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -323,7 +311,7 @@ nes.cpu = {
             //Indirect Absolute Mode
             //Use the 16-bit address specified at the given location.
             case 12:{
-                var addr = this.load16bit(opaddr+2);
+                var addr = nes.mmc.load16bit(opaddr+2);
                 addr = nes.mmc.load(addr)+(nes.mmc.load((addr&0xFF00)|(((addr&0xFF)+1)&0xFF))<<8);
                 break;
             }
@@ -413,7 +401,7 @@ nes.cpu = {
 
             //BIT
             case 6:{
-                //???
+                //Test bits.
                 var temp = nes.mmc.load(addr);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_OVERFLOW = (temp>>6)&1;
@@ -454,14 +442,14 @@ nes.cpu = {
 
             //BRK
             case 10:{
-                //???
+                //Simulate interrupt request.
                 this.REG_PC += 2;
                 this.push((this.REG_PC>>8)&255);
                 this.push(this.REG_PC&255);
                 this.F_BRK = 1;
                 this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO==0?1:0)<<1)|this.F_CARRY);
                 this.F_INTERRUPT = 1;
-                this.REG_PC = this.load16bit(0xFFFE)-1;
+                this.REG_PC = nes.mmc.load16bit(0xFFFE)-1;
                 break;
             }
 
@@ -704,7 +692,7 @@ nes.cpu = {
             case 36:{
                 //Push processor status onto the stack.
                 this.F_BRK = 1;
-                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO===0?1:0)<<1)|this.F_CARRY);
+                this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO === 0?1:0)<<1)|this.F_CARRY);
                 break;
             }
 
@@ -805,7 +793,7 @@ nes.cpu = {
 
             //SBC
             case 43:{
-                //???
+                //Subtract memory with borrow.
                 temp = this.REG_ACC-nes.mmc.load(addr)-(1-this.F_CARRY);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;

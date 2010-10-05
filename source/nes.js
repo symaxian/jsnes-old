@@ -4,7 +4,7 @@
 
 //Todo
 
-    //Finish optimizing and cleaning up the rest of the nes.
+    //Finish optimizing and cleaning up the rest of the nes, ppu, apu, and maybe the mappers a bit more.
     //Merge the dynamicAudio wrapper into the apu.
     //Merge the apu from its own class into the nes.
     //Add the nes_ identifier to each components function names.
@@ -99,23 +99,14 @@ nes = {
             //Start the frame interval.
             this.frameInterval = setInterval(function(){nes.frame()},1000/nes.frameRate);
 
-            //Run the first frame.
-            this.frame();
-
         }
-    
+
     },
 
     stop:function nes_stop(){
 
         //Clear the frame interval.
         clearInterval(this.frameInterval);
-
-        //Clear the status update interval.
-        clearInterval(this.statusUpdateInterval);
-
-        //Set the status.
-        this.status = 'Stopped.';
 
     },
 
@@ -408,6 +399,17 @@ nes = {
         //Rom is not valid, return false.
         return false;
 
+    },
+
+    copyArrayElements:function nes_copyArrayElements(srcArray,srcPos,destArray,destPos,length){
+
+        //Loop through the length of elements to copy.
+        for(var i=0;i<length;++i){
+
+            //Copy the element.
+            destArray[destPos+i] = srcArray[srcPos+i];
+
+        }
     },
 
     //============

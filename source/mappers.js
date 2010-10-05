@@ -40,6 +40,13 @@ nes.mappers[0].prototype = {
 
     },
 
+    load16bit:function nes_cpu_load16Bit(addr){
+
+        //Load two addresses from memory and combine them.
+        return this.load(addr)|(this.load(addr+1)<<8);
+
+    },
+
     write:function nes_mappers_0_write(address,value){
 
         //Check the address.
@@ -263,7 +270,7 @@ nes.mappers[0].prototype = {
             var ram = nes.rom.batteryRam;
             if(ram !== null && ram.length === 0x2000){
                 //Load Battery RAM into memory.
-                arraycopy(ram,0,nes.cpu.mem,0x6000,0x2000);
+                nes.copyArrayElements(ram,0,nes.cpu.mem,0x6000,0x2000);
             }
         }
     },
@@ -272,12 +279,12 @@ nes.mappers[0].prototype = {
 
     load8kRomBank:function nes_mappers_0_load8kRomBank(bank,address){
         //Load the rom bank into the specified address.
-        arraycopy(nes.rom.rom[parseInt(bank/2,10)%nes.rom.romCount],(bank%2)*8192,nes.cpu.mem,address,8192);
+        nes.copyArrayElements(nes.rom.rom[parseInt(bank/2,10)%nes.rom.romCount],(bank%2)*8192,nes.cpu.mem,address,8192);
     },
 
     load16kRomBank:function nes_mappers_0_load16kRomBank(bank,address){
         //Load the rom bank into the specified address.
-        arraycopy(nes.rom.rom[bank%nes.rom.romCount],0,nes.cpu.mem,address,16384);
+        nes.copyArrayElements(nes.rom.rom[bank%nes.rom.romCount],0,nes.cpu.mem,address,16384);
     },
 
     load32kRomBank:function nes_mappers_0_load32kRomBank(bank,address){
@@ -293,7 +300,7 @@ nes.mappers[0].prototype = {
             //???
             nes.ppu.triggerRendering();
             //???
-            arraycopy(nes.rom.vrom[parseInt(bank/4,10)%nes.rom.vromCount],0,nes.ppu.vramMem,(bank%4)*1024,1024);
+            nes.copyArrayElements(nes.rom.vrom[parseInt(bank/4,10)%nes.rom.vromCount],0,nes.ppu.vramMem,(bank%4)*1024,1024);
             //Update vrom tiles.
             var vromTile = nes.rom.vromTile[bank4k];
             var baseIndex = address>>4;
@@ -308,7 +315,7 @@ nes.mappers[0].prototype = {
             //???
             nes.ppu.triggerRendering();
             //???
-            arraycopy(nes.rom.vrom[parseInt(bank/2,10)%nes.rom.vromCount],(bank%2)*2048,nes.ppu.vramMem,address,2048);
+            nes.copyArrayElements(nes.rom.vrom[parseInt(bank/2,10)%nes.rom.vromCount],(bank%2)*2048,nes.ppu.vramMem,address,2048);
             //Update tiles.
             var vromTile = nes.rom.vromTile[bank4k];
             var baseIndex = address>>4;
@@ -323,8 +330,8 @@ nes.mappers[0].prototype = {
             //???
             nes.ppu.triggerRendering();
             //???
-            arraycopy(nes.rom.vrom[bank%nes.rom.vromCount],0,nes.ppu.vramMem,address,4096);
-            arraycopy(nes.rom.vromTile[bank%nes.rom.vromCount],0,nes.ppu.ptTile,address>>4,256);
+            nes.copyArrayElements(nes.rom.vrom[bank%nes.rom.vromCount],0,nes.ppu.vramMem,address,4096);
+            nes.copyArrayElements(nes.rom.vromTile[bank%nes.rom.vromCount],0,nes.ppu.ptTile,address>>4,256);
         }
     },
 
