@@ -962,7 +962,7 @@ nes.ppu = {
                             var srcy2 = 8;
                         }
                         //???
-                        this.ptTile[top+this.vertFlip[i]].render(0,srcy1,8,srcy2,this.sprX[i],this.sprY[i]+1,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
+                        this.ptTile[top+(this.vertFlip[i]?1:0)].render(0,srcy1,8,srcy2,this.sprX[i],this.sprY[i]+1,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
                         //???
                         if(this.sprY[i]+8 < startscan){
                             var srcy1 = startscan - (this.sprY[i]+8+1);
@@ -978,7 +978,7 @@ nes.ppu = {
                             var srcy2 = 8;
                         }
                         //???
-                        this.ptTile[top+this.vertFlip[i]].render(0,srcy1,8,srcy2,this.sprX[i],this.sprY[i]+1+8,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
+                        this.ptTile[top+(this.vertFlip[i]?0:1)].render(0,srcy1,8,srcy2,this.sprX[i],this.sprY[i]+1+8,this.sprCol[i],this.horiFlip[i],this.vertFlip[i],i);
                     }
                 }
             }

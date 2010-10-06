@@ -28,7 +28,7 @@
     //STATUS_SPRITE0HIT: 6,
     //STATUS_VBLANK: 7,
 
-JSNES = {};
+JSNES = {PAPU:{}};
 
 nes = {
 
@@ -61,11 +61,11 @@ nes = {
         //Initiate the controllers.
         this.controllers.init();
 
-        //Initiate the audio wrapper, FIXME
+        //Initiate the audio wrapper.
         this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
 
-        //Add the apu in, REMOVE.
-        this.apu = new JSNES.PAPU(this);
+        //Initiate the apu.
+        this.apu.init();
 
         //Reset the system.
         this.reset();
