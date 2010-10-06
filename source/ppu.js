@@ -1,6 +1,6 @@
-// === === === === === === === === === ==
+//=============================
 //== Picture Processing Unit ==
-// === === === === === === === === === ==
+//=============================
 
 nes.ppu = {
 
@@ -132,20 +132,20 @@ nes.ppu = {
         this.sramAddress = 0;
 
         //Control Register
-        this.f_nmiOnVblank = 0;    //NMI on VBlank. 0=disable, 1=enable
-        this.f_spriteSize = 0;     //Sprite size. 0=8x8, 1=8x16
-        this.f_bgPatternTable = 0; //Background Pattern Table address. 0=0x0000,1=0x1000
-        this.f_spPatternTable = 0; //Sprite Pattern Table address. 0=0x0000,1=0x1000
-        this.f_addrInc = 0;        //PPU Address Increment. 0=1,1=32
-        this.f_nTblAddress = 0;    //Name Table Address. 0=0x2000,1=0x2400,2=0x2800,3=0x2C00
+        this.f_nmiOnVblank = 0;    //NMI on vertical blank.             0=disable, 1=enable
+        this.f_spriteSize = 0;     //Sprite size.                       0=8x8, 1=8x16
+        this.f_bgPatternTable = 0; //Background Pattern Table address.  0=0x0000, 1=0x1000
+        this.f_spPatternTable = 0; //Sprite Pattern Table address.      0=0x0000, 1=0x1000
+        this.f_addrInc = 0;        //PPU Address Increment.             0=1, 1=32
+        this.f_nTblAddress = 0;    //Name Table Address.                0=0x2000, 1=0x2400, 2=0x2800, 3=0x2C00
 
         //Masking Register
-        this.f_color = 0;          //Color emphasis, bg color in monochrome. 0=black, 1=blue, 2=green, 4=red
-        this.f_spVisibility = 0;   //Sprite visibility. 0=not displayed,1=displayed
-        this.f_bgVisibility = 0;   //Background visibility. 0=Not Displayed,1=displayed
-        this.f_spClipping = 0;     //Sprite clipping. 0=Sprites invisible in left 8-pixel column,1=No clipping
-        this.f_bgClipping = 0;     //Background clipping. 0=BG invisible in left 8-pixel column, 1=No clipping
-        this.f_dispType = 0;       //Display type. 0=color, 1=monochrome
+        this.f_color = 0;          //Color emphasis, bg color in monochrome.    0=black, 1=blue, 2=green, 4=red
+        this.f_spVisibility = 0;   //Sprite visibility.                         0=not displayed, 1=displayed
+        this.f_bgVisibility = 0;   //Background visibility.                     0=Not Displayed, 1=displayed
+        this.f_spClipping = 0;     //Sprite clipping.                           0=Sprites invisible in left 8-pixel column, 1=No clipping
+        this.f_bgClipping = 0;     //Background clipping.                       0=BG invisible in left 8-pixel column, 1=No clipping
+        this.f_dispType = 0;       //Display type.                              0=color, 1=monochrome
 
         //Counters
         this.cntFV = 0;
@@ -1231,9 +1231,9 @@ nes.ppu = {
         }
     },
 
-    // === === === === ===  === =
+    //===================
     //== Color Palette ==
-    // === === === === ===  === =
+    //===================
 
     colorPalette:{
 
@@ -1318,9 +1318,9 @@ nes.ppu = {
 
 };
 
-// === === === === === =
+//================
 //== Name Table ==
-// === === === === === =
+//================
 
 nes.ppu.NameTable = function nes_ppu_NameTable(w,h){
 
@@ -1368,9 +1368,9 @@ nes.ppu.NameTable.prototype = {
 
 };
 
-// === === === =
+//==========
 //== Tile ==
-// === === === =
+//==========
 
 Tile = function Tile(){
 
