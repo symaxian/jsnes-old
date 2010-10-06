@@ -1,14 +1,13 @@
-//===================================
+// === === === === === === === === === === === ==
 //== Nintendo Entertainment System ==
-//===================================
+// === === === === === === === === === === === ==
 
 //Todo
 
-    //Finish optimizing and cleaning up the rest of the nes, ppu, apu, and maybe the mappers a bit more.
-    //Merge the dynamicAudio wrapper into the apu.
-    //Merge the apu from its own class into the nes.
-    //Add the nes_ identifier to each components function names.
-    //Compile the color palettes, remove the colorPalette constructor function.
+    //Optimization
+        //Compile the color palettes?
+        //Merge the 4 tile rendering routines into one?
+    //Merge the dynamicAudio wrapper into the apu?
 
 //Notes
 
@@ -416,9 +415,9 @@ nes = {
         }
     },
 
-    //============
+    // === === ===  === 
     //== Screen ==
-    //============
+    // === === ===  === 
 
     screen:{
 
@@ -493,9 +492,9 @@ nes = {
 
     },
 
-    //=================
+    // === === === === === ==
     //== Controllers ==
-    //=================
+    // === === === === === ==
 
     controllers:{
 

@@ -1,9 +1,9 @@
 
 nes.mappers = {};
 
-//==============
+// === === ===  === ==
 //== Mapper 0 ==
-//==============
+// === === ===  === ==
 
 nes.mappers[0] = function nes_mappers_0(){};
 
@@ -352,9 +352,9 @@ nes.mappers[0].prototype = {
 
 };
 
-//==============
+// === === ===  === ==
 //== Mapper 1 ==
-//==============
+// === === ===  === ==
 
 nes.mappers[1] = function nes_mappers_1(){};
 
@@ -588,9 +588,9 @@ nes.mappers[1].prototype.switch16to32 = function mmc1_switch16to32(){};
 
 nes.mappers[1].prototype.switch32to16 = function mmc1_switch32to16(){};
 
-//==============
+// === === ===  === ==
 //== Mapper 2 ==
-//==============
+// === === ===  === ==
 
 nes.mappers[2] = function mmc2(){};
 
@@ -623,9 +623,9 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
 
 };
 
-//==============
+// === === ===  === ==
 //== Mapper 4 ==
-//==============
+// === === ===  === ==
 
 nes.mappers[4] = function nes_mappers_4(){
 
