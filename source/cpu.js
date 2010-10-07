@@ -196,7 +196,7 @@ nes.cpu = {
         }
 
         //???
-        var opinf = this.opInfo[nes.mmc.load(this.REG_PC+1)];
+        var opinf = this.opInfo[this.mem[this.REG_PC+1]];
         var cycleCount = opinf>>24;
         var cycleAdd = 0;
 
@@ -213,14 +213,14 @@ nes.cpu = {
             //Zero Page Mode
             //Use the address given after the opcode, but without high byte.
             case 0:{
-                var addr = nes.mmc.load(opaddr+2);
+                var addr = this.mem[opaddr+2];
                 break;
             }
 
             //Relative Mode
             //???
             case 1:{
-                var addr = nes.mmc.load(opaddr+2);
+                var addr = this.mem[opaddr+2];
                 if(addr < 0x80){
                     addr += this.REG_PC;
                 }
@@ -260,14 +260,14 @@ nes.cpu = {
             //Zero Page Indexed Mode X
             //Use the address after the operation code plus the x register.
             case 6:{
-                var addr = (nes.mmc.load(opaddr+2)+this.REG_X)&0xFF;
+                var addr = (this.mem[opaddr+2]+this.REG_X)&0xFF;
                 break;
             }
 
             //Zero Page Indexed Mode Y
             //Use the address after the operation code plus the y register.
             case 7:{
-                var addr = (nes.mmc.load(opaddr+2)+this.REG_Y)&0xFF;
+                var addr = (this.mem[opaddr+2]+this.REG_Y)&0xFF;
                 break;
             }
 
@@ -296,7 +296,7 @@ nes.cpu = {
             //Pre-Indexed Indirect Mode
             //The address is in the 16-bit address starting at the given location plus the x register.
             case 10:{
-                var addr = nes.mmc.load(opaddr+2);
+                var addr = this.mem[opaddr+2];
                 if((addr&0xFF00) !== ((addr+this.REG_X)&0xFF00)){
                     cycleAdd = 1;
                 }
@@ -412,8 +412,7 @@ nes.cpu = {
                 var temp = nes.mmc.load(addr);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_OVERFLOW = (temp>>6)&1;
-                temp &= this.REG_ACC;
-                this.F_ZERO = temp;
+                this.F_ZERO = temp&this.REG_ACC;
                 break;
             }
 
@@ -511,8 +510,8 @@ nes.cpu = {
             //CMP
             case 17:{
                 //Compare memory and accumulator.
-                temp = this.REG_ACC - nes.mmc.load(addr);
-                this.F_CARRY = (temp>=0?1:0);
+                temp = this.REG_ACC-nes.mmc.load(addr);
+                this.F_CARRY = (temp >= 0?1:0);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
                 cycleCount += cycleAdd;
@@ -522,7 +521,7 @@ nes.cpu = {
             //CPX
             case 18:{
                 //Compare memory and index X.
-                temp = this.REG_X - nes.mmc.load(addr);
+                temp = this.REG_X-nes.mmc.load(addr);
                 this.F_CARRY = (temp >= 0?1:0);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
@@ -532,7 +531,7 @@ nes.cpu = {
             //CPY
             case 19:{
                 //Compare memory and index Y.
-                temp = this.REG_Y - nes.mmc.load(addr);
+                temp = this.REG_Y-nes.mmc.load(addr);
                 this.F_CARRY = (temp >= 0?1:0);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
@@ -583,7 +582,7 @@ nes.cpu = {
                 temp = (nes.mmc.load(addr)+1)&0xFF;
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp;
-                nes.mmc.write(addr,temp&0xFF);
+                nes.mmc.write(addr,temp);
                 break;
             }
 
@@ -729,15 +728,14 @@ nes.cpu = {
             //ROL
             case 39:{
                 //Rotate one bit left.
+                var add = this.F_CARRY;
                 if(addrMode === 4){
-                    var add = this.F_CARRY;
-                    this.F_CARRY = (this.REG_ACC>>7)&1;
                     var temp = ((this.REG_ACC<<1)&0xFF)+add;
+                    this.F_CARRY = (this.REG_ACC>>7)&1;
                     this.REG_ACC = temp;
                 }
                 else{
                     var temp = nes.mmc.load(addr);
-                    var add = this.F_CARRY;
                     this.F_CARRY = (temp>>7)&1;
                     temp = ((temp<<1)&0xFF)+add;
                     nes.mmc.write(addr,temp);
@@ -751,7 +749,7 @@ nes.cpu = {
             case 40:{
                 //Rotate one bit right.
                 if(addrMode === 4){
-                    temp = (this.REG_ACC>>1)+(this.F_CARRY<<7);
+                    var temp = (this.REG_ACC>>1)+(this.F_CARRY<<7);
                     this.F_CARRY = this.REG_ACC&1;
                     this.REG_ACC = temp;
                 }
@@ -804,8 +802,8 @@ nes.cpu = {
                 temp = this.REG_ACC-nes.mmc.load(addr)-(1-this.F_CARRY);
                 this.F_SIGN = (temp>>7)&1;
                 this.F_ZERO = temp&0xFF;
-                this.F_OVERFLOW = ((((this.REG_ACC^temp)&0x80)!==0 && ((this.REG_ACC^nes.mmc.load(addr))&0x80) !== 0)?1:0);
-                this.F_CARRY = (temp<0?0:1);
+                this.F_OVERFLOW = ((((this.REG_ACC^temp)&0x80) !== 0 && ((this.REG_ACC^nes.mmc.load(addr))&0x80) !== 0)?1:0);
+                this.F_CARRY = (temp < 0?0:1);
                 this.REG_ACC = (temp&0xFF);
                 if(addrMode !== 11){
                     cycleCount+=cycleAdd;

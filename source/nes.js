@@ -5,9 +5,8 @@
 //Todo
 
     //Optimization
-        //Compile the color palettes?
+        //Compile the ppu color palettes?
         //Merge the 4 tile rendering routines into one?
-    //Merge the dynamicAudio wrapper into the apu?
 
 //Notes
 
@@ -39,7 +38,6 @@ nes = {
 
     //Frames Per Second
     fps:0,
-    fpsPrecision:2,
 
     //The needed mmc for the rom.
     mmc:null,
@@ -62,9 +60,6 @@ nes = {
 
         //Initiate the audio wrapper.
         this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
-
-        //Initiate the apu.
-        this.apu.init();
 
         //Reset the system.
         this.reset();
@@ -228,10 +223,10 @@ nes = {
             }
         }
 
-        //Calculate the frames per second.
+        //Calculate the fps.
         var now = new Date().getTime();
-        var frameDifference = this.lastFrameTime - now;
-        this.fps = (-1000/frameDifference).toFixed(this.fpsPrecision);
+        var frameDifference = this.lastFrameTime-now;
+        this.fps = -1000/frameDifference;
         this.lastFrameTime = now;
 
     },

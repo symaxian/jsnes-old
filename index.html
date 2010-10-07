@@ -19,7 +19,7 @@
         init = function(){
 
             fpsDiv = document.getElementById('fps');
-            fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps},200);
+            fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps.toFixed(2)},200);
 
             nes.init();
             nes.loadRom('roms/lj65.nes');

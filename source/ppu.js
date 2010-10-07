@@ -132,12 +132,12 @@ nes.ppu = {
         this.sramAddress = 0;
 
         //Control Register
-        this.f_nmiOnVblank = 0;    //NMI on vertical blank.             0=disable, 1=enable
-        this.f_spriteSize = 0;     //Sprite size.                       0=8x8, 1=8x16
-        this.f_bgPatternTable = 0; //Background Pattern Table address.  0=0x0000, 1=0x1000
-        this.f_spPatternTable = 0; //Sprite Pattern Table address.      0=0x0000, 1=0x1000
-        this.f_addrInc = 0;        //PPU Address Increment.             0=1, 1=32
-        this.f_nTblAddress = 0;    //Name Table Address.                0=0x2000, 1=0x2400, 2=0x2800, 3=0x2C00
+        this.f_nmiOnVblank = 0;    //NMI on vertical blank.                     0=disable, 1=enable
+        this.f_spriteSize = 0;     //Sprite size.                               0=8x8, 1=8x16
+        this.f_bgPatternTable = 0; //Background Pattern Table address.          0=0x0000, 1=0x1000
+        this.f_spPatternTable = 0; //Sprite Pattern Table address.              0=0x0000, 1=0x1000
+        this.f_addrInc = 0;        //PPU Address Increment.                     0=1, 1=32
+        this.f_nTblAddress = 0;    //Name Table Address.                        0=0x2000, 1=0x2400, 2=0x2800, 3=0x2C00
 
         //Masking Register
         this.f_color = 0;          //Color emphasis, bg color in monochrome.    0=black, 1=blue, 2=green, 4=red
@@ -830,7 +830,7 @@ nes.ppu = {
         //???
         if(scanline < 240 && (scanline-this.cntFV) >= 0){
             //Cache the curent name table index.
-            var curNt = this.ntable1[this.cntV+this.cntV+this.cntH];
+            var curNt = this.ntable1[2*this.cntV+this.cntH];
             //???
             var tscanoffset = this.cntFV<<3;
             //Loop through the 32 tiles.
@@ -843,17 +843,21 @@ nes.ppu = {
                         this.scantile[tile] = this.ptTile[this.regS*256+this.nameTable[curNt].getTileIndex(this.cntHT,this.cntVT)];
                         this.attrib[tile] = this.nameTable[curNt].getAttrib(this.cntHT,this.cntVT);
                     }
-                    //Cache the tile and its attributes.
+                    //Get the tile and its attributes.
                     var t = this.scantile[tile];
                     var att = this.attrib[tile];
-                    //Render tile scanline:
-                    var sx = 0;
+                    //Render tile scanline.
                     var x = (tile<<3)-this.regFH;
-                    if(x>-8){
-                        if(x<0){
+                    if(x > -8){
+                        //???
+                        if(x < 0){
                             destIndex -= x;
-                            sx = -x;
+                            var sx = -x;
                         }
+                        else{
+                            var sx = 0;
+                        }
+                        //???
                         if(t.opaque[this.cntFV]){
                             for(;sx<8;sx++){
                                 this.buffer[destIndex] = this.imgPalette[t.pix[tscanoffset+sx]+att];
