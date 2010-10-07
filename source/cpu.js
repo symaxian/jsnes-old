@@ -1,5 +1,5 @@
 //=============================
-//== Central Processing Unit==
+//== Central Processing Unit ==
 //=============================
 
 nes.cpu = {
@@ -93,7 +93,7 @@ nes.cpu = {
 
     },
 
-    requestInterrupt:function(type){
+    requestInterrupt:function nes_cpu_requestInterrupt(type){
 
         //Check if an interrupt is not already requested and the new interrupt is normal.
         if(!this.interruptRequested && type !== 0){

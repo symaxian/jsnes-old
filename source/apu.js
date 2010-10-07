@@ -7,7 +7,7 @@ nes.apu = {
 //Properties
 
     //The Active Flag
-    active:false,
+    active:true,
 
     //Channels
     square1:null,
@@ -135,7 +135,7 @@ nes.apu = {
         this.writeReg(0x4010,0x10);
 
         //???
-        this.sampleTimerMax = parseInt((1832727040*nes.frameRate)/(44100*nes.frameRate),10);
+        this.sampleTimerMax = 1832727040/44100;
 
         //???
         this.frameTime = parseInt((14915*nes.frameRate)/60,10);
@@ -403,20 +403,7 @@ nes.apu = {
             this.frameCounterTick();
         }
 
-        //Accumulate sample value.
-        this.accSample(nCycles);
-
-        //Clock sample timer.
-        this.sampleTimer += nCycles<<10;
-        if(this.sampleTimer >= this.sampleTimerMax){
-            //Sample channels.
-            this.sample();
-            this.sampleTimer -= this.sampleTimerMax;
-        }
-
-    },
-
-    accSample:function nes_apu_accSample(cycles){
+        //Accumulate sample values.
 
         //Special treatment for triangle channel, need to interpolate.
         if(this.triangle.sampleCondition){
@@ -429,14 +416,14 @@ nes.apu = {
         }
 
         //Now sample normally.
-        if(cycles === 2){
+        if(nCycles === 2){
             this.smpTriangle += this.triValue<<1;
             this.smpDmc += this.dmc.sample<<1;
             this.smpSquare1 += this.square1.sampleValue<<1;
             this.smpSquare2 += this.square2.sampleValue<<1;
             this.accCount += 2;
         }
-        else if(cycles === 4){
+        else if(nCycles === 4){
             this.smpTriangle += this.triValue<<2;
             this.smpDmc += this.dmc.sample<<2;
             this.smpSquare1 += this.square1.sampleValue<<2;
@@ -444,11 +431,19 @@ nes.apu = {
             this.accCount += 4;
         }
         else{
-            this.smpTriangle += cycles*this.triValue;
-            this.smpDmc += cycles*this.dmc.sample;
-            this.smpSquare1 += cycles*this.square1.sampleValue;
-            this.smpSquare2 += cycles*this.square2.sampleValue;
-            this.accCount += cycles;
+            this.smpTriangle += nCycles*this.triValue;
+            this.smpDmc += nCycles*this.dmc.sample;
+            this.smpSquare1 += nCycles*this.square1.sampleValue;
+            this.smpSquare2 += nCycles*this.square2.sampleValue;
+            this.accCount += nCycles;
+        }
+
+        //Clock sample timer.
+        this.sampleTimer += nCycles<<10;
+        if(this.sampleTimer >= this.sampleTimerMax){
+            //Sample channels.
+            this.sample();
+            this.sampleTimer -= this.sampleTimerMax;
         }
 
     },

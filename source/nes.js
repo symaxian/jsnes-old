@@ -5,8 +5,12 @@
 //Todo
 
     //Optimization
-        //Compile the ppu color palettes?
+        //Compile the ppu color palette[s]?
         //Merge the 4 tile rendering routines into one?
+
+    //Implement saving the battery ram as a cookie.
+        //Must split up the cookie, max size is 4kb.
+        //Use run-length compression?
 
 //Notes
 
@@ -44,6 +48,9 @@ nes = {
 
     //The source of the current rom.
     romSource:null,
+
+    //Battery ram duration, the duration of the cookie used to save the battery ram in days.
+    batteryRamDuration:7,
 
     //Mapper Names
     mapperNames:["Direct Access","Nintendo MMC1","UNROM","CNROM","Nintendo MMC3","Nintendo MMC5","FFE F4xxx","AOROM","FFE F3xxx","Nintendo MMC2","Nintendo MMC4","Color Dreams Chip","FFE F6xxx","Unknown Mapper","Unknown Mapper","100-in-1 switch","Bandai chip","FFE F8xxx","Jaleco SS8806 chip","Namcot 106 chip","Famicom Disk System","Konami VRC4a","Konami VRC2a","Konami VRC2a","Konami VRC6","Konami VRC4b","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem G-101 chip","Taito TC0190/TC0350","32kB ROM switch","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Tengen RAMBO-1 chip","Irem H-3001 chip","GNROM switch","SunSoft3 chip","SunSoft4 chip","SunSoft5 FME-7 chip","Unknown Mapper","Camerica chip","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem 74HC161/32-based","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Pirate HK-SF3 chip"],
@@ -281,8 +288,8 @@ nes = {
             //Get the mirroring type.
             this.rom.mirroring = (this.rom.header[6]&1);
 
-            //Get the battery ram flag.
-            this.rom.batteryRam = (this.rom.header[6]&2) !== 0;
+            //Check whether the rom has battery ram.
+            this.rom.hasBatteryRam = (this.rom.header[6]&2) !== 0;
 
             //Get the trainer flag.
             this.rom.trainer = (this.rom.header[6]&4) !== 0;
@@ -292,11 +299,6 @@ nes = {
 
             //Get the mapper needed.
             this.rom.mapperType = (this.rom.header[6]>>4) | (this.rom.header[7]&0xF0);
-
-            //Load the battery ram, FIXME.
-            if(this.rom.batteryRam){
-                //this.rom.loadBatteryRam();
-            }
 
             //Check whether any byte 8-15 is not a zero.
             for(var i=8;i<16;i++){
@@ -361,6 +363,13 @@ nes = {
             //Check the mapper needed.
             if(typeof this.mappers[this.rom.mapperType] !== 'undefined'){
 
+                //Save the rom's source.
+                this.romSource = src;
+
+                //Save the rom's filename, not including the extension.
+                this.romName = (src.substring(src.lastIndexOf('/')+1));
+                this.romName = this.romName.substring(0,this.romName.lastIndexOf('.'));
+
                 //Get the mapper.
                 this.mmc = new this.mappers[this.rom.mapperType]();
 
@@ -381,9 +390,6 @@ nes = {
                     this.ppu.setMirroring(0);
                 }
 
-                //Save the rom source.
-                this.romSource = src;
-
                 //Rom was successfully loaded, return true.
                 return true;
 
@@ -399,14 +405,102 @@ nes = {
 
     },
 
-    copyArrayElements:function nes_copyArrayElements(srcArray,srcPos,destArray,destPos,length){
+    loadBatteryRam:function nes_loadBatteryRam(){
+        //Check if the rom has batteryRAM.
+        if(nes.rom.hasBatteryRam){
+            //Check if the save file exists.
+            if(this.hasSave(this.romName)){
+                //Get the save data.
+                var data = this.getSave(this.romName);
+                //Check the length of the data is valid.
+                if(data.length === 8192){
+                    //Loop through the characters in the data.
+                    for(var i=0;i++;i<8192){
+                        //Set the corresponding address in memory as the character code minus 100.
+                        nes.cpu.mem[0x6000+i] = data.charCodeAt(i)-100;
+                    }
+                }
+            }
+        }
+    },
 
+    saveBatteryRam:function nes_saveBatteryRam(){
+        //Check if the rom has battery ram.
+        if(nes.rom.hasBatteryRam){
+            //Create a string for storing the battery ram in the window.name property.
+            var batteryRam = '';
+            //Loop through the battery ram data.
+            for(var i=0x6000;i<0x8000;i++){
+                //Add the battery ram data into the string by using characters to encode the numbers.
+                //The extra value is added to keep odd characters from being used, as well as the semicolon which would skewer the data.
+                batteryRam += String.fromCharCode(nes.cpu.mem[i+0x6000]+100);
+            }
+            //Set the save data.
+            this.setSave(this.romName,batteryRam);
+        }
+    },
+
+    hasSave:function nes_hasSave(name){
+        //Return whether the name is in the divided window.name data.
+        return (window.name.split(';').indexOf(name) !== -1);
+    },
+
+    setSave:function nes_setSave(name,value){
+        //Get the save data.
+        var data = window.name.split(';');
+        //Check if the name exists in the save data.
+        if(this.hasSave(name)){
+            //Replace the old data associated with the name.
+            data[data.indexOf(name)+1] = value;
+            //Loop through the data elements and add them back into window.name property.
+            for(var i=0;i++;i<data.length){
+                window.name += data[i]+';';
+            }
+        }
+        else{
+            //Else add the save data to the window.name property.
+            window.name += name+';'+value+';';
+        }
+    },
+
+    getSave:function nes_getSave(name){
+        //Check if the name exists in the save data.
+        if(this.hasSave(name)){
+            //Get the save data.
+            var data = window.name.split(';');
+            //Return the element right after the name, the data.
+            return data[data.indexOf(name)+1];
+        }
+        //Name not in the save data, return null.
+        return null;
+    },
+
+    clearSave:function nes_clearSave(name){
+        //Get the save data.
+        var data = window.name.split(';');
+        //Clear the window.name property.
+        window.name = '';
+        //Check if the name exists in the save data.
+        if(data.indexOf(name)){
+            //Remove the name and following element from the array.
+            data.splice(data.indexOf(name),2);
+        }
+        //Loop through the data elements and add them back into window.name property.
+        for(var i=0;i++;i<data.length){
+            window.name += data[i]+';';
+        }
+    },
+
+    clearSaves:function nes_clearSaves(){
+        //Clear the window.name property.
+        window.name = '';
+    },
+
+    copyArrayElements:function nes_copyArrayElements(srcArray,srcPos,destArray,destPos,length){
         //Loop through the length of elements to copy.
         for(var i=0;i<length;++i){
-
             //Copy the element.
             destArray[destPos+i] = srcArray[srcPos+i];
-
         }
     },
 

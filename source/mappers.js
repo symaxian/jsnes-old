@@ -100,10 +100,6 @@ nes.mappers[0].prototype = {
         else{
             //ROM
             nes.cpu.mem[address] = value;
-            //Battery RAM, FIXME
-            if(address >= 0x6000 && address < 0x8000){
-                //nes.rom.writeBatteryRam(address,value);
-            }
         }
 
     },
@@ -237,9 +233,6 @@ nes.mappers[0].prototype = {
         //Load CHR-ROM.
         this.loadCHRROM();
 
-        //Load Battery RAM if present.
-        this.loadBatteryRam();
-
         //Do Reset-Interrupt.
         nes.cpu.requestInterrupt(2);
 
@@ -257,19 +250,6 @@ nes.mappers[0].prototype = {
             else{
                 this.load4kVromBank(0,0x0000);
                 this.load4kVromBank(1,0x1000);
-            }
-        }
-    },
-
-    //Load Battery Ram
-
-    loadBatteryRam:function nes_mappers_0_loadBatteryRam(){
-        //Check if the rom has batteryRAM.
-        if(nes.rom.batteryRam){
-            var ram = nes.rom.batteryRam;
-            if(ram !== null && ram.length === 0x2000){
-                //Load Battery RAM into memory.
-                nes.copyArrayElements(ram,0,nes.cpu.mem,0x6000,0x2000);
             }
         }
     },
@@ -572,8 +552,8 @@ nes.mappers[1].prototype.loadROM = function(rom){
     //Load CHR-ROM.
     this.loadCHRROM();
 
-    //Load Battery RAM.
-    this.loadBatteryRam();
+    //Load the battery ram, if any.
+    nes.loadBatteryRam();
 
     //Do Reset-Interrupt.
     nes.cpu.requestInterrupt(2);
@@ -618,6 +598,9 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
     //Load CHR-ROM.
     this.loadCHRROM();
 
+    //Load the battery ram, if any.
+    nes.loadBatteryRam();
+
     //Do Reset-Interrupt.
     nes.cpu.requestInterrupt(2);
 
@@ -627,7 +610,7 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
 //== Mapper 4 ==
 //==============
 
-nes.mappers[4] = function nes_mappers_4(){
+nes.mappers[4] = function nes_mmc4(){
 
     //Initiate some needed variables.
     this.command = null;
@@ -642,7 +625,7 @@ nes.mappers[4] = function nes_mappers_4(){
 
 nes.mappers[4].prototype = new nes.mappers[0]();
 
-nes.mappers[4].prototype.write = function nes_mappers_4_write(address,value){
+nes.mappers[4].prototype.write = function nes_mmc4_write(address,value){
 
     //Writes below mmc4 registers are handled by mmc0.
     if(address < 0x8000){
@@ -720,7 +703,7 @@ nes.mappers[4].prototype.write = function nes_mappers_4_write(address,value){
     }
 };
 
-nes.mappers[4].prototype.executeCommand = function nes_mappers_4_executeCommand(cmd,arg){
+nes.mappers[4].prototype.executeCommand = function nes_mmc4_executeCommand(cmd,arg){
     switch(cmd){
 
         //Select 2 1kb VROM pages at 0x0000.
@@ -790,7 +773,7 @@ nes.mappers[4].prototype.executeCommand = function nes_mappers_4_executeCommand(
     }
 };
 
-nes.mappers[4].prototype.loadROM = function nes_mappers_4_loadROM(){
+nes.mappers[4].prototype.loadROM = function nes_mmc4_loadROM(){
 
     //Load hardwired PRG banks, 0xC000 and 0xE000.
     this.load8kRomBank(((nes.rom.romCount-1)*2),0xC000);
@@ -803,8 +786,8 @@ nes.mappers[4].prototype.loadROM = function nes_mappers_4_loadROM(){
     //Load CHR-ROM.
     this.loadCHRROM();
 
-    //Load Battery RAM if present.
-    this.loadBatteryRam();
+    //Load the battery ram, if any.
+    nes.loadBatteryRam();
 
     //Do Reset-Interrupt.
     nes.cpu.requestInterrupt(2);
