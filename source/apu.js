@@ -7,7 +7,7 @@ nes.apu = {
 //Properties
 
     //The Active Flag
-    active:true,
+    active:false,
 
     //Channels
     square1:null,

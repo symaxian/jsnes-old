@@ -5,11 +5,11 @@ nes.mappers = {};
 //== Mapper 0 ==
 //==============
 
-nes.mappers[0] = function nes_mappers_0(){};
+nes.mappers[0] = function nes_mmc0(){};
 
 nes.mappers[0].prototype = {
 
-    reset:function nes_mappers_0_reset(){
+    reset:function nes_mmc0_reset(){
 
         //Reset the controller strobes.
         this.joy1Strobe = 0;
@@ -23,7 +23,7 @@ nes.mappers[0].prototype = {
 
     },
 
-    load:function nes_mappers_0_load(address){
+    load:function nes_mmc0_load(address){
 
         //ROM
         if(address > 0x4017){
@@ -47,7 +47,7 @@ nes.mappers[0].prototype = {
 
     },
 
-    write:function nes_mappers_0_write(address,value){
+    write:function nes_mmc0_write(address,value){
 
         //Check the address.
         if(address < 0x2000){
@@ -104,7 +104,7 @@ nes.mappers[0].prototype = {
 
     },
 
-    regLoad:function nes_mappers_0_regLoad(address){
+    regLoad:function nes_mmc0_regLoad(address){
         //use fourth nibble (0xF000)
         switch(address>>12){
             case 0:
@@ -216,7 +216,7 @@ nes.mappers[0].prototype = {
 
     //Load ROM
 
-    loadROM:function nes_mappers_0_loadROM(){
+    loadROM:function nes_mmc0_loadROM(){
 
         //Load PRG-ROM.
         if(nes.rom.romCount > 1){
@@ -233,6 +233,9 @@ nes.mappers[0].prototype = {
         //Load CHR-ROM.
         this.loadCHRROM();
 
+        //Load the battery ram, if any.
+        nes.loadBatteryRam();
+
         //Do Reset-Interrupt.
         nes.cpu.requestInterrupt(2);
 
@@ -240,7 +243,7 @@ nes.mappers[0].prototype = {
 
     //Load CHR-ROM
 
-    loadCHRROM:function nes_mappers_0_loadCHRROM(){
+    loadCHRROM:function nes_mmc0_loadCHRROM(){
         //Check if the rom has VROM.
         if(nes.rom.vromCount > 0){
             if(nes.rom.vromCount === 1){
@@ -256,17 +259,17 @@ nes.mappers[0].prototype = {
 
     //Load ROM Banks
 
-    load8kRomBank:function nes_mappers_0_load8kRomBank(bank,address){
+    load8kRomBank:function nes_mmc0_load8kRomBank(bank,address){
         //Load the rom bank into the specified address.
         nes.copyArrayElements(nes.rom.rom[parseInt(bank/2,10)%nes.rom.romCount],(bank%2)*8192,nes.cpu.mem,address,8192);
     },
 
-    load16kRomBank:function nes_mappers_0_load16kRomBank(bank,address){
+    load16kRomBank:function nes_mmc0_load16kRomBank(bank,address){
         //Load the rom bank into the specified address.
         nes.copyArrayElements(nes.rom.rom[bank%nes.rom.romCount],0,nes.cpu.mem,address,16384);
     },
 
-    load32kRomBank:function nes_mappers_0_load32kRomBank(bank,address){
+    load32kRomBank:function nes_mmc0_load32kRomBank(bank,address){
         //Load two 16kb banks into the specified address.
         this.load16kRomBank(bank*2,address);
         this.load16kRomBank(bank*2+1,address+16384);
@@ -274,7 +277,7 @@ nes.mappers[0].prototype = {
 
     //Load VROM Banks
 
-    load1kVromBank:function nes_mappers_0_load8kVromBank(bank,address){
+    load1kVromBank:function nes_mmc0_load8kVromBank(bank,address){
         if(nes.rom.vromCount !== 0){
             //???
             nes.ppu.triggerRendering();
@@ -289,7 +292,7 @@ nes.mappers[0].prototype = {
         }
     },
 
-    load2kVromBank:function nes_mappers_0_load2kVromBank(bank,address){
+    load2kVromBank:function nes_mmc0_load2kVromBank(bank,address){
         if(nes.rom.vromCount !== 0){
             //???
             nes.ppu.triggerRendering();
@@ -304,7 +307,7 @@ nes.mappers[0].prototype = {
         }
     },
 
-    load4kVromBank:function nes_mappers_0_load4kVromBank(bank,address){
+    load4kVromBank:function nes_mmc0_load4kVromBank(bank,address){
         if(nes.rom.vromCount !== 0){
             //???
             nes.ppu.triggerRendering();
@@ -314,7 +317,7 @@ nes.mappers[0].prototype = {
         }
     },
 
-    load8kVromBank:function nes_mappers_0_load8kVromBank(bankStart,address){
+    load8kVromBank:function nes_mmc0_load8kVromBank(bankStart,address){
         if(nes.rom.vromCount !== 0){
             //???
             nes.ppu.triggerRendering();
@@ -325,10 +328,10 @@ nes.mappers[0].prototype = {
     },
 
     //Used by mmc3.
-    clockIrqCounter:function nes_mappers_0_clockIrqCounter(){},
+    clockIrqCounter:function nes_mmc0_clockIrqCounter(){},
 
     //Used by mmc2.
-    latchAccess:function nes_mappers_0_latchAccess(address){},
+    latchAccess:function nes_mmc0_latchAccess(address){},
 
 };
 
@@ -340,7 +343,7 @@ nes.mappers[1] = function nes_mappers_1(){};
 
 nes.mappers[1].prototype = new nes.mappers[0]();
 
-nes.mappers[1].prototype.reset = function nes_mappers_1_reset(){
+nes.mappers[1].prototype.reset = function nes_mmc1_reset(){
 
     //Reset most the the mapper through the mapper0 reset method.
     nes.mappers[0].prototype.reset.apply(this);
@@ -367,7 +370,7 @@ nes.mappers[1].prototype.reset = function nes_mappers_1_reset(){
 
 };
 
-nes.mappers[1].prototype.write = function nes_mappers_1_write(address,value){
+nes.mappers[1].prototype.write = function nes_mmc1_write(address,value){
 
     //Writes below mmc1 registers are handled by mmc0.
     if(address < 0x8000){
@@ -408,7 +411,7 @@ nes.mappers[1].prototype.write = function nes_mappers_1_write(address,value){
     }
 };
 
-nes.mappers[1].prototype.setReg = function nes_mappers_1_setReg(reg,value){
+nes.mappers[1].prototype.setReg = function nes_mmc1_setReg(reg,value){
     switch(reg){
 
         //Register 1, PPU Mirroring, ROM loading flags.
@@ -597,9 +600,6 @@ nes.mappers[2].prototype.loadROM = function mmc2_loadROM(){
 
     //Load CHR-ROM.
     this.loadCHRROM();
-
-    //Load the battery ram, if any.
-    nes.loadBatteryRam();
 
     //Do Reset-Interrupt.
     nes.cpu.requestInterrupt(2);

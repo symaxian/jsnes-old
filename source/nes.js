@@ -43,7 +43,7 @@ nes = {
     //Frames Per Second
     fps:0,
 
-    //The needed mmc for the rom.
+    //The mmc needed for the rom.
     mmc:null,
 
     //The source of the current rom.
@@ -367,7 +367,7 @@ nes = {
                 this.romSource = src;
 
                 //Save the rom's filename, not including the extension.
-                this.romName = (src.substring(src.lastIndexOf('/')+1));
+                this.romName = src.substring(src.lastIndexOf('/')+1);
                 this.romName = this.romName.substring(0,this.romName.lastIndexOf('.'));
 
                 //Get the mapper.
@@ -433,7 +433,7 @@ nes = {
             for(var i=0x6000;i<0x8000;i++){
                 //Add the battery ram data into the string by using characters to encode the numbers.
                 //The extra value is added to keep odd characters from being used, as well as the semicolon which would skewer the data.
-                batteryRam += String.fromCharCode(nes.cpu.mem[i+0x6000]+100);
+                batteryRam += String.fromCharCode(nes.cpu.mem[i]+100);
             }
             //Set the save data.
             this.setSave(this.romName,batteryRam);
@@ -446,14 +446,18 @@ nes = {
     },
 
     setSave:function nes_setSave(name,value){
-        //Get the save data.
-        var data = window.name.split(';');
         //Check if the name exists in the save data.
         if(this.hasSave(name)){
+            //Get the save data.
+            var data = window.name.split(';');
+            //Remove the extra element added by split().
+            data.pop();
+            //Clear the window.name property.
+            window.name = '';
             //Replace the old data associated with the name.
             data[data.indexOf(name)+1] = value;
             //Loop through the data elements and add them back into window.name property.
-            for(var i=0;i++;i<data.length){
+            for(var i=0;i<data.length;i++){
                 window.name += data[i]+';';
             }
         }
