@@ -28,8 +28,6 @@
     //STATUS_SPRITE0HIT: 6,
     //STATUS_VBLANK: 7,
 
-JSNES = {};
-
 nes = {
 
 //Properties
