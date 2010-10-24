@@ -8,9 +8,7 @@
         //Compile the ppu color palette[s]?
         //Merge the 4 tile rendering routines into one?
 
-    //Implement saving the battery ram as a cookie.
-        //Must split up the cookie, max size is 4kb.
-        //Use run-length compression?
+    //Fix saving the battery ram.
 
 //Notes
 
@@ -30,7 +28,7 @@
     //STATUS_SPRITE0HIT: 6,
     //STATUS_VBLANK: 7,
 
-JSNES = {PAPU:{}};
+JSNES = {};
 
 nes = {
 

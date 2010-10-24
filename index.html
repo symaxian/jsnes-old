@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
     <title>JSNES: A JavaScript NES emulator</title>
 
@@ -22,7 +20,7 @@
             fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps.toFixed(2)},200);
 
             nes.init();
-            nes.loadRom('roms/zelda.nes');
+            nes.loadRom('roms/lj65.nes');
             nes.start();
 
             console.log('Initiation time: '+(new Date().getTime()-initTime)+'ms');
@@ -37,7 +35,6 @@
 
     </script>
 </head>
-
 <body onload='init()'>
 <center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='fps'></div></center>
 </body>

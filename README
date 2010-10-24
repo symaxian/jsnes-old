@@ -1,2 +1,93 @@
 A JavaScript NES emulator.
-Currently in development.
+
+
+Currently unsupported and untouched in months, might be picked up later.
+Feel free to use however you like.
+
+
+Based off of Ben Firshman's jsNes, which is in turn based off of vNes.
+
+
+Source Files:
+
+	nes.js
+		Must be included first, defines the nes object.
+		The main nes object holding components and most editable settings.
+
+		Mostly functional.
+			Saving BatteryROM does not work and is disabled.
+		Features can be added.
+		Cannot be improved.
+
+	cpu.js
+		Adds the cpu(central processing unit) object to the nes.
+		Fully emulates the nes's cpu.
+
+		Fully functional.
+		Features cannot be added.
+		Cannot be improved.
+
+	ppu.js
+		Adds the ppu(picture proccessing unit) object to the nes.
+		Generates the frame, which is written to the canvas in the nes.screen object.
+
+		Fully functional, possibly buggy.
+		Features cannot be added.
+		Can probably be improved.
+
+	apu.js
+		Adds the apu(audio processing unit) object to the nes.
+		Generates sound samples, which are then fed into the dynamic audio object.
+		Depends on lib/dynamicaudio.js
+			Depends on lib/jquery-1.4.2.min.js
+			Depends on lib/dynamicaudio.swf
+
+		Fully funtional, possibly buggy.
+			Sound can seem "skippy".
+			Dynamic audio object does not always load properly(rare).
+		Features cannot be added.
+		Can probably be improved.
+
+	mappers.js
+		Adds the implemented mappers to the nes.
+		Needed for loading roms, mappers 0,1,2,and 4 are fully/partially implemented.
+
+		Mostly functional, latter mappers have bugs.
+		Features(the other mappers) can be added.
+		Cannot probably be improved.
+
+
+Sample Implementation:
+
+	<html>
+	<head>
+		<title>JSNES: A JavaScript NES emulator</title>
+		<script src="source/nes.js" type="text/javascript" charset="utf-8"></script>
+		<script src="source/cpu.js" type="text/javascript" charset="utf-8"></script>
+		<script src="source/apu.js" type="text/javascript" charset="utf-8"></script>
+		<script src="source/mappers.js" type="text/javascript" charset="utf-8"></script>
+		<script src="source/ppu.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/dynamicaudio.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" charset="utf-8">
+
+			init = function(){
+
+				fpsDiv = document.getElementById('fps');
+				fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps.toFixed(2)},200);
+
+				nes.init();
+				nes.loadRom('roms/lj65.nes');
+				nes.start();
+
+			}
+
+		</script>
+	</head>
+	<body onload='init()'>
+	<center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='fps'></div></center>
+	</body>
+	</html>
+
+
+For more information just consult the code, I'm unusually finicky about commenting quantity and quality.
