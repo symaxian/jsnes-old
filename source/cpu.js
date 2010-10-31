@@ -2,55 +2,147 @@
 //== Central Processing Unit ==
 //=============================
 
+/**
+ * @namespace The nes' central processing unit.
+ */
+
 nes.cpu = {
 
 //Properties
 
-    //Memory
+    /**
+     * The nes' memory.
+     * @type array
+     */
+
     mem:null,
 
-    //Registers
-    REG_ACC:null,
-    REG_X:null,
-    REG_Y:null,
+    /**
+     * The accumulator register.
+     * @type integer
+     */
 
-    //Stack Pointer
-    REG_SP:null,
+    REG_ACC:0,
 
-    //Program Counter
-    REG_PC:null,
+    /**
+     * The x register.
+     * @type integer
+     */
 
-    //Status Flags
-    F_SIGN:null,
-    F_OVERFLOW:null,
-    F_BRK:null,
-    F_DECIMAL:null,
-    F_INTERRUPT:null,
-    F_ZERO:null,
-    F_CARRY:null,
+    REG_X:0,
 
-    //Interrupt Info
-    interruptRequested:null,
-    interruptType:null,
+    /**
+     * The y register.
+     * @type integer
+     */
 
-    //Cycles To Halt
-    cyclesToHalt:null,
+    REG_Y:0,
 
-    //Operation Info
+    /**
+     * The stack pointer.
+     * @type integer
+     */
+
+    REG_SP:0,
+
+    /**
+     * The program counter.
+     * @type integer
+     */
+
+    REG_PC:0,
+
+    /**
+     * The sign status flag.
+     * @type integer
+     */
+
+    F_SIGN:0,
+
+    /**
+     * The overflow status flag.
+     * @type integer
+     */
+
+    F_OVERFLOW:0,
+
+    /**
+     * The break status flag.
+     * @type integer
+     */
+
+    F_BRK:0,
+
+    /**
+     * The decimal status flag.
+     * @type integer
+     */
+
+    F_DECIMAL:0,
+
+    /**
+     * The interrupt status flag.
+     * @type integer
+     */
+
+    F_INTERRUPT:0,
+
+    /**
+     * The zero status flag.
+     * @type integer
+     */
+
+    F_ZERO:0,
+
+    /**
+     * The carry status flag.
+     * @type integer
+     */
+
+    F_CARRY:0,
+
+    /**
+     * A flag indicating whether or not an interrupt has been requested.
+     * @type boolean
+     */
+
+    interruptRequested:false,
+
+    /**
+     * The type of interrupt requested, 0:normal ,1:non-maskable, 2:reset.
+     * @type integer
+     */
+
+    interruptType:0,
+
+    /**
+     * The number of cpu cycles to halt.
+     * @type integer
+     */
+
+    cyclesToHalt:0,
+
+    /**
+     * A lookup table holding detailed(if cyptic) information on the cpu operations available.
+     * @type array
+     */
+
     opInfo:[117506570,100796962,255,255,255,50462754,84017154,255,50397732,33686818,33620994,255,255,67306274,100860674,255,33685769,84020002,255,255,255,67241506,100795906,255,33620493,67307810,255,255,255,67307554,117639170,255,100860700,100796929,255,255,50462726,50462721,84017191,255,67174950,33686785,33621031,255,67306246,67306241,100860711,255,33685767,84019969,255,255,255,67241473,100795943,255,33620524,67307777,255,255,255,67307521,117639207,255,100729385,100796951,255,255,255,50462743,84017184,255,50397731,33686807,33621024,255,50529051,67306263,100860704,255,33685771,84019991,255,255,255,67241495,100795936,255,33620495,67307799,255,255,255,67307543,117639200,255,100729386,100796928,255,255,255,50462720,84017192,255,67174949,33686784,33621032,255,84085787,67306240,100860712,255,33685772,84019968,255,255,255,67241472,100795944,255,33620526,67307776,255,255,255,67307520,117639208,255,255,100796975,255,255,50462769,50462767,50462768,255,33620502,255,33620533,255,67306289,67306287,67306288,255,33685763,100797231,255,255,67241521,67241519,67241776,255,33620535,84085039,33620534,255,255,84084783,255,255,33686815,100796957,33686814,255,50462751,50462749,50462750,255,33620531,33686813,33620530,255,67306271,67306269,67306270,255,33685764,84019997,255,255,67241503,67241501,67241758,255,33620496,67307805,33620532,255,67307551,67307549,67307806,255,33686803,100796945,255,255,50462739,50462737,84017172,255,33620506,33686801,33620501,255,67306259,67306257,100860692,255,33685768,84019985,255,255,255,67241489,100795924,255,33620494,67307793,255,255,255,67307537,117639188,255,33686802,100796971,255,255,50462738,50462763,84017176,255,33620505,33686827,33620513,255,67306258,67306283,100860696,255,33685765,84020011,255,255,255,67241515,100795928,255,33620525,67307819,255,255,255,67307563,117639192,255],
 
 //Methods
 
+    /**
+     * Resets the memory and cpu state.
+     * @type void
+     */
+
     reset:function nes_cpu_reset(){
-
-        //Reset the memory.
+        //Clear the memory.
         this.mem = new Array(0x10000);
-
         //Set addresses up to 0x2000 to 0xFF.
         for(var i=0;i<0x2000;i++){
             this.mem[i] = 0xFF;
         }
-
         //Set some odd addresses to some odd values.
         for(var i=0;i<4;i++){
             this.mem[i*0x800+0x008] = 0xF7;
@@ -58,24 +150,19 @@ nes.cpu = {
             this.mem[i*0x800+0x00A] = 0xDF;
             this.mem[i*0x800+0x00F] = 0xBF;
         }
-
         //Set all other addresses to 0.
         for(var i=0x2001;i<0x10000;i++){
             this.mem[i] = 0;
         }
-
         //Reset the CPU registers.
         this.REG_ACC = 0;
         this.REG_X = 0;
         this.REG_Y = 0;
-
         //Reset the stack pointer.
         this.REG_SP = 0x01FF;
-
         //Reset the program counter.
         this.REG_PC = 0x7FFF;
-
-        //Set the CPU flags.
+        //Set the CPU status flags.
         this.F_SIGN = 0;
         this.F_OVERFLOW = 0;
         this.F_BRK = 1;
@@ -83,71 +170,84 @@ nes.cpu = {
         this.F_INTERRUPT = 1;
         this.F_ZERO = 1;
         this.F_CARRY = 0;
-
         //Reset the interrupt flags.
         this.interruptRequested = false;
-        this.interruptType = null;
-
+        this.interruptType = 0;
         //Reset the cycles to halt number to 0.
         this.cyclesToHalt = 0;
-
     },
 
-    requestInterrupt:function nes_cpu_requestInterrupt(type){
+    /**
+     * Sets the specified interrupt type as having been requested.
+     * @type void
+     * @param {intger} type
+     */
 
+    requestInterrupt:function nes_cpu_requestInterrupt(type){
         //Check if an interrupt is not already requested and the new interrupt is normal.
         if(!this.interruptRequested && type !== 0){
-
             //Set the request.
             this.interruptRequested = true;
             this.interruptType = type;
-
         }
-
     },
+
+    /**
+     * Sets the specified value in memory at the stack pointer.
+     * @type void
+     * @param {integer} value
+     */
 
     push:function nes_cpu_push(value){
-
         //Write the value to the memory at the stack pointer.
         nes.mmc.write(this.REG_SP,value);
-
         //???
         this.REG_SP = 0x0100|((this.REG_SP-1)&0xFF);
-
     },
+
+    /**
+     * Returns the value in memory at the stack pointer.
+     * @type integer
+     */
 
     pull:function nes_cpu_pull(){
-
         //???
         this.REG_SP = 0x0100|((this.REG_SP+1)&0xFF);
-
         //Return the address at the stack pointer.
         return nes.mmc.load(this.REG_SP);
-
     },
+
+    /**
+     * Sets the cpu state(made up of the 7 flags) in memory at the stack pointer.
+     * @type void
+     */
 
     pushStatus:function nes_cpu_pushStatus(){
-
         //Push the cpu status onto the stack.
         this.push((this.F_SIGN<<7)|(this.F_OVERFLOW<<6)|32|(this.F_BRK<<4)|(this.F_DECIMAL<<3)|(this.F_INTERRUPT<<2)|((this.F_ZERO === 0?1:0)<<1)|this.F_CARRY);
-
     },
+
+    /**
+     * Adds the specified number of cycles to be halted.
+     * @type void
+     * @param {integer} cylcles
+     */
 
     haltCycles:function nes_cpu_haltCycles(cycles){
-
         //Add the specified number of cycles to halt.
         this.cyclesToHalt += cycles;
-
     },
 
-    emulate:function nes_cpu_emulate(){
+    /**
+     * Emulates a single cpu instruction, returning the number of cycles it required.
+     * @type integer
+     */
 
+    emulate:function nes_cpu_emulate(){
         //Check if an interrupt was requested.
         if(this.interruptRequested){
-
             //Switch between the interrupt types.
             switch(this.interruptType){
-
                 //Normal Interrupt
                 case 0:{
                     if(this.F_INTERRUPT === 0){
@@ -164,7 +264,6 @@ nes.cpu = {
                     }
                     break;
                 }
-
                 //Non-Maskable Interrupt
                 case 1:{
                     //Check whether vBlank interrupts are enabled.
@@ -180,43 +279,33 @@ nes.cpu = {
                     }
                     break;
                 }
-
                 //Reset Interrupt
                 case 2:{
                     //???
                     this.REG_PC = (this.mem[0xFFFC]|(this.mem[0xFFFD]<<8))-1;
                     break;
                 }
-
             }
-
             //Reset the interrupt requested flag.
             this.interruptRequested = false;
-
         }
-
         //???
         var opinf = this.opInfo[this.mem[this.REG_PC+1]];
         var cycleCount = opinf>>24;
         var cycleAdd = 0;
-
         //Get the address mode.
         var addrMode = (opinf>>8)&0xFF;
-
         //Increment PC by number of op bytes.
         var opaddr = this.REG_PC;
         this.REG_PC += (opinf>>16)&0xFF;
-
         //Switch between the address modes.
         switch(addrMode){
-
             //Zero Page Mode
             //Use the address given after the opcode, but without high byte.
             case 0:{
                 var addr = this.mem[opaddr+2];
                 break;
             }
-
             //Relative Mode
             //???
             case 1:{
@@ -229,48 +318,41 @@ nes.cpu = {
                 }
                 break;
             }
-
             //Ignore
             //Address is implied in instruction.
             case 2:{
                 break;
             }
-
             //Absolute Mode
             //Use the two bytes following the operation code as the address.
             case 3:{
                 var addr = nes.mmc.load16bit(opaddr+2);
                 break;
             }
-
             //Accumulator Mode
             //The address is in the accumulator register.
             case 4:{
                 var addr = this.REG_ACC;
                 break;
             }
-
             //Imediate Mode
             //The address is given after the operation code.
             case 5:{
                 var addr = this.REG_PC;
                 break;
             }
-
             //Zero Page Indexed Mode X
             //Use the address after the operation code plus the x register.
             case 6:{
                 var addr = (this.mem[opaddr+2]+this.REG_X)&0xFF;
                 break;
             }
-
             //Zero Page Indexed Mode Y
             //Use the address after the operation code plus the y register.
             case 7:{
                 var addr = (this.mem[opaddr+2]+this.REG_Y)&0xFF;
                 break;
             }
-
             //Absolute Indexed Mode X
             //Same as zero page indexed x without the high byte.
             case 8:{
@@ -281,7 +363,6 @@ nes.cpu = {
                 addr += this.REG_X;
                 break;
             }
-
             //Absolute Indexed Mode Y
             //Same as zero page indexed y without the high byte.
             case 9:{
@@ -292,7 +373,6 @@ nes.cpu = {
                 addr += this.REG_Y;
                 break;
             }
-
             //Pre-Indexed Indirect Mode
             //The address is in the 16-bit address starting at the given location plus the x register.
             case 10:{
@@ -303,7 +383,6 @@ nes.cpu = {
                 addr = nes.mmc.load16bit((addr+this.REG_X)&0xFF);
                 break;
             }
-
             //Post-Indexed Indirect Mode
             case 11:{
                 //The address is in the 16-bit address starting at the given location plus the y register.
@@ -314,7 +393,6 @@ nes.cpu = {
                 addr += this.REG_Y;
                 break;
             }
-
             //Indirect Absolute Mode
             //Use the 16-bit address specified at the given location.
             case 12:{
@@ -322,12 +400,9 @@ nes.cpu = {
                 addr = nes.mmc.load(addr)+(nes.mmc.load((addr&0xFF00)|(((addr&0xFF)+1)&0xFF))<<8);
                 break;
             }
-
         }
-
         //Wrap around for addresses above 0xFFFF.
         addr &= 0xFFFF;
-
         //Switch between the operations.
         switch(opinf&0xFF){
 
@@ -914,10 +989,8 @@ nes.cpu = {
             }
 
         }
-
         //Return the number of cycles.
         return cycleCount;
-
     },
 
 };
