@@ -70,6 +70,13 @@ nes = {
     mmc:null,
 
     /**
+     * The rom data.
+     * @type object
+     */
+
+    rom:null,
+
+    /**
      * The source of the current rom.
      * @type string
      */
@@ -341,7 +348,6 @@ nes = {
             }
             //Reset the nes.
             this.reset();
-            alert(this.rom.mapperType);
             //Check the mapper needed.
             if(typeof this.mappers['mmc'+this.rom.mapperType] === 'object'){
                 //Save the rom's source.
@@ -529,16 +535,37 @@ nes = {
         }
     },
 
+    /**
+     * Returns a shallow copy of the specified object, used with mapper inheritance.
+     * @type object
+     * @param {object} object
+     */
+
     copyObject:function nes_copyObject(object){
         //Create a new object.
         var obj = {};
         //Loop through the items in the object.
-        for(item in object){
+        for(var item in object){
             //Copy the item.
             obj[item] = object[item];
         }
         //Return the new object.
         return obj;
+    },
+
+    /**
+     * Copies the members of the first object into the second one, used with mapper inheritance.
+     * @type void
+     * @param {object} destObject
+     * @param {object} srcObject
+     */
+
+    applyObject:function nes_applyObject(destObject,srcObject){
+        //Loop through the items in the source object.
+        for(var item in srcObject){
+            //Set it into the destination object.
+            destObject[item] = srcObject[item];
+        }
     },
 
     //============

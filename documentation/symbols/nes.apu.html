@@ -4,7 +4,7 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<meta name="generator" content="JsDoc Toolkit" />
 		
-		<title>JsDoc Reference - nes.mappers.mmc0</title>
+		<title>JsDoc Reference - nes.apu</title>
 
 		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;" />
 		<meta name="mobileoptimized" content="0" />
@@ -74,11 +74,11 @@
 			<div class="innerContent">
 				<h1 class="classTitle">
 					
-					Namespace <span>nes<span class='break'> </span>.mappers<span class='break'> </span>.mmc0</span>
+					Namespace <span>nes<span class='break'> </span>.apu</span>
 				</h1>
 
 				<p class="description summary">
-					Mapper 0, Direct Access
+					The audio processing unit for the nes.
 				</p>
 
 				
@@ -87,7 +87,7 @@
 						
 						
 						
-							<li>Defined in: <span class="fixedFont"><a href="../symbols/src/source_mappers.js.html">mappers.js</a></span></li>
+							<li>Defined in: <span class="fixedFont"><a href="../symbols/src/source_apu.js.html">apu.js</a></span></li>
 						
 
 						
@@ -96,7 +96,7 @@
 
 				
 					<div class="props">
-						<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class nes.mappers.mmc0.">
+						<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class nes.apu.">
 							<caption>Namespace Summary</caption>
 							<thead>
 								<tr>
@@ -109,7 +109,7 @@
 									<td class="attributes">&nbsp;</td>
 									<td class="nameDescription" >
 										<div class="fixedFont">
-											<b><a href="../symbols/nes.mappers.mmc0.html#constructor">nes.mappers.mmc0</a></b>
+											<b><a href="../symbols/nes.apu.html#constructor">nes.apu</a></b>
 										</div>
 										<div class="description"></div>
 									</td>
@@ -120,58 +120,6 @@
 				
 
 				
-					
-					
-						<div class="props">
-							<table class="summaryTable" cellspacing="0" summary="A summary of the fields documented in the class nes.mappers.mmc0.">
-								<caption>Field Summary</caption>
-								
-								<thead>
-									<tr>
-										<th scope="col">Field Attributes</th>
-										<th scope="col">Field Name and Description</th>
-									</tr>
-								</thead>
-								
-								<tbody>
-									
-										<tr>
-											<td class="attributes">&lt;static&gt; &nbsp;</td>
-											<td class="nameDescription">
-												<div class="fixedFont">
-												nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.joy1Strobe">joy1Strobe</a></b>
-												</div>
-												<div class="description">The strobe index for the first controller.</div>
-											</td>
-										</tr>
-									
-										<tr>
-											<td class="attributes">&lt;static&gt; &nbsp;</td>
-											<td class="nameDescription">
-												<div class="fixedFont">
-												nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.joy2Strobe">joy2Strobe</a></b>
-												</div>
-												<div class="description">The strobe index for the second controller.</div>
-											</td>
-										</tr>
-									
-										<tr>
-											<td class="attributes">&lt;static&gt; &nbsp;</td>
-											<td class="nameDescription">
-												<div class="fixedFont">
-												nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.joypadLastWrite">joypadLastWrite</a></b>
-												</div>
-												<div class="description">A number used to remember the previous write to the joypad(controller) register.</div>
-											</td>
-										</tr>
-									
-								</tbody>
-							</table>
-						</div>
-					
-					
-					
-				
 
 	<!--
 	#### METHODS SUMMARY
@@ -180,7 +128,7 @@
 					
 					
 						<div class="props">
-							<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class nes.mappers.mmc0.">
+							<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class nes.apu.">
 								<caption>Method Summary</caption>
 								
 								<thead>
@@ -195,126 +143,135 @@
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load">load</a></b>(address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.clockFrameCounter">clockFrameCounter</a></b>(nCycles)
 												</div>
-												<div class="description">Returns the value mapped to the specified address.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load16bit">load16bit</a></b>(address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.frameCounterTick">frameCounterTick</a></b>()
 												</div>
-												<div class="description">Returns the combined value from the specified address and the one after it.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load16kRomBank">load16kRomBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.getChannelLengthStatus">getChannelLengthStatus</a></b>(channel)
 												</div>
-												<div class="description">Loads the specified 16 kilobyte rom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load1kVromBank">load1kVromBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.getDmcFrequency">getDmcFrequency</a></b>(value)
 												</div>
-												<div class="description">Loads the specified 1 kilobyte vrom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load2kVromBank">load2kVromBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.getLengthMax">getLengthMax</a></b>(value)
 												</div>
-												<div class="description">Loads the specified 2 kilobyte vrom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load32kRomBank">load32kRomBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.getNoiseWaveLength">getNoiseWaveLength</a></b>(value)
 												</div>
-												<div class="description">Loads the specified 32 kilobyte rom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load4kVromBank">load4kVromBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.initDACtables">initDACtables</a></b>()
 												</div>
-												<div class="description">Loads the specified 4 kilobyte vrom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load8kRomBank">load8kRomBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.readReg">readReg</a></b>()
 												</div>
-												<div class="description">Loads the specified 8 kilobyte rom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.load8kVromBank">load8kVromBank</a></b>(bank, address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.reset">reset</a></b>()
 												</div>
-												<div class="description">Loads the specified 8 kilobyte vrom bank into the specified address in memory.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.loadCHRROM">loadCHRROM</a></b>()
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.sample">sample</a></b>()
 												</div>
-												<div class="description">Loads the character rom banks from the rom(nes.rom).</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.loadROM">loadROM</a></b>()
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.setMasterVolume">setMasterVolume</a></b>(value)
 												</div>
-												<div class="description">Loads the data banks from the rom(nes.rom).</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.regLoad">regLoad</a></b>(address)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.squareChannel">squareChannel</a></b>(square1)
 												</div>
-												<div class="description">Returns the value at the specified register address.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.reset">reset</a></b>()
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.updateChannelEnable">updateChannelEnable</a></b>(value)
 												</div>
-												<div class="description">Resets the mapper.</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
 										<tr>
 											<td class="attributes">&lt;static&gt; &nbsp;</td>
 											<td class="nameDescription">
-												<div class="fixedFont">nes.mappers.mmc0.<b><a href="../symbols/nes.mappers.mmc0.html#.write">write</a></b>(address, value)
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.updateStereoPos">updateStereoPos</a></b>()
 												</div>
-												<div class="description">Writes the specified value to the specified address.</div>
+												<div class="description"></div>
+											</td>
+										</tr>
+									
+										<tr>
+											<td class="attributes">&lt;static&gt; &nbsp;</td>
+											<td class="nameDescription">
+												<div class="fixedFont">nes.apu.<b><a href="../symbols/nes.apu.html#.writeReg">writeReg</a></b>(address, value)
+												</div>
+												<div class="description"></div>
 											</td>
 										</tr>
 									
@@ -344,7 +301,7 @@
 							</div>
 							
 							<div class="fixedFont">
-								<b>nes.mappers.mmc0</b>
+								<b>nes.apu</b>
 							</div>
 							
 							<div class="description">
@@ -365,92 +322,6 @@
 	#### FIELD DETAILS
 	-->
 				
-					<div class="details props">
-						<div class="innerProps">
-
-							<div class="sectionTitle">
-								Field Detail
-							</div>
-							
-							
-								<a name=".joy1Strobe"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{integer}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>joy1Strobe</b>							
-								</div>
-								
-								<div class="description">
-									The strobe index for the first controller.
-									
-									
-									
-								</div>
-								
-								
-
-								
-								
-								<div class="hr"></div>
-							
-								<a name=".joy2Strobe"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{integer}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>joy2Strobe</b>							
-								</div>
-								
-								<div class="description">
-									The strobe index for the second controller.
-									
-									
-									
-								</div>
-								
-								
-
-								
-								
-								<div class="hr"></div>
-							
-								<a name=".joypadLastWrite"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{integer}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>joypadLastWrite</b>							
-								</div>
-								
-								<div class="description">
-									A number used to remember the previous write to the joypad(controller) register.
-									
-									
-									
-								</div>
-								
-								
-
-								
-								
-								
-							
-						</div>
-					</div>
-				
 
 	<!--
 	#### METHOD DETAILS
@@ -463,20 +334,20 @@
 							</div>
 							
 							
-								<a name=".load"></a>
+								<a name=".clockFrameCounter"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{integer}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>load</b>(address)
+									
+									<span class="light">nes.apu.</span><b>clockFrameCounter</b>(nCycles)
 								</div>
 								
 								<div class="description">
-									Returns the value mapped to the specified address.
+									
 									
 									
 									
@@ -490,7 +361,7 @@
 										<dt class="heading">Parameters:</dt>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
+												<b>nCycles</b>
 												
 											</dt>
 											<dd></dd>
@@ -502,20 +373,48 @@
 
 								<div class="hr"></div>
 							
-								<a name=".load16bit"></a>
+								<a name=".frameCounterTick"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{integer}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>load16bit</b>(address)
+									
+									<span class="light">nes.apu.</span><b>frameCounterTick</b>()
 								</div>
 								
 								<div class="description">
-									Returns the combined value from the specified address and the one after it.
+									
+									
+									
+									
+									
+								</div>
+								
+								
+								
+								
+								
+								
+
+								<div class="hr"></div>
+							
+								<a name=".getChannelLengthStatus"></a>
+								
+								<div class="fixedFont heading">
+									<span class='lighter'>
+									&lt;static&gt; 
+									</span>
+									
+									
+									
+									<span class="light">nes.apu.</span><b>getChannelLengthStatus</b>(channel)
+								</div>
+								
+								<div class="description">
+									
 									
 									
 									
@@ -529,7 +428,7 @@
 										<dt class="heading">Parameters:</dt>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
+												<b>channel</b>
 												
 											</dt>
 											<dd></dd>
@@ -541,20 +440,20 @@
 
 								<div class="hr"></div>
 							
-								<a name=".load16kRomBank"></a>
+								<a name=".getDmcFrequency"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>load16kRomBank</b>(bank, address)
+									
+									<span class="light">nes.apu.</span><b>getDmcFrequency</b>(value)
 								</div>
 								
 								<div class="description">
-									Loads the specified 16 kilobyte rom bank into the specified address in memory.
+									
 									
 									
 									
@@ -568,13 +467,7 @@
 										<dt class="heading">Parameters:</dt>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
+												<b>value</b>
 												
 											</dt>
 											<dd></dd>
@@ -586,20 +479,20 @@
 
 								<div class="hr"></div>
 							
-								<a name=".load1kVromBank"></a>
+								<a name=".getLengthMax"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>load1kVromBank</b>(bank, address)
+									
+									<span class="light">nes.apu.</span><b>getLengthMax</b>(value)
 								</div>
 								
 								<div class="description">
-									Loads the specified 1 kilobyte vrom bank into the specified address in memory.
+									
 									
 									
 									
@@ -613,13 +506,7 @@
 										<dt class="heading">Parameters:</dt>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
+												<b>value</b>
 												
 											</dt>
 											<dd></dd>
@@ -631,20 +518,20 @@
 
 								<div class="hr"></div>
 							
-								<a name=".load2kVromBank"></a>
+								<a name=".getNoiseWaveLength"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>load2kVromBank</b>(bank, address)
+									
+									<span class="light">nes.apu.</span><b>getNoiseWaveLength</b>(value)
 								</div>
 								
 								<div class="description">
-									Loads the specified 2 kilobyte vrom bank into the specified address in memory.
+									
 									
 									
 									
@@ -658,13 +545,7 @@
 										<dt class="heading">Parameters:</dt>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
+												<b>value</b>
 												
 											</dt>
 											<dd></dd>
@@ -676,200 +557,20 @@
 
 								<div class="hr"></div>
 							
-								<a name=".load32kRomBank"></a>
+								<a name=".initDACtables"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>load32kRomBank</b>(bank, address)
+									
+									<span class="light">nes.apu.</span><b>initDACtables</b>()
 								</div>
 								
 								<div class="description">
-									Loads the specified 32 kilobyte rom bank into the specified address in memory.
 									
-									
-									
-									
-								</div>
-								
-								
-								
-								
-									<dl class="detailList params">
-										<dt class="heading">Parameters:</dt>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
-												
-											</dt>
-											<dd></dd>
-										
-									</dl>
-								
-								
-								
-
-								<div class="hr"></div>
-							
-								<a name=".load4kVromBank"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{void}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>load4kVromBank</b>(bank, address)
-								</div>
-								
-								<div class="description">
-									Loads the specified 4 kilobyte vrom bank into the specified address in memory.
-									
-									
-									
-									
-								</div>
-								
-								
-								
-								
-									<dl class="detailList params">
-										<dt class="heading">Parameters:</dt>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
-												
-											</dt>
-											<dd></dd>
-										
-									</dl>
-								
-								
-								
-
-								<div class="hr"></div>
-							
-								<a name=".load8kRomBank"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{void}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>load8kRomBank</b>(bank, address)
-								</div>
-								
-								<div class="description">
-									Loads the specified 8 kilobyte rom bank into the specified address in memory.
-									
-									
-									
-									
-								</div>
-								
-								
-								
-								
-									<dl class="detailList params">
-										<dt class="heading">Parameters:</dt>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
-												
-											</dt>
-											<dd></dd>
-										
-									</dl>
-								
-								
-								
-
-								<div class="hr"></div>
-							
-								<a name=".load8kVromBank"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{void}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>load8kVromBank</b>(bank, address)
-								</div>
-								
-								<div class="description">
-									Loads the specified 8 kilobyte vrom bank into the specified address in memory.
-									
-									
-									
-									
-								</div>
-								
-								
-								
-								
-									<dl class="detailList params">
-										<dt class="heading">Parameters:</dt>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>bank</b>
-												
-											</dt>
-											<dd></dd>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
-												
-											</dt>
-											<dd></dd>
-										
-									</dl>
-								
-								
-								
-
-								<div class="hr"></div>
-							
-								<a name=".loadCHRROM"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{void}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>loadCHRROM</b>()
-								</div>
-								
-								<div class="description">
-									Loads the character rom banks from the rom(nes.rom).
 									
 									
 									
@@ -884,48 +585,20 @@
 
 								<div class="hr"></div>
 							
-								<a name=".loadROM"></a>
+								<a name=".readReg"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>loadROM</b>()
+									
+									<span class="light">nes.apu.</span><b>readReg</b>()
 								</div>
 								
 								<div class="description">
-									Loads the data banks from the rom(nes.rom).
 									
-									
-									
-									
-								</div>
-								
-								
-								
-								
-								
-								
-
-								<div class="hr"></div>
-							
-								<a name=".regLoad"></a>
-								
-								<div class="fixedFont heading">
-									<span class='lighter'>
-									&lt;static&gt; 
-									</span>
-									
-									<span class="light">{integer}</span>
-									
-									<span class="light">nes.mappers.mmc0.</span><b>regLoad</b>(address)
-								</div>
-								
-								<div class="description">
-									Returns the value at the specified register address.
 									
 									
 									
@@ -934,17 +607,6 @@
 								
 								
 								
-								
-									<dl class="detailList params">
-										<dt class="heading">Parameters:</dt>
-										
-											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
-												
-											</dt>
-											<dd></dd>
-										
-									</dl>
 								
 								
 								
@@ -958,13 +620,13 @@
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>reset</b>()
+									
+									<span class="light">nes.apu.</span><b>reset</b>()
 								</div>
 								
 								<div class="description">
-									Resets the mapper.
+									
 									
 									
 									
@@ -979,20 +641,48 @@
 
 								<div class="hr"></div>
 							
-								<a name=".write"></a>
+								<a name=".sample"></a>
 								
 								<div class="fixedFont heading">
 									<span class='lighter'>
 									&lt;static&gt; 
 									</span>
 									
-									<span class="light">{void}</span>
 									
-									<span class="light">nes.mappers.mmc0.</span><b>write</b>(address, value)
+									
+									<span class="light">nes.apu.</span><b>sample</b>()
 								</div>
 								
 								<div class="description">
-									Writes the specified value to the specified address.
+									
+									
+									
+									
+									
+								</div>
+								
+								
+								
+								
+								
+								
+
+								<div class="hr"></div>
+							
+								<a name=".setMasterVolume"></a>
+								
+								<div class="fixedFont heading">
+									<span class='lighter'>
+									&lt;static&gt; 
+									</span>
+									
+									
+									
+									<span class="light">nes.apu.</span><b>setMasterVolume</b>(value)
+								</div>
+								
+								<div class="description">
+									
 									
 									
 									
@@ -1006,13 +696,158 @@
 										<dt class="heading">Parameters:</dt>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>address</b>
+												<b>value</b>
+												
+											</dt>
+											<dd></dd>
+										
+									</dl>
+								
+								
+								
+
+								<div class="hr"></div>
+							
+								<a name=".squareChannel"></a>
+								
+								<div class="fixedFont heading">
+									<span class='lighter'>
+									&lt;static&gt; 
+									</span>
+									
+									
+									
+									<span class="light">nes.apu.</span><b>squareChannel</b>(square1)
+								</div>
+								
+								<div class="description">
+									
+									
+									
+									
+									
+								</div>
+								
+								
+								
+								
+									<dl class="detailList params">
+										<dt class="heading">Parameters:</dt>
+										
+											<dt>
+												<b>square1</b>
+												
+											</dt>
+											<dd></dd>
+										
+									</dl>
+								
+								
+								
+
+								<div class="hr"></div>
+							
+								<a name=".updateChannelEnable"></a>
+								
+								<div class="fixedFont heading">
+									<span class='lighter'>
+									&lt;static&gt; 
+									</span>
+									
+									
+									
+									<span class="light">nes.apu.</span><b>updateChannelEnable</b>(value)
+								</div>
+								
+								<div class="description">
+									
+									
+									
+									
+									
+								</div>
+								
+								
+								
+								
+									<dl class="detailList params">
+										<dt class="heading">Parameters:</dt>
+										
+											<dt>
+												<b>value</b>
+												
+											</dt>
+											<dd></dd>
+										
+									</dl>
+								
+								
+								
+
+								<div class="hr"></div>
+							
+								<a name=".updateStereoPos"></a>
+								
+								<div class="fixedFont heading">
+									<span class='lighter'>
+									&lt;static&gt; 
+									</span>
+									
+									
+									
+									<span class="light">nes.apu.</span><b>updateStereoPos</b>()
+								</div>
+								
+								<div class="description">
+									
+									
+									
+									
+									
+								</div>
+								
+								
+								
+								
+								
+								
+
+								<div class="hr"></div>
+							
+								<a name=".writeReg"></a>
+								
+								<div class="fixedFont heading">
+									<span class='lighter'>
+									&lt;static&gt; 
+									</span>
+									
+									
+									
+									<span class="light">nes.apu.</span><b>writeReg</b>(address, value)
+								</div>
+								
+								<div class="description">
+									
+									
+									
+									
+									
+								</div>
+								
+								
+								
+								
+									<dl class="detailList params">
+										<dt class="heading">Parameters:</dt>
+										
+											<dt>
+												<b>address</b>
 												
 											</dt>
 											<dd></dd>
 										
 											<dt>
-												<span class="light fixedFont">{integer}</span> <b>value</b>
+												<b>value</b>
 												
 											</dt>
 											<dd></dd>

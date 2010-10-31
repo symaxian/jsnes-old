@@ -2,6 +2,10 @@
 //== Audio Processing Unit ==
 //===========================
 
+/**
+ * @namespace The audio processing unit for the nes.
+ */
+
 nes.apu = {
 
 //Properties

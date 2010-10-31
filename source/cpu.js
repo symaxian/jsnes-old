@@ -3,7 +3,7 @@
 //=============================
 
 /**
- * @namespace The nes' central processing unit.
+ * @namespace The central processing unit for the nes.
  */
 
 nes.cpu = {

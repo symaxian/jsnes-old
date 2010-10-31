@@ -2,25 +2,65 @@
 //== Picture Processing Unit ==
 //=============================
 
+/**
+ * @namespace The picture processing unit for the nes.
+ */
+
 nes.ppu = {
 
 //Properties
 
-    //VRAM
+    //Memory
+
+    /**
+     * The video ram memory.
+     * @type array
+     */
+
     vramMem:null,
 
-    //SpriteRAM
+    /**
+     * The sprite ram memory.
+     * @type array
+     */
+
     spriteMem:null,
 
-    //VRAM I/O
-    vramAddress:null,
-    vramTmpAddress:null,
-    vramBufferedReadValue:null,
+    //Input/Output
 
-    //VRAM/Scroll High/Low Byte latch
+    /**
+     * A flag indicating whether this is the first or second vram write.
+     * @type boolean
+     */
+
     firstWrite:null,
 
-    //SpriteRAM I/O
+    /**
+     * The currently indexed video ram element.
+     * @type integer
+     */
+
+    vramAddress:null,
+
+    /**
+     * Unknown
+     * @type integer
+     */
+
+    vramTmpAddress:null,
+
+    /**
+     * Unknown
+     * @type integer
+     */
+
+    vramBufferedReadValue:null,
+
+    /**
+     * The currently indexed sprite memory element.
+     * @type integer
+     */
+
     sramAddress:null,
 
     //Control Register
@@ -108,7 +148,7 @@ nes.ppu = {
 
     reset:function ppu_reset(){
 
-        //Reset the vram.
+        //Reset the video ram.
         this.vramMem = new Array(0x8000);
         for(var i=0;i<this.vramMem.length;i++){
             this.vramMem[i] = 0;
