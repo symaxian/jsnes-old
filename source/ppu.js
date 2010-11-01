@@ -64,22 +64,153 @@ nes.ppu = {
     sramAddress:null,
 
     //Control Register
-    f_nmiOnVblank:null,
-    f_spriteSize:null,
-    f_bgPatternTable:null,
-    f_spPatternTable:null,
-    f_addrInc:null,
-    f_nTblAddress:null,
+
+    /**
+     * Non-Maskable Interrupt on vertical blank flag.
+     * 0 - Disabled
+     * 1 - Enabled
+     * @type integer
+     */
+
+    f_nmiOnVblank:0,
+
+    /**
+     * Sprite size flag.
+     * <br>
+     * 0 - 8x8
+     * <br>
+     * 1 - 8x16
+     * @type integer
+     */
+
+    f_spriteSize:0,
+
+    /**
+     * Background pattern table address.
+     * <br>
+     * 0 - 0x0000
+     * <br>
+     * 1 - 0x1000
+     * @type integer
+     */
+
+    f_bgPatternTable:0,
+
+    /**
+     * Sprite pattern table address.
+     * <br>
+     * 0 - 0x0000
+     * <br>
+     * 1 - 0x1000
+     * @type integer
+     */
+
+    f_spPatternTable:0,
+
+    /**
+     * PPU address increment flag.
+     * <br>
+     * 0 - 1
+     * <br>
+     * 1 - 32
+     * @type integer
+     */
+
+    f_addrInc:0,
+
+    /**
+     * Name table address flag.
+     * <br>
+     * 0 - 0x2000
+     * <br>
+     * 1 - 0x2400
+     * <br>
+     * 2 - 0x2800
+     * <br>
+     * 3 - 0x2C00
+     * @type integer
+     */
+
+    f_nTblAddress:0,
 
     //Masking Register
-    f_color:null,
-    f_spVisibility:null,
-    f_bgVisibility:null,
-    f_spClipping:null,
-    f_bgClipping:null,
-    f_dispType:null,
+
+    /**
+     * Color emphasis flag, also determines bg color in monochrome mode.
+     * <br>
+     * 0 - black
+     * <br>
+     * 1 - blue
+     * <br>
+     * 2 - green
+     * <br>
+     * 4 - red
+     * @type integer
+     */
+
+    f_color:0,
+
+    /**
+     * Sprite visibility flag.
+     * <br>
+     * 0 - Sprites are hidden
+     * <br>
+     * 1 - Sprites are visible
+     * @type integer
+     */
+
+    f_spVisibility:0,
+
+    /**
+     * Background visibility flag.
+     * <br>
+     * 0 - Background is hidden
+     * <br>
+     * 1 - Background is visible
+     * @type integer
+     */
+
+    f_bgVisibility:0,
+
+    /**
+     * Sprite clipping flag.
+     * <br>
+     * 0 - Sprites are clipped from left 8 pixels
+     * <br>
+     * 1 - No Clipping
+     * <br>
+     * Poorly implemented, clips background as well.
+     * @type integer
+     */
+
+    f_spClipping:0,
+
+    /**
+     * Background clipping flag.
+     * <br>
+     * 0 - Background is clipped from left 8 pixels
+     * <br>
+     * 1 - No Clipping
+     * <br>
+     * Poorly implemented, clips sprites as well.
+     * @type integer
+     */
+
+    f_bgClipping:0,
+
+    /**
+     * Display type flag.
+     * <br>
+     * 0 - Color
+     * <br>
+     * 1 - Monochrome
+     * @type integer
+     */
+
+    f_dispType:0,
 
     //Counters
+
     cntFV:null,
     cntVT:null,
     cntHT:null,
@@ -87,6 +218,7 @@ nes.ppu = {
     cntH:null,
 
     //Registers
+
     regFV:null,
     regV:null,
     regH:null,
@@ -96,6 +228,7 @@ nes.ppu = {
     regS:null,
 
     //Rendering Variables
+
     attrib:null,
     buffer:null,
     bgbuffer:null,
@@ -103,17 +236,18 @@ nes.ppu = {
     scantile:null,
 
     //Misc Rendering Variables
+
     scanline:null,
     lastRenderedScanline:null,
     curX:null,
 
     mapperIrqCounter:null,
     requestEndFrame:null,
-    dummyCycleToggle:null,
     nmiCounter:null,
     validTileData:null,
 
     //Sprite Data
+
     sprX:null,
     sprY:null,
     sprTile:null,
@@ -123,25 +257,31 @@ nes.ppu = {
     bgPriority:null,
 
     //Sprite 0 Hit Flags
+
     hitSpr0:null,
     spr0HitX:null,
     spr0HitY:null,
 
     //Buffered Color Palettes
+
     sprPalette:null,
     imgPalette:null,
 
     //Pattern Table Tile Buffers
+
     ptTile:null,
 
     //Nametable Buffers
+
     ntable1:null,
     nameTable:null,
 
     //VRAM Mirror Table
+
     vramMirrorTable:null,
 
     //Rendering Options
+
     clipToTvSize:true,
 
 //Methods
@@ -212,7 +352,6 @@ nes.ppu = {
 
         this.mapperIrqCounter = 0;
         this.requestEndFrame = false;
-        this.dummyCycleToggle = false;
         this.validTileData = false;
         this.nmiCounter = 0;
 
@@ -489,16 +628,6 @@ nes.ppu = {
             else if(this.f_spVisibility === 1){
                 //Clock mapper IRQ counter.
                 nes.mmc.clockIrqCounter();
-            }
-        }
-
-        //Else check if its the dummy scanline.
-        else if(this.scanline === 19){
-            //May be variable length.
-            if(this.dummyCycleToggle){
-                //Remove dead cycle at end of scanline, for next scanline.
-                this.curX = 1;
-                this.dummyCycleToggle = false;
             }
         }
 
