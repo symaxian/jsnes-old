@@ -224,12 +224,13 @@ nes = {
                         break FRAMELOOP;
                     }
                 }
-                //Increment the horizontal pixel counter.
+                //Increment the horizontal pixel counter for every cycle.
                 this.ppu.curX++;
-                //Check if 341 pixels have been drawn, even though the scanlines are only 256 pixels wide.
+                //Check if 341 pixels have been accounted for, even though the scanlines are only 256 pixels wide.
                 if(this.ppu.curX === 341){
-                    //If so reset the horizontal pixel counter to 0 and have the ppu end the scanline.
+                    //Reset the horizontal pixel counter.
                     this.ppu.curX = 0;
+                    //Have the ppu end the scanline.
                     this.ppu.endScanline();
                 }
             }
