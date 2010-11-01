@@ -218,7 +218,7 @@ nes = {
                     if(this.ppu.nmiCounter === 0){
                         //Reset the end of frame flag.
                         this.ppu.requestEndFrame = false;
-                        //Start the vBlank period.
+                        //Draw the frame and start the vBlank period.
                         this.ppu.endFrame();
                         //Break the frame loop.
                         break FRAMELOOP;

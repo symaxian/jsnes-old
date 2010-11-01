@@ -54,6 +54,8 @@ nes.cpu = {
 
     /**
      * The sign status flag.
+     * <br>
+     * Kept in the cpu status byte as the 8th bit.
      * @type integer
      */
 
@@ -61,6 +63,8 @@ nes.cpu = {
 
     /**
      * The overflow status flag.
+     * <br>
+     * Kept in the cpu status byte as the 7th bit.
      * @type integer
      */
 
@@ -68,6 +72,8 @@ nes.cpu = {
 
     /**
      * The break status flag.
+     * <br>
+     * Kept in the cpu status byte as the 5th bit.
      * @type integer
      */
 
@@ -75,6 +81,8 @@ nes.cpu = {
 
     /**
      * The decimal status flag.
+     * <br>
+     * Kept in the cpu status byte as the 4th bit.
      * @type integer
      */
 
@@ -82,6 +90,8 @@ nes.cpu = {
 
     /**
      * The interrupt status flag.
+     * <br>
+     * Kept in the cpu status byte as the 3rd bit.
      * @type integer
      */
 
@@ -89,6 +99,8 @@ nes.cpu = {
 
     /**
      * The zero status flag.
+     * <br>
+     * Kept in the cpu status byte as the 2nd bit, inverted.
      * @type integer
      */
 
@@ -96,6 +108,8 @@ nes.cpu = {
 
     /**
      * The carry status flag.
+     * <br>
+     * Kept in the cpu status byte as the 1st bit.
      * @type integer
      */
 
