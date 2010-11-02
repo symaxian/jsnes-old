@@ -1014,10 +1014,10 @@ nes.ppu = {
                 if(this.vramAddress < 0x2000){
                     //???
                     if(address%16 < 8){
-                        this.ptTile[parseInt(address/16)].setScanline(address%16,value,this.vramMem[address+8]);
+                        this.ptTile[parseInt(address/16,10)].setScanline(address%16,value,this.vramMem[address+8]);
                     }
                     else{
-                        this.ptTile[parseInt(address/16)].setScanline((address%16)-8,this.vramMem[address-8],value);
+                        this.ptTile[parseInt(address/16,10)].setScanline((address%16)-8,this.vramMem[address-8],value);
                     }
                     //Write normally.
                     this.writeMem(this.vramAddress,value);
@@ -1247,14 +1247,14 @@ nes.ppu = {
                         //???
                         if(t.opaque[this.cntFV]){
                             for(;sx<8;sx++){
-                                this.buffer[destIndex] = this.imgPalette[t.pix[tscanoffset+sx]+att];
+                                this.buffer[destIndex] = this.imgPalette[t.pixelColor[tscanoffset+sx]+att];
                                 this.pixRendered[destIndex] |= 256;
                                 destIndex++;
                             }
                         }
                         else{
                             for(;sx<8;sx++){
-                                var col = t.pix[tscanoffset+sx];
+                                var col = t.pixelColor[tscanoffset+sx];
                                 if(col !== 0){
                                     buffer[destIndex] = this.imgPalette[col+att];
                                     this.pixRendered[destIndex] |= 256;
@@ -1313,7 +1313,7 @@ nes.ppu = {
                     //???
                     if(this.bgPriority[i] === bgPri && this.sprX[i]>=0 && this.sprX[i]<256 && this.sprY[i]+8 >= startscan && this.sprY[i]<startscan+scancount){
                         //???
-                        if(this.sprY[i]<startscan){
+                        if(this.sprY[i] < startscan){
                             var srcy1 = startscan-this.sprY[i]-1;
                         }
                         else{
@@ -1349,7 +1349,7 @@ nes.ppu = {
                             top = this.sprTile[i]-1+256;
                         }
                         //???
-                        if(this.sprY[i]<startscan){
+                        if(this.sprY[i] < startscan){
                             var srcy1 = startscan-this.sprY[i]-1;
                         }
                         else{
@@ -1366,7 +1366,7 @@ nes.ppu = {
                         this.ptTile[top+(this.vertFlip[i]?1:0)].render(srcy1,srcy2,1,i);
                         //???
                         if(this.sprY[i]+8 < startscan){
-                            var srcy1 = startscan-(this.sprY[i]+8+1);
+                            var srcy1 = startscan-(this.sprY[i]+9);
                         }
                         else{
                             var srcy1 = 0;
@@ -1425,7 +1425,7 @@ nes.ppu = {
                     for(var i=7;i>=0;i--){
                         if(x >= 0 && x < 256){
                             if(bufferIndex >= 0 && bufferIndex < 61440 && this.pixRendered[bufferIndex] !== 0){
-                                if(t.pix[toffset+i] !== 0){
+                                if(t.pixelColor[toffset+i] !== 0){
                                     //Set the hit coordinates and return true.
                                     this.spr0HitX = bufferIndex%256;
                                     this.spr0HitY = scanline;
@@ -1442,7 +1442,7 @@ nes.ppu = {
                     for(var i=0;i<8;i++){
                         if(x >= 0 && x < 256){
                             if(bufferIndex >= 0 && bufferIndex < 61440 && this.pixRendered[bufferIndex] !== 0){
-                                if(t.pix[toffset+i] !== 0){
+                                if(t.pixelColor[toffset+i] !== 0){
                                     //Set the hit coordinates and return true.
                                     this.spr0HitX = bufferIndex%256;
                                     this.spr0HitY = scanline;
@@ -1495,7 +1495,7 @@ nes.ppu = {
                 for(var i=7;i>=0;i--){
                     if(x>=0 && x<256){
                         if(bufferIndex >= 0 && bufferIndex < 61440 && this.pixRendered[bufferIndex] !== 0){
-                            if(t.pix[toffset+i] !== 0){
+                            if(t.pixelColor[toffset+i] !== 0){
                                 //Set the hit coordinates and return true.
                                 this.spr0HitX = bufferIndex%256;
                                 this.spr0HitY = scanline;
@@ -1512,7 +1512,7 @@ nes.ppu = {
                 for(var i=0;i<8;i++){
                     if(x>=0 && x<256){
                         if(bufferIndex >= 0 && bufferIndex < 61440 && this.pixRendered[bufferIndex] !== 0){
-                            if(t.pix[toffset+i] !== 0){
+                            if(t.pixelColor[toffset+i] !== 0){
                                 //Set the hit coordinates and return true.
                                 this.spr0HitX = bufferIndex%256;
                                 this.spr0HitY = scanline;
@@ -1719,25 +1719,53 @@ nes.ppu = {
 //== Name Table ==
 //================
 
-nes.ppu.NameTable = function nes_ppu_NameTable(w,h){
+/**
+ * Holds tiles and their attributes in a psuedo two-dimensional array.
+ * @constructor
+ * @param {integer} width
+ * @param {integer} height
+ */
+
+nes.ppu.NameTable = function nes_ppu_NameTable(width,height){
     //Save the width of the name table.
-    this.w = w;
+    this.width = width;
     //Create the tile and attribute arrays from the width and height.
-    this.tile = new Array(w*h);
-    this.attrib = new Array(w*h);
+    this.tile = new Array(width*height);
+    this.attrib = new Array(width*height);
 };
 
 nes.ppu.NameTable.prototype = {
 
+    /**
+     * Returns the tile at the specified index.
+     * @type Tile
+     * @param {integer} x
+     * @param {integer} y
+     */
+
     getTileIndex:function nes_ppu_NameTable_getTileIndex(x,y){
         //Return the tile at the specified index.
-        return this.tile[y*this.w+x];
+        return this.tile[y*this.width+x];
     },
+
+    /**
+     * Returns the tile attributes at the specified index.
+     * @type integer
+     * @param {integer} x
+     * @param {integer} y
+     */
 
     getAttrib:function nes_ppu_NameTable_getAttrib(x,y){
         //Return the attribute at the specified index.
-        return this.attrib[y*this.w+x];
+        return this.attrib[y*this.width+x];
     },
+
+    /**
+     * Sets the tile attributes at the specified index.
+     * @type void
+     * @param {integer} index
+     * @param {integer} value
+     */
 
     writeAttrib:function nes_ppu_NameTable_writeAttrib(index,value){
         //Get the x and y position of the index.
@@ -1751,8 +1779,8 @@ nes.ppu.NameTable.prototype = {
                     for(var x=0;x<2;x++){
                         var tx = basex+sqx*2+x;
                         var ty = basey+sqy*2+y;
-                        var attindex = ty*this.w+tx;
-                        this.attrib[ty*this.w+tx] = (add<<2)&12;
+                        var attindex = ty*this.width+tx;
+                        this.attrib[ty*this.width+tx] = (add<<2)&12;
                     }
                 }
             }
@@ -1765,14 +1793,27 @@ nes.ppu.NameTable.prototype = {
 //== Tile ==
 //==========
 
+/**
+ * Standard 8x8 pixel tile, used stand-alone or with sprites.
+ * @constructor
+ */
+
 Tile = function Tile(){
-    //Pixels
-    this.pix = new Array(64);
+    //Pixel Colors
+    this.pixelColor = new Array(64);
     //Row Opacity
     this.opaque = new Array(8);
 };
 
 Tile.prototype = {
+
+    /**
+     * Sets the pixel color/transparency to the specified scanline?
+     * @type void
+     * @param {integer} scanline
+     * @param {integer} b1
+     * @param {integer} b2
+     */
 
     setScanline:function(scanline,b1,b2){
         //???
@@ -1780,133 +1821,165 @@ Tile.prototype = {
         //Loop through the 8 pixels on a row.
         for(var x=0;x<8;x++){
             //Set the pixel color/transparency?
-            this.pix[tIndex+x] = ((b1>>(7-x))&1)+(((b2>>(7-x))&1)<<1);
+            this.pixelColor[tIndex+x] = ((b1>>(7-x))&1)+(((b2>>(7-x))&1)<<1);
             //Check if transparent the pixel is transparent.
-            if(this.pix[tIndex+x] === 0){
+            if(this.pixelColor[tIndex+x] === 0){
                 //If so, set the scanline as having a transparent pixel.
                 this.opaque[scanline] = false;
             }
         }
     },
 
+    /**
+     * Renders the tile using the sprite data from the specified index.
+     * @type void
+     * @param {integer} srcy1
+     * @param {integer} srcy2
+     * @param {integer} yAdd Amount of pixels the tile is rendered below the sprY value.
+     * @param {integer} spriteIndex The sprite that is being rendered for.
+     */
+
     render:function(srcy1,srcy2,yAdd,spriteIndex){
-        //Cache some variables.
+        //Set the pixel left and right bounds.
         var srcx1 = 0;
         var srcx2 = 8;
+        //Get the position to draw the tile at.
         var dx = nes.ppu.sprX[spriteIndex];
         var dy = nes.ppu.sprY[spriteIndex]+yAdd;
-        var palAdd = nes.ppu.sprCol[spriteIndex];
-        var flipHorizontal = nes.ppu.horiFlip[spriteIndex];
-        var flipVertical = nes.ppu.vertFlip[spriteIndex];
-        //Check for an invalid position.
+        //Check for an invalid position, remove?
         if(dx < -7 || dx >= 256 || dy < -7 || dy >= 240){
             return;
         }
-        //Cache some variables, remove?
-        var buffer = nes.ppu.buffer;
-        var palette = nes.ppu.sprPalette;
-        var pixRendered = nes.ppu.pixRendered;
-        //???
+        //Move the clipping x right if the sprite is past the left of the screen.
         if(dx < 0){
             srcx1 -= dx;
         }
-        //???
+        //Move the clipping x2 left if the sprite is past the right of the screen.
         if(dx+srcx2 >= 256){
             srcx2 = 256-dx;
         }
-        //???
+        //Move the clipping y down if the sprite is past the top of the screen.
         if(dy < 0){
             srcy1 -= dy;
         }
-        //???
+        //Move the clipping y2 up if the sprite is past the bottom of the screen.
         if(dy+srcy2 >= 240){
             srcy2 = 240-dy;
         }
-        //???
-        var fbIndex = (dy<<8)+dx;
+        //Get the pixel index to start drawing the sprite at.
+        var screenIndex = dy*256+dx;
         //Check the sprite orientation.
-        if(flipHorizontal){
-            if(flipVertical){
-                //Draw the sprite flipped horizontally and vertically.
-                var tIndex = 63;
+        if(nes.ppu.horiFlip[spriteIndex]){
+            //Draw the sprite flipped horizontally and vertically.
+            if(nes.ppu.vertFlip[spriteIndex]){
+                //Start drawing from the last pixel.
+                var pixelIndex = 63;
+                //Loop through the 64 tile pixels.
                 for(var y=0;y<8;y++){
                     for(var x=0;x<8;x++){
+                        //Check if the pixel is within bounds.
                         if(x >= srcx1 && x < srcx2 && y >= srcy1 && y < srcy2){
-                            var palIndex = this.pix[tIndex];
-                            var tpri = pixRendered[fbIndex];
-                            if(palIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                                //Set the color from the palette to the buffer.
-                                buffer[fbIndex] = palette[palIndex+palAdd];
-                                pixRendered[fbIndex] = (tpri&0xF00)|spriteIndex;
+                            //Get the color index.
+                            var colorIndex = this.pixelColor[pixelIndex];
+                            var tpri = nes.ppu.pixRendered[screenIndex];
+                            if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
+                                //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
+                                nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                                nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                             }
                         }
-                        fbIndex++;
-                        tIndex--;
+                        //Move to the next pixel on screen.
+                        screenIndex++;
+                        //Move backwards across the tile pixels.
+                        pixelIndex--;
                     }
-                    fbIndex += 248;
+                    screenIndex += 248;
                 }
             }
+            //Draw the sprite flipped horizontally.
             else{
-                //Draw the sprite flipped horizontally.
-                var tIndex = 7;
+                //Start drawing from the last pixel on the first row.
+                var pixelIndex = 7;
+                //Loop through the 64 tile pixels.
                 for(var y=0;y<8;y++){
                     for(var x=0;x<8;x++){
+                        //Check if the pixel is within bounds.
                         if(x >= srcx1 && x < srcx2 && y >= srcy1 && y < srcy2){
-                            var palIndex = this.pix[tIndex];
-                            var tpri = pixRendered[fbIndex];
-                            if(palIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                                //Set the color from the palette to the buffer.
-                                buffer[fbIndex] = palette[palIndex+palAdd];
-                                pixRendered[fbIndex] = (tpri&0xF00)|spriteIndex;
+                            //Get the color index.
+                            var colorIndex = this.pixelColor[pixelIndex];
+                            var tpri = nes.ppu.pixRendered[screenIndex];
+                            if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
+                                //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
+                                nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                                nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                             }
                         }
-                        fbIndex++;
-                        tIndex--;
+                        //Move to the next pixel on screen.
+                        screenIndex++;
+                        //Move backwards across the tile pixels.
+                        pixelIndex--;
                     }
-                    fbIndex += 248;
-                    tIndex += 16;
+                    //Move to the next row on the screen.
+                    screenIndex += 248;
+                    //Move the pixel index down a row.
+                    pixelIndex += 16;
                 }
             }
         }
-        else if(flipVertical){
-            //Draw the sprite flipped vertically.
-            var tIndex = 56;
+        //Draw the sprite flipped vertically.
+        else if(nes.ppu.vertFlip[spriteIndex]){
+            //Start drawing from the first pixel on the last row.
+            var pixelIndex = 56;
+            //Loop through the 64 tile pixels.
             for(var y=0;y<8;y++){
                 for(var x=0;x<8;x++){
+                    //Check if the pixel is within bounds.
                     if(x >= srcx1 && x < srcx2 && y >= srcy1 && y < srcy2){
-                        var palIndex = this.pix[tIndex];
-                        var tpri = pixRendered[fbIndex];
-                        if(palIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                            //Set the color from the palette to the buffer.
-                            buffer[fbIndex] = palette[palIndex+palAdd];
-                            pixRendered[fbIndex] = (tpri&0xF00)|spriteIndex;
+                        //Get the color index.
+                        var colorIndex = this.pixelColor[pixelIndex];
+                        var tpri = nes.ppu.pixRendered[screenIndex];
+                        if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
+                            //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
+                            nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                            nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                         }
                     }
-                    fbIndex++;
-                    tIndex++;
+                    //Move to the next pixel on screen.
+                    screenIndex++;
+                    //Move to the next pixel in the tile.
+                    pixelIndex++;
                 }
-                fbIndex += 248;
-                tIndex -= 16;
+                //Move to the next row on the screen.
+                screenIndex += 248;
+                //Move the pixel index up a row.
+                pixelIndex -= 16;
             }
         }
+        //Draw the sprite normally.
         else{
-            //Draw the sprite normally.
-            var tIndex = 0;
+            //Start drawing at the first pixel.
+            var pixelIndex = 0;
+            //Loop through the 64 tile pixels.
             for(var y=0;y<8;y++){
                 for(var x=0;x<8;x++){
+                    //Check if the pixel is within bounds.
                     if(x >= srcx1 && x < srcx2 && y >= srcy1 && y < srcy2){
-                        var palIndex = this.pix[tIndex];
-                        var tpri = pixRendered[fbIndex];
-                        if(palIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                            //Set the color from the palette to the buffer.
-                            buffer[fbIndex] = palette[palIndex+palAdd];
-                            pixRendered[fbIndex] = (tpri&0xF00)|spriteIndex;
+                        //Get the color index.
+                        var colorIndex = this.pixelColor[pixelIndex];
+                        var tpri = nes.ppu.pixRendered[screenIndex];
+                        if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
+                            //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
+                            nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                            nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                         }
                     }
-                    fbIndex++;
-                    tIndex++;
+                    //Move to the next pixel on screen.
+                    screenIndex++;
+                    //Move to the next pixel in the tile.
+                    pixelIndex++;
                 }
-                fbIndex += 248;
+                //Move to the next row on the screen.
+                screenIndex += 248;
             }
         }
     },

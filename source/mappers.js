@@ -10,7 +10,7 @@ nes.mappers = {};
 //==============
 
 /**
- * @namespace Mapper 0, Direct Access
+ * @namespace Memory Mapper 0, Direct Access
  */
 
 nes.mappers.mmc0 = {
