@@ -596,9 +596,10 @@ nes.ppu = {
         //Name table data.
         this.ntable1 = new Array(4);
         this.nameTable = new Array(4);
-        for(var i=0;i<4;i++){
-            this.nameTable[i] = new this.NameTable(32,32);
-        }
+        this.nameTable[0] = new this.NameTable(32,32);
+        this.nameTable[1] = new this.NameTable(32,32);
+        this.nameTable[2] = new this.NameTable(32,32);
+        this.nameTable[3] = new this.NameTable(32,32);
         //Initialize vram mirroring lookup table.
         this.vramMirrorTable = new Array(0x8000);
         for(var i=0;i<0x8000;i++){
@@ -1101,69 +1102,47 @@ nes.ppu = {
         }
     },
 
-    //CPU Register 0x2002:
-    //Read the Status Register.
-    readStatusRegister:function(){
-        //Reset the scroll and vram address toggle.
-        this.firstWrite = true;
-        //Get the value from memory.
-        var tmp = nes.cpu.mem[0x2002];
-        //Clear the vertical blank flag, for some reason reading the status register does this.
-        nes.cpu.mem[0x2002] &= 127;
-        //Return the status.
-        return tmp;
+    /**
+     * Converts the scroll registers to a temporary vram address.
+     * @type void
+     */
+
+    regsToAddress:function(){
+        this.vramTmpAddress = (((((this.regFV&7)<<4)|((this.regV&1)<<3)|((this.regH&1)<<2)|((this.regVT>>3)&3))<<8)|(((this.regVT&7)<<5)|(this.regHT&31)))&0x7FFF;
     },
 
-    //CPU Register 0x2007:
-    //Read from PPU memory. The vram address should be set first.
-    vramLoad:function(){
-        //???
-        this.cntsToAddress();
-        this.regsToAddress();
-        //If address is in range 0x0000-0x3EFF, return buffered values.
-        if(this.vramAddress <= 0x3EFF){
-            //Get the value from the previous read?
-            var tmp = this.vramBufferedReadValue;
-            //Update buffered value.
-            if(this.vramAddress < 0x2000){
-                //Not mirrored, get normally.
-                this.vramBufferedReadValue = this.vramMem[this.vramAddress];
-                //Mapper latch access.
-                nes.mmc.latchAccess(this.vramAddress);
-            }
-            else{
-                //Mirrored, take into account the mirror table.
-                this.vramBufferedReadValue = this.vramMem[this.vramMirrorTable[this.vramAddress]];
-            }
-        }
-        else{
-            //No buffering in this mem range, read normally.
-            var tmp = this.vramMem[this.vramMirrorTable[this.vramAddress]];
-        }
-        //Increment the vram address by either 1 or 32, depending on bit 2 of the control register.
-        this.vramAddress += 1+this.f_addrInc*31;
-        //???
-        this.cntsFromAddress();
-        this.regsFromAddress();
-        //Return the value.
-        return tmp;
+    /**
+     * Converts the scroll counters to the vram address.
+     * @type void
+     */
+
+    cntsToAddress:function(){
+        this.vramAddress = (((((this.cntFV&7)<<4)|((this.cntV&1)<<3)|((this.cntH&1)<<2)|((this.cntVT>>3)&3))<<8)|(((this.cntVT&7)<<5)|(this.cntHT&31)))&0x7FFF;
     },
 
-    //Updates the scroll registers from the vram address.
+    /**
+     * Updates the scroll registers from the temporary vram address created by regsToAddress().
+     * @type void
+     */
+
     regsFromAddress:function(){
         //???
         var address = (this.vramTmpAddress>>8)&0xFF;
         this.regFV = (address>>4)&7;
         this.regV = (address>>3)&1;
         this.regH = (address>>2)&1;
-        this.regVT = (this.regVT&7) | ((address&3)<<3);
+        this.regVT = (this.regVT&7)|((address&3)<<3);
         //???
         var address = this.vramTmpAddress&0xFF;
-        this.regVT = (this.regVT&24) | ((address>>5)&7);
+        this.regVT = (this.regVT&24)|((address>>5)&7);
         this.regHT = address&31;
     },
 
-    //Updates the scroll counters from the vram address.
+    /**
+     * Updates the scroll counters from the current vram address.
+     * @type void
+     */
+
     cntsFromAddress:function(){
         //???
         var address = (this.vramAddress>>8)&0xFF;
@@ -1175,16 +1154,6 @@ nes.ppu = {
         var address = this.vramAddress&0xFF;
         this.cntVT = (this.cntVT&24)|((address>>5)&7);
         this.cntHT = address&31;
-    },
-
-    //Converts the scroll registers to a temporary vram address?
-    regsToAddress:function(){
-        this.vramTmpAddress = (((((this.regFV&7)<<4)|((this.regV&1)<<3)|((this.regH&1)<<2)|((this.regVT>>3)&3))<<8)|(((this.regVT&7)<<5)|(this.regHT&31)))&0x7FFF;
-    },
-
-    //Converts the scroll counters to the vram address?
-    cntsToAddress:function(){
-        this.vramAddress = (((((this.cntFV&7)<<4)|((this.cntV&1)<<3)|((this.cntH&1)<<2)|((this.cntVT>>3)&3))<<8)|(((this.cntVT&7)<<5)|(this.cntHT&31)))&0x7FFF;
     },
 
     /**

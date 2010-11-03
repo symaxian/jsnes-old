@@ -275,7 +275,7 @@ nes = {
         //Cache the rom data.
         var data = request.responseText;
         //Check the rom validity.
-        if(data.indexOf("NES\x1a") !== -1){
+        if(data.indexOf('NES\x1a') !== -1){
             //Create a blank object for the rom data.
             this.rom = {};
             //Reset the header.
@@ -376,10 +376,14 @@ nes = {
                 //Rom was successfully loaded, return true.
                 return true;
             }
-            //Rom requires an unknown mapper, return false.
+            //Rom requires an unknown mapper, clear the rom.
+            this.rom = null;
+            //Return false.
             return false;
         }
-        //Rom is not valid, return false.
+        //Rom is not valid.
+        this.rom = null;
+        //Return false.
         return false;
     },
 

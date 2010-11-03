@@ -154,7 +154,7 @@ nes.mappers.mmc0 = {
      * @param {integer} address
      */
 
-    regLoad:function nes_mappers_mmc0regLoad(address){
+    regLoad:function nes_mappers_mmc0_regLoad(address){
         //use fourth nibble (0xF000)
         switch(address>>12){
             case 0:
@@ -166,28 +166,72 @@ nes.mappers.mmc0 = {
                 switch(address&7){
 
                     //Read 0x2000, PPU Control Register
-                    case 0x0: return nes.cpu.mem[0x2000];
+                    case 0x0:
+                        return nes.cpu.mem[0x2000];
 
                     //Read 0x2001, PPU Masking Register
-                    case 0x1: return nes.cpu.mem[0x2001];
+                    case 0x1:
+                        return nes.cpu.mem[0x2001];
 
                     //Read 0x2002, PPU Status Register
-                    case 0x2: return nes.ppu.readStatusRegister();
+                    case 0x2:
+                        //Reset the scroll and vram address toggle.
+                        nes.ppu.firstWrite = true;
+                        //Get the value from memory.
+                        var tmp = nes.cpu.mem[0x2002];
+                        //Clear the vertical blank flag, for some reason reading the status register does this.
+                        nes.cpu.mem[0x2002] &= 127;
+                        //Return the status.
+                        return tmp;
 
                     //Read 0x2003, Return 0
-                    case 0x3: return 0;
+                    case 0x3:
+                        return 0;
 
                     //Read 0x2004, Sprite Memory
-                    case 0x4: return nes.ppu.spriteMem[nes.ppu.sramAddress];
+                    case 0x4:
+                        return nes.ppu.spriteMem[nes.ppu.sramAddress];
 
                     //Read 0x2005, Return 0
-                    case 0x5: return 0;
+                    case 0x5:
+                        return 0;
 
                     //Read 0x2006, Return 0
-                    case 0x6: return 0;
+                    case 0x6:
+                        return 0;
 
                     //Read 0x2007, VRAM
-                    case 0x7: return nes.ppu.vramLoad();
+                    case 0x7:
+                        //???
+                        nes.ppu.cntsToAddress();
+                        nes.ppu.regsToAddress();
+                        //If address is in range 0x0000-0x3EFF, return buffered values.
+                        if(nes.ppu.vramAddress <= 0x3EFF){
+                            //Get the value from the previous read?
+                            var tmp = nes.ppu.vramBufferedReadValue;
+                            //Update buffered value.
+                            if(nes.ppu.vramAddress < 0x2000){
+                                //Not mirrored, get normally.
+                                nes.ppu.vramBufferedReadValue = nes.ppu.vramMem[nes.ppu.vramAddress];
+                                //Mapper latch access.
+                                nes.mmc.latchAccess(nes.ppu.vramAddress);
+                            }
+                            else{
+                                //Mirrored, take into account the address mirroring table.
+                                nes.ppu.vramBufferedReadValue = nes.ppu.vramMem[nes.ppu.vramMirrorTable[nes.ppu.vramAddress]];
+                            }
+                        }
+                        else{
+                            //No buffering in this mem range, read normally.
+                            var tmp = nes.ppu.vramMem[nes.ppu.vramMirrorTable[nes.ppu.vramAddress]];
+                        }
+                        //Increment the vram address by either 1 or 32, depending on bit 2 of the control register.
+                        nes.ppu.vramAddress += 1+nes.ppu.f_addrInc*31;
+                        //???
+                        nes.ppu.cntsFromAddress();
+                        nes.ppu.regsFromAddress();
+                        //Return the value.
+                        return tmp;
 
                 }
                 break;
@@ -201,35 +245,27 @@ nes.mappers.mmc0 = {
 
                     //Read 0x4016, Joystick 1
                     case 0x4016:
-
                         //Get the button state.
-                        var temp = nes.controllers.state1[this.joy1Strobe];
-
+                        var tmp = nes.controllers.state1[this.joy1Strobe];
                         //Increment the strobe.
                         this.joy1Strobe++;
-
                         //Reset it to 0 if at 24.
                         if(this.joy1Strobe === 24){
                             this.joy1Strobe = 0;
                         }
-
                         //Return the button state.
-                        return temp;
+                        return tmp;
 
                     //Read 0x4017, Joystick 2
                     case 0x4017:
-
                         //Get the button state.
-                        var temp = nes.controllers.state2[this.joy2Strobe];
-
+                        var tmp = nes.controllers.state2[this.joy2Strobe];
                         //Increment the strobe.
                         this.joy2Strobe++;
-
                         //Reset it to 0 if at 24.
                         if(this.joy2Strobe === 24){
                             this.joy2Strobe = 0;
                         }
-
                         //Nintendo Zapper Emulation, FIXME
                         //if(this.mousePressed){
                         //   //Get a square around the mouse.
@@ -253,9 +289,8 @@ nes.mappers.mmc0 = {
                         //   w |= 16;
                         //   return (temp|w)&0xFFFF;
                         //}
-
                         //Return the button state.
-                        return temp;
+                        return tmp;
 
                 }
                 break;
