@@ -1048,48 +1048,50 @@ nes.ppu = {
                 }
                 //Else check if the write is in the mirror table.
                 else if(this.vramAddress < this.vramMirrorTable.length){
+                    //Cache the address from the mirroring table.
+                    var address = this.vramMirrorTable[this.vramAddress];
                     //Write to the vram.
-                    this.vramMem[this.vramAddress] = value;
+                    this.vramMem[address] = value;
                     //Use a case structure to determine how to update the internally buffered data.
-                    if(this.vramAddress < 0x23c0){
+                    if(address < 0x23c0){
                         //???
-                        this.nameTable[this.ntable1[0]].tile[this.vramAddress-0x2000] = value;
+                        this.nameTable[this.ntable1[0]].tile[address-0x2000] = value;
                         //Update sprite 0 hit.
-                        this.checkSprite0(this.scanline);
+                        this.checkSprite0();
                     }
-                    else if(this.vramAddress < 0x2400){
+                    else if(address < 0x2400){
                         //Update the internal pattern table buffer with this new attribute table byte.
-                        this.nameTable[this.ntable1[0]].writeAttrib(this.vramAddress-0x23c0,value);
+                        this.nameTable[this.ntable1[0]].writeAttrib(address-0x23c0,value);
                     }
-                    else if(this.vramAddress < 0x27c0){
+                    else if(address < 0x27c0){
                         //???
-                        this.nameTable[this.ntable1[1]].tile[this.vramAddress-0x2400] = value;
+                        this.nameTable[this.ntable1[1]].tile[address-0x2400] = value;
                         //Update sprite 0 hit.
-                        this.checkSprite0(this.scanline);
+                        this.checkSprite0();
                     }
-                    else if(this.vramAddress < 0x2800){
+                    else if(address < 0x2800){
                         //Update the internal pattern table buffer with this new attribute table byte.
-                        this.nameTable[this.ntable1[1]].writeAttrib(this.vramAddress-0x27c0,value);
+                        this.nameTable[this.ntable1[1]].writeAttrib(address-0x27c0,value);
                     }
-                    else if(this.vramAddress < 0x2bc0){
+                    else if(address < 0x2bc0){
                         //???
-                        this.nameTable[this.ntable1[2]].tile[this.vramAddress-0x2800] = value;
+                        this.nameTable[this.ntable1[2]].tile[address-0x2800] = value;
                         //Update sprite 0 hit.
-                        this.checkSprite0(this.scanline);
+                        this.checkSprite0();
                     }
-                    else if(this.vramAddress < 0x2c00){
+                    else if(address < 0x2c00){
                         //Update the internal pattern table buffer with this new attribute table byte.
-                        this.nameTable[this.ntable1[2]].writeAttrib(this.vramAddress-0x2bc0,value);
+                        this.nameTable[this.ntable1[2]].writeAttrib(address-0x2bc0,value);
                     }
-                    else if(this.vramAddress < 0x2fc0){
+                    else if(address < 0x2fc0){
                         //???
-                        this.nameTable[this.ntable1[3]].tile[this.vramAddress-0x2c00] = value;
+                        this.nameTable[this.ntable1[3]].tile[address-0x2c00] = value;
                         //Update sprite 0 hit.
-                        this.checkSprite0(this.scanline);
+                        this.checkSprite0();
                     }
-                    else if(this.vramAddress < 0x3000){
+                    else if(address < 0x3000){
                         //Update the internal pattern table buffer with this new attribute table byte.
-                        this.nameTable[this.ntable1[3]].writeAttrib(this.vramAddress-0x2fc0,value);
+                        this.nameTable[this.ntable1[3]].writeAttrib(address-0x2fc0,value);
                     }
                 }
                 //Increment the vram address by either 1 or 32, depending on bit 2 of the control register.
