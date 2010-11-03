@@ -887,19 +887,7 @@ nes.ppu = {
                 //Set the value into the ram.
                 nes.cpu.mem[0x2000] = value;
                 //Update the internal buffers.
-                //???
-                this.triggerRendering();
-                //Set the flags from the value.
-                this.f_nmiOnVblank = (value>>7)&1;
-                this.f_spriteSize = (value>>5)&1;
-                this.f_bgPatternTable = (value>>4)&1;
-                this.f_spPatternTable = (value>>3)&1;
-                this.f_addrInc = (value>>2)&1;
-                this.f_nTblAddress = value&3;
-                //???
-                this.regV = (value>>1)&1;
-                this.regH = value&1;
-                this.regS = (value>>4)&1;
+                nes.ppu.setControlRegister(value);
                 break;
 
             //Write 0x2001, PPU Masking Register
@@ -907,39 +895,18 @@ nes.ppu = {
             case 1:
                 //Set the value into the ram.
                 nes.cpu.mem[0x2001] = value;
-                //???
-                this.triggerRendering();
-                //Check if the color emphasis has changed.
-                if(this.f_color !== ((value>>5)&7)){
-                    //Set the new value.
-                    this.f_color = (value>>5)&7;
-                    //Update the color emphasis if the display type is color.
-                    if((value&1) === 0){
-                        this.colorPalette.setEmphasis(this.f_color);
-                    }
-                }
-                //Set the flags from the value.
-                this.f_color = (value>>5)&7;
-                this.f_spVisibility = (value>>4)&1;
-                this.f_bgVisibility = (value>>3)&1;
-                this.f_spClipping = (value>>2)&1;
-                this.f_bgClipping = (value>>1)&1;
-                //Check if the display type has changed.
-                if(this.f_dispType !== value&1){
-                    //If so set the new value and update the color palettes.
-                    this.f_dispType = value&1;
-                    this.updatePalettes();
-                }
+                //Update the internal buffers.
+                nes.ppu.setMaskingRegister(value);
                 break;
 
-            //Write 0x2003, Set Sprite RAM Address
+            //Write 0x2003, Sprite RAM Address
             //Sets the address used when accessing sprite RAM.
             case 3:
                 //Set the address.
                 this.sramAddress = value;
                 break;
 
-            //Write 0x2004, Write Sprite RAM
+            //Write 0x2004, Sprite RAM
             //Writes to the sprite RAM at the address set to 0x2003, increments the address afterwards.
             case 4:
                 //Write the value to the sprite ram.
@@ -970,7 +937,7 @@ nes.ppu = {
                 }
                 break;
 
-            //Write 0x2006, Set VRAM Address
+            //Write 0x2006, VRAM Address
             //Sets the address used when accessing VRAM.
             case 6:
                 //Check if this is the first write.
@@ -992,7 +959,7 @@ nes.ppu = {
                     this.cntH = this.regH;
                     this.cntVT = this.regVT;
                     this.cntHT = this.regHT;
-                    this.checkSprite0();
+                    this.checkSprite0(this.scanline);
                     this.firstWrite = true;
                 }
                 //Set the VRAM address from the counters just set.
@@ -1003,62 +970,25 @@ nes.ppu = {
                 }
                 break;
 
-            //Write 0x2007, Write VRAM
+            //Write 0x2007, VRAM
             case 7:
                 //???
                 this.triggerRendering();
                 //???
                 this.cntsToAddress();
                 this.regsToAddress();
-                //Check if writing into unmirrored space.
-                if(this.vramAddress < 0x2000){
-                    //???
-                    if(address%16 < 8){
-                        this.ptTile[parseInt(address/16,10)].setScanline(address%16,value,this.vramMem[address+8]);
-                    }
-                    else{
-                        this.ptTile[parseInt(address/16,10)].setScanline((address%16)-8,this.vramMem[address-8],value);
-                    }
+                //???
+                if(this.vramAddress >= 0x2000){
+                    //Mirroring is used.
+                    this.mirroredWrite(this.vramAddress,value);
+                }
+                else{
                     //Write normally.
                     this.writeMem(this.vramAddress,value);
                     //Invoke mapper latch.
                     nes.mmc.latchAccess(this.vramAddress);
                 }
-                //Else check if writing into the color palettes.
-                else if(this.vramAddress >= 0x3f00 && this.vramAddress < 0x3f20){
-                    //Check which address is being written to.
-                    if(this.vramAddress === 0x3F00 || this.vramAddress === 0x3F10){
-                        //Addresses 0x3F00 and 0x3F10 are mirrored, write to both of them.
-                        this.vramMem[0x3F00] = value;
-                        this.vramMem[0x3F10] = value;
-                    }
-                    else if(this.vramAddress === 0x3F04 || this.vramAddress === 0x3F14){
-                        //Addresses 0x3F04 and 0x3F14 are mirrored, write to both of them.
-                        this.vramMem[0x3F04] = value;
-                        this.vramMem[0x3F14] = value;
-                    }
-                    else if(this.vramAddress === 0x3F08 || this.vramAddress === 0x3F18){
-                        //Addresses 0x3F08 and 0x3F18 are mirrored, write to both of them.
-                        this.vramMem[0x3F08] = value;
-                        this.vramMem[0x3F18] = value;
-                    }
-                    else if(this.vramAddress === 0x3F0C || this.vramAddress === 0x3F1C){
-                        //Addresses 0x3F0C and 0x3F1C are mirrored, write to both of them.
-                        this.vramMem[0x3F0C] = value;
-                        this.vramMem[0x3F1C] = value;
-                    }
-                    else{
-                        //Else write normally.
-                        this.vramMem[this.vramAddress] = value;
-                    }
-                    //Update the color palettes.
-                    this.updatePalettes();
-                }
-                //Else check if the write is in the mirror table.
-                else if(this.vramAddress < this.vramMirrorTable.length){
-                    this.writeMem(this.vramMirrorTable[this.vramAddress],value);
-                }
-                //Increment the vram address by either 1 or 32, depending on bit 2 of the control register.
+                //Increment by either 1 or 32, depending on bit 2 of the control register.
                 this.vramAddress += 1+this.f_addrInc*31;
                 //???
                 this.regsFromAddress();
@@ -1066,6 +996,40 @@ nes.ppu = {
                 break;
 
         }
+    },
+
+    setControlRegister:function ppu_setControlRegister(value){
+        //???
+        this.triggerRendering();
+        //Set the flags from the value.
+        this.f_nmiOnVblank = (value>>7)&1;
+        this.f_spriteSize = (value>>5)&1;
+        this.f_bgPatternTable = (value>>4)&1;
+        this.f_spPatternTable = (value>>3)&1;
+        this.f_addrInc = (value>>2)&1;
+        this.f_nTblAddress = value&3;
+        //???
+        this.regV = (value>>1)&1;
+        this.regH = value&1;
+        this.regS = (value>>4)&1;
+    },
+
+    setMaskingRegister:function ppu_setMaskingRegister(value){
+        //???
+        this.triggerRendering();
+        //Set the flags from the value.
+        this.f_color = (value>>5)&7;
+        this.f_spVisibility = (value>>4)&1;
+        this.f_bgVisibility = (value>>3)&1;
+        this.f_spClipping = (value>>2)&1;
+        this.f_bgClipping = (value>>1)&1;
+        this.f_dispType = value&1;
+        //Set the color emphasis if the display type is monochrome.
+        if(this.f_dispType === 0){
+            this.colorPalette.setEmphasis(this.f_color);
+        }
+        //Update the image and sprite color palettes.
+        this.updatePalettes();
     },
 
     //CPU Register 0x2002:
@@ -1540,11 +1504,19 @@ nes.ppu = {
         //Write to the vram.
         this.vramMem[address] = value;
         //Use a case structure to determine how to update the internally buffered data.
-        if(address < 0x23c0){
+        if(address < 0x2000){
+            if(address%16 < 8){
+                this.ptTile[parseInt(address/16)].setScanline(address%16,value,this.vramMem[address+8]);
+            }
+            else{
+                this.ptTile[parseInt(address/16)].setScanline((address%16)-8,this.vramMem[address-8],value);
+            }
+        }
+        else if(address < 0x23c0){
             //???
             this.nameTable[this.ntable1[0]].tile[address-0x2000] = value;
             //Update sprite 0 hit.
-            this.checkSprite0();
+            this.checkSprite0(this.scanline);
         }
         else if(address < 0x2400){
             //Update the internal pattern table buffer with this new attribute table byte.
@@ -1554,7 +1526,7 @@ nes.ppu = {
             //???
             this.nameTable[this.ntable1[1]].tile[address-0x2400] = value;
             //Update sprite 0 hit.
-            this.checkSprite0();
+            this.checkSprite0(this.scanline);
         }
         else if(address < 0x2800){
             //Update the internal pattern table buffer with this new attribute table byte.
@@ -1564,7 +1536,7 @@ nes.ppu = {
             //???
             this.nameTable[this.ntable1[2]].tile[address-0x2800] = value;
             //Update sprite 0 hit.
-            this.checkSprite0();
+            this.checkSprite0(this.scanline);
         }
         else if(address < 0x2c00){
             //Update the internal pattern table buffer with this new attribute table byte.
@@ -1574,11 +1546,44 @@ nes.ppu = {
             //???
             this.nameTable[this.ntable1[3]].tile[address-0x2c00] = value;
             //Update sprite 0 hit.
-            this.checkSprite0();
+            this.checkSprite0(this.scanline);
         }
         else if(address < 0x3000){
             //Update the internal pattern table buffer with this new attribute table byte.
             this.nameTable[this.ntable1[3]].writeAttrib(address-0x2fc0,value);
+        }
+        else if(address >= 0x3f00 && address < 0x3f20){
+            this.updatePalettes();
+        }
+    },
+
+    //Writes to memory, taking into account mirroring/mapping of address ranges.
+    mirroredWrite:function(address,value){
+        //Check if the write is to the palettes.
+        if(address >= 0x3f00 && address < 0x3f20){
+            if(address === 0x3F00 || address === 0x3F10){
+                this.writeMem(0x3F00,value);
+                this.writeMem(0x3F10,value);
+            }
+            else if(address === 0x3F04 || address === 0x3F14){
+                this.writeMem(0x3F04,value);
+                this.writeMem(0x3F14,value);
+            }
+            else if(address === 0x3F08 || address === 0x3F18){
+                this.writeMem(0x3F08,value);
+                this.writeMem(0x3F18,value);
+            }
+            else if(address === 0x3F0C || address === 0x3F1C){
+                this.writeMem(0x3F0C,value);
+                this.writeMem(0x3F1C,value);
+            }
+            else{
+                this.writeMem(address,value);
+            }
+        }
+        //Else check if the write is in the mirror table.
+        else if(address < this.vramMirrorTable.length){
+            this.writeMem(this.vramMirrorTable[address],value);
         }
     },
 
