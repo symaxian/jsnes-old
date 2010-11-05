@@ -19,7 +19,7 @@
             fpsDiv = document.getElementById('fps');
             fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps.toFixed(2)},200);
 
-            nes.init();
+            nes.init('lib');
             nes.loadRom('roms/lj65.nes');
             nes.start();
 
@@ -34,6 +34,7 @@
         }
 
     </script>
+
 </head>
 <body onload='init()'>
 <center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='fps'></div></center>

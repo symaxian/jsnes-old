@@ -478,7 +478,7 @@ nes.mappers.mmc0 = {
 //==============
 
 /**
- * @namespace Memory Mapper 1, Something Something
+ * @namespace Memory Mapper 1, Nintendo MMC1
  * @augments nes.mappers.mmc0
  */
 
@@ -561,7 +561,7 @@ nes.applyObject(nes.mappers.mmc1,{
      */
 
     reset:function nes_mappers_mmc1_reset(){
-        //Reset most the the mapper through the mapper0 reset method.
+        //Reset most the the mapper through the mmc0 reset method.
         nes.mappers.mmc0.reset.apply(this);
         //5-bit Buffer
         this.regBuffer = 0;
@@ -772,7 +772,7 @@ nes.applyObject(nes.mappers.mmc1,{
 //==============
 
 /**
- * @namespace Memory Mapper 2, Something Something
+ * @namespace Memory Mapper 2, UNROM
  * @augments nes.mappers.mmc0
  */
 
@@ -821,7 +821,7 @@ nes.applyObject(nes.mappers.mmc2,{
 //==============
 
 /**
- * @namespace Memory Mapper 4, Something Something
+ * @namespace Memory Mapper 4, Nintendo MMC3
  * @augments nes.mappers.mmc0
  */
 

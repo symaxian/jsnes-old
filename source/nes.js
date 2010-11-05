@@ -4,11 +4,20 @@
 
 //Todo
 
+    //Document the apu.
+
     //Optimization
         //Compile the ppu color palette[s]?
-        //Merge the 4 tile rendering routines into one?
 
     //Fix saving the battery ram.
+
+    //More status flags, running, romLoaded, etc.
+
+    //Better status indication on the screen.
+
+    //Functions to set the key bindings?
+
+    //MOAR MAPPERS
 
 //Notes
 
@@ -21,12 +30,6 @@
     //SINGLESCREEN_MIRRORING3:5,
     //SINGLESCREEN_MIRRORING4:6,
     //CHRROM_MIRRORING:7,
-
-    //PPU Status Flags
-    //STATUS_VRAMWRITE: 4,
-    //STATUS_SLSPRITECOUNT: 5,
-    //STATUS_SPRITE0HIT: 6,
-    //STATUS_VBLANK: 7,
 
     //Common names for the memory mappers.
     //mapperNames:["Direct Access","Nintendo MMC1","UNROM","CNROM","Nintendo MMC3","Nintendo MMC5","FFE F4xxx","AOROM","FFE F3xxx","Nintendo MMC2","Nintendo MMC4","Color Dreams Chip","FFE F6xxx","Unknown Mapper","Unknown Mapper","100-in-1 switch","Bandai chip","FFE F8xxx","Jaleco SS8806 chip","Namcot 106 chip","Famicom Disk System","Konami VRC4a","Konami VRC2a","Konami VRC2a","Konami VRC6","Konami VRC4b","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem G-101 chip","Taito TC0190/TC0350","32kB ROM switch","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Tengen RAMBO-1 chip","Irem H-3001 chip","GNROM switch","SunSoft3 chip","SunSoft4 chip","SunSoft5 FME-7 chip","Unknown Mapper","Camerica chip","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Irem 74HC161/32-based","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Unknown Mapper","Pirate HK-SF3 chip"],
@@ -90,13 +93,13 @@ nes = {
      * @type void
      */
 
-    init:function nes_init(){
+    init:function nes_init(libPath){
         //Initiate the screen.
         this.screen.init();
         //Initiate the controllers.
         this.controllers.init();
         //Initiate the audio wrapper.
-        this.dynamicAudio = new DynamicAudio({swf:'lib/dynamicaudio.swf'});
+        this.dynamicAudio = new DynamicAudio({swf:libPath+'/dynamicaudio.swf'});
         //Reset the system.
         this.reset();
     },
@@ -117,6 +120,8 @@ nes = {
         this.apu.reset();
         //Reset(remove) the mmc.
         this.mmc = null;
+        //Write a message.
+        this.screen.write('Reset, ready to load a ROM.');
     },
 
     /**
@@ -140,6 +145,8 @@ nes = {
     stop:function nes_stop(){
         //Clear the frame interval.
         clearInterval(this.frameInterval);
+        //Write a message.
+        this.screen.write('Stopped, ready to be started or reset.');
     },
 
     /**
@@ -235,13 +242,11 @@ nes = {
                 }
             }
         }
-
         //Calculate the fps.
         var now = new Date().getTime();
         var frameDifference = this.lastFrameTime-now;
         this.fps = -1000/frameDifference;
         this.lastFrameTime = now;
-
     },
 
     /**
@@ -373,16 +378,24 @@ nes = {
                     //Set vertical mirroring.
                     this.ppu.setMirroring(0);
                 }
+                //Write an error message.
+                this.screen.write('ROM loaded, waiting to be started.');
                 //Rom was successfully loaded, return true.
                 return true;
             }
-            //Rom requires an unknown mapper, clear the rom.
+            //Rom requires an unknown mapper.
+            //Clear the rom.
             this.rom = null;
+            //Write an error message.
+            this.screen.write('ROM requires an unknown mapper, cannot load.');
             //Return false.
             return false;
         }
         //Rom is not valid.
+        //Clear the rom.
         this.rom = null;
+        //Write an error message.
+        this.screen.write('ROM is not valid, cannot load.');
         //Return false.
         return false;
     },
@@ -633,6 +646,8 @@ nes = {
             //Set the width and height.
             this.canvas.width = 256;
             this.canvas.height = 240;
+            //Set the border.
+            this.canvas.style.border = '1px solid black';
             //Get the canvas context.
             this.context = this.canvas.getContext('2d');
             //Fill the canvas black.
@@ -671,6 +686,27 @@ nes = {
             }
             //Place the image data onto the canvas.
             this.context.putImageData(this.imageData,0,0);
+        },
+
+        /**
+         * Draws the specified text onto the screen.
+         * @type void
+         * @param {string} text
+         */
+
+        write:function nes_screen_write(text){
+            //Set the fill color to white.
+            this.context.fillStyle = 'white';
+            //Clear out the top of the screen.
+            this.context.fillRect(0,0,256,24);
+            //Set the fill color to black.
+            this.context.fillStyle = 'black';
+            //Set the font.
+            this.context.font = '16px sans-serif';
+            //Set the text alignment.
+            this.context.textAlign = 'center';
+            //Write the text to the top-left of the canvas.
+            this.context.fillText(text+'',128,18,256);
         },
 
     },
