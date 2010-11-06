@@ -16,10 +16,7 @@
 
         init = function(){
 
-            fpsDiv = document.getElementById('fps');
-            fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps.toFixed(2)},200);
-
-            nes.init('lib');
+            nes.init('lib/dynamicaudio.js');
             nes.loadRom('roms/lj65.nes');
             nes.start();
 
@@ -28,7 +25,6 @@
         }
 
         test = function(){
-            nes.stop();
             nes.loadRom('roms/test.nes');
             nes.start();
         }
@@ -37,6 +33,6 @@
 
 </head>
 <body onload='init()'>
-<center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='fps'></div></center>
+<center><h1>JSNES</h1><canvas id='jsnes'></canvas></center>
 </body>
 </html>

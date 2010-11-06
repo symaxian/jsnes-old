@@ -60,10 +60,24 @@ nes = {
     /**
      * The framerate that the nes is running at.
      * @type float
-     * @memberOf nes
      */
 
     fps:0,
+
+    /**
+     * The current status of the nes.
+     * @type string
+     * @default "Awaiting a rom..."
+     */
+
+    status:'Awaiting a rom...',
+
+    /**
+     * The interval to update the ui with.
+     * @type unknown
+     */
+
+    uiUpdateInterval:setInterval(function(){nes.screen.update()},200),
 
     /**
      * A placeholder for the memory mapper needed by the loaded rom file.
@@ -86,6 +100,13 @@ nes = {
 
     romSource:'',
 
+    /**
+     * Provides the possibility for dynamically generated audio needed by the emulator.
+     * @type object
+     */
+
+    dynamicAudio:null,
+
 //Methods
 
     /**
@@ -93,13 +114,16 @@ nes = {
      * @type void
      */
 
-    init:function nes_init(libPath){
+    init:function nes_init(dynamicAudioPath){
+        //Check if the dynamicAudioPath was sent.
+        if(typeof dynamicAudioPath === 'string'){
+            //Initiate the audio wrapper.
+            this.dynamicAudio = new DynamicAudio({swf:dynamicAudioPath});
+        }
         //Initiate the screen.
         this.screen.init();
         //Initiate the controllers.
         this.controllers.init();
-        //Initiate the audio wrapper.
-        this.dynamicAudio = new DynamicAudio({swf:libPath+'/dynamicaudio.swf'});
         //Reset the system.
         this.reset();
     },
@@ -120,8 +144,8 @@ nes = {
         this.apu.reset();
         //Reset(remove) the mmc.
         this.mmc = null;
-        //Write a message.
-        this.screen.write('Reset, ready to load a ROM.');
+        //Set the status.
+        this.status = 'Reset, ready to load a ROM.';
     },
 
     /**
@@ -134,6 +158,8 @@ nes = {
         if(this.hasRom()){
             //Start the frame interval.
             this.frameInterval = setInterval(function(){nes.frame()},1000/nes.frameRate);
+            //Set the status.
+            this.status = "Running";
         }
     },
 
@@ -145,8 +171,10 @@ nes = {
     stop:function nes_stop(){
         //Clear the frame interval.
         clearInterval(this.frameInterval);
-        //Write a message.
-        this.screen.write('Stopped, ready to be started or reset.');
+        //Set the status.
+        this.status = 'Stopped, ready to be started or reset.';
+        //Clear the fps.
+        this.fps = 0;
     },
 
     /**
@@ -255,8 +283,8 @@ nes = {
      */
 
     hasRom:function nes_hasRom(){
-        //Return whether the current rom is not null, FIXME.
-        return this.rom !== null;
+        //Return whether the current rom and mmc are not null.
+        return this.rom !== null && this.mmc !== null;
     },
 
     /**
@@ -379,7 +407,7 @@ nes = {
                     this.ppu.setMirroring(0);
                 }
                 //Write an error message.
-                this.screen.write('ROM loaded, waiting to be started.');
+                this.status = 'ROM loaded, waiting to be started.';
                 //Rom was successfully loaded, return true.
                 return true;
             }
@@ -387,7 +415,7 @@ nes = {
             //Clear the rom.
             this.rom = null;
             //Write an error message.
-            this.screen.write('ROM requires an unknown mapper, cannot load.');
+            this.status = 'ROM requires an unknown mapper, cannot load.';
             //Return false.
             return false;
         }
@@ -395,7 +423,7 @@ nes = {
         //Clear the rom.
         this.rom = null;
         //Write an error message.
-        this.screen.write('ROM is not valid, cannot load.');
+        this.status = 'ROM is not valid, cannot load.';
         //Return false.
         return false;
     },
@@ -633,6 +661,22 @@ nes = {
 
         buffer:null,
 
+        /**
+         * The x position of the emulator on the screen.
+         * @type number
+         * @default 22
+         */
+
+        emulatorXPos:22,
+
+        /**
+         * The y position of the emulator on the screen.
+         * @type number
+         * @default 38
+         */
+
+        emulatorYPos:68,
+
     //Methods
 
         /**
@@ -644,21 +688,42 @@ nes = {
             //Get the canvas element.
             this.canvas = document.getElementById('jsnes');
             //Set the width and height.
-            this.canvas.width = 256;
-            this.canvas.height = 240;
+            this.canvas.width = 400;
+            this.canvas.height = 330;
             //Set the border.
             this.canvas.style.border = '1px solid black';
-            //Get the canvas context.
-            this.context = this.canvas.getContext('2d');
-            //Fill the canvas black.
-            this.context.fillStyle = 'black';
-            this.context.fillRect(0,0,256,240);
-            //Get the image data.
-            this.imageData = this.context.getImageData(0,0,256,240);
-            //Get the pixel data.
-            this.pixelData = this.imageData.data;
-            //Create a pixel buffer.
-            this.buffer = new Array(61440);
+            //Check the canvas.
+            if(typeof this.canvas.getContext === 'function'){
+                //Get the canvas context.
+                this.context = this.canvas.getContext('2d');
+                //Check the context.
+                if(typeof this.context === 'object'){
+                    //Fill the canvas gray.
+                    this.context.fillStyle = 'gray';
+                    this.context.fillRect(0,0,this.canvas.width,this.canvas.height);
+                    //Draw the title.
+                    this.context.fillStyle = 'black';
+                    this.context.font = '20px sans-serif';
+                    this.context.fillText('JSNES',230,24);
+                    //Draw a small divider.
+                    this.context.lineWidth = 1;
+                    this.context.fillRect(300,0,1,this.canvas.height);
+                    //Get the image data.
+                    this.imageData = this.context.getImageData(this.emulatorXPos,this.emulatorYPos,256,240);
+                    //Get the pixel data.
+                    this.pixelData = this.imageData.data;
+                    //Create a pixel buffer.
+                    this.buffer = new Array(61440);
+                }
+                else{
+                    //2d Context is unsupported, alert an error.
+                    alert('Your browser does not support the 2d Context for the Canvas element, cannot start the emulator.');
+                }
+            }
+            else{
+                //Canvas element is unsupported, alert an error.
+                alert('Your browser does not support the Canvas element, cannot start the emulator.');
+            }
         },
 
         /**
@@ -685,7 +750,31 @@ nes = {
                 }
             }
             //Place the image data onto the canvas.
-            this.context.putImageData(this.imageData,0,0);
+            this.context.putImageData(this.imageData,this.emulatorXPos,this.emulatorYPos);
+            //A workaround for a bug in chromium where it doesnt update the entire canvas when putting image data.
+            this.context.globalAlpha = 0;
+            //this.context.fillRect(0,0,this.canvas.width,this.canvas.height);
+            this.context.globalAlpha = 1;
+        },
+
+        /**
+         * Updates the user interface, such as the fps and status.
+         * @type void
+         */
+
+        update:function nes_screen_update(){
+            //Clear the fps area.
+            this.context.fillStyle = 'gray';
+            this.context.fillRect(7,7,82,14);
+            //Clear the status area.
+            this.context.fillRect(4,34,296,18);
+            //Draw the fps.
+            this.context.fillStyle = 'black';
+            this.context.font = '16px sans-serif';
+            this.context.fillText('FPS: '+nes.fps.toFixed(2),7,20);
+            //Draw the status.
+            this.context.font = '14px sans-serif';
+            this.context.fillText('Status: '+nes.status,6,48,295);
         },
 
         /**
@@ -694,19 +783,17 @@ nes = {
          * @param {string} text
          */
 
-        write:function nes_screen_write(text){
+        setStatus:function nes_screen_setStatus(text,color){
             //Set the fill color to white.
             this.context.fillStyle = 'white';
             //Clear out the top of the screen.
-            this.context.fillRect(0,0,256,24);
+            //this.context.fillRect(0,0,256,24);
             //Set the fill color to black.
             this.context.fillStyle = 'black';
             //Set the font.
             this.context.font = '16px sans-serif';
-            //Set the text alignment.
-            this.context.textAlign = 'center';
             //Write the text to the top-left of the canvas.
-            this.context.fillText(text+'',128,18,256);
+            //this.context.fillText(text+'',128,18,256);
         },
 
     },
