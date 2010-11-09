@@ -11,11 +11,16 @@
 
     //Fix saving the battery ram.
 
-    //More status flags, running, romLoaded, etc.
-
-    //Better status indication on the screen.
-
-    //Functions to set the key bindings?
+    //Status flags:
+        //Uninitialized.
+            //Error initializing emulator, division with id "jsnes" not found on the web page.
+            //Error initializing emulator, your browser does not adequately support the canvas element needed for emulation.
+        //Reset, ready to load a rom.
+            //Error loading rom(src), error retrieving rom file.
+            //Error loading rom(src), rom file does not appear to be a valid NES rom.
+            //Error loading rom(src), rom uses a mapper currently unsupported by jsnes.
+        //Running at x FPS.
+        //Stopped.
 
     //MOAR MAPPERS
 
@@ -67,17 +72,10 @@ nes = {
     /**
      * The current status of the nes.
      * @type string
-     * @default "Awaiting a rom..."
+     * @default "Uninitialized."
      */
 
-    status:'Awaiting a rom...',
-
-    /**
-     * The interval to update the ui with.
-     * @type unknown
-     */
-
-    uiUpdateInterval:setInterval(function(){nes.screen.update()},200),
+    status:'Uninitialized.',
 
     /**
      * A placeholder for the memory mapper needed by the loaded rom file.
@@ -94,20 +92,35 @@ nes = {
     rom:null,
 
     /**
-     * The source of the current rom.
+     * The path to the dynamic audio flash object(lib/dynamicaudio.swf).
      * @type string
      */
 
-    romSource:'',
-
-    /**
-     * Provides the possibility for dynamically generated audio needed by the emulator.
-     * @type object
-     */
-
-    dynamicAudio:null,
+    dynamicAudioPath:'',
 
 //Methods
+
+    /**
+     * Returns whether or not the browser supports the canvas element.
+     * @type boolean
+     */
+
+    browserSupportsCanvas:function nes_browserSupportsCanvas(){
+        //Create the screen.
+        var canvas = document.createElement('canvas');
+        //Check the canvas.
+        if(typeof canvas.getContext === 'function'){
+            //Get the canvas context.
+            var context = canvas.getContext('2d');
+            //Check the context.
+            if(typeof context === 'object'){
+                //Return true.
+                return true;
+            }
+        }
+        //Return false.
+        return false;
+    },
 
     /**
      * Initiates the nes.
@@ -115,17 +128,30 @@ nes = {
      */
 
     init:function nes_init(dynamicAudioPath){
-        //Check if the dynamicAudioPath was sent.
-        if(typeof dynamicAudioPath === 'string'){
-            //Initiate the audio wrapper.
-            this.dynamicAudio = new DynamicAudio({swf:dynamicAudioPath});
+        //Get the jsnes division.
+        var screenDiv = document.getElementById('jsnes');
+        //Check the division.
+        if(screenDiv !== null){
+            //Check if canvas is supported.
+            if(this.browserSupportsCanvas()){
+                //Initiate the screen.
+                this.screen.init(screenDiv);
+                //Set the dynamic audio flash object path.
+                this.dynamicAudioPath = dynamicAudioPath;
+                //Initiate the controllers.
+                this.controllers.init();
+                //Reset the system.
+                this.reset();
+            }
+            else{
+                //Browser does not support canvas, set the status.
+                this.status = 'Error initializing emulator, your browser does not adequately support the canvas element needed for emulation.';
+            }
         }
-        //Initiate the screen.
-        this.screen.init();
-        //Initiate the controllers.
-        this.controllers.init();
-        //Reset the system.
-        this.reset();
+        else{
+            //Required division not found on web page, set the status.
+            this.status = 'Error initializing emulator, division with id "jsnes" not found on the web page.';
+        }
     },
 
     /**
@@ -134,7 +160,7 @@ nes = {
      */
 
     reset:function nes_reset(){
-        //Stop the nes.
+        //Stop the nes if running.
         this.stop();
         //Reset the cpu.
         this.cpu.reset();
@@ -144,8 +170,10 @@ nes = {
         this.apu.reset();
         //Reset(remove) the mmc.
         this.mmc = null;
+        //Reset(remove) the rom.
+        this.rom = null;
         //Set the status.
-        this.status = 'Reset, ready to load a ROM.';
+        this.status = 'Reset, ready to load a rom.';
     },
 
     /**
@@ -158,8 +186,6 @@ nes = {
         if(this.hasRom()){
             //Start the frame interval.
             this.frameInterval = setInterval(function(){nes.frame()},1000/nes.frameRate);
-            //Set the status.
-            this.status = "Running";
         }
     },
 
@@ -172,9 +198,7 @@ nes = {
         //Clear the frame interval.
         clearInterval(this.frameInterval);
         //Set the status.
-        this.status = 'Stopped, ready to be started or reset.';
-        //Clear the fps.
-        this.fps = 0;
+        this.status = 'Stopped.';
     },
 
     /**
@@ -209,10 +233,8 @@ nes = {
             if(this.cpu.cyclesToHalt === 0){
                 //Execute a CPU instruction.
                 cycles = this.cpu.emulate();
-                //Set the cycles to the apu if active.
-                if(this.apu.active){
-                    this.apu.clockFrameCounter(cycles);
-                }
+                //Set the cycles to the apu.
+                this.apu.clockFrameCounter(cycles);
                 //???
                 cycles *= 3;
             }
@@ -220,10 +242,8 @@ nes = {
             else if(this.cpu.cyclesToHalt < 9){
                 //???
                 cycles = this.cpu.cyclesToHalt*3;
-                //Set the cycles to halt to the apu if active.
-                if(this.apu.active){
-                    this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
-                }
+                //Set the cycles to halt to the apu.
+                this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
                 //Set the cycles to halt to 0.
                 this.cpu.cyclesToHalt = 0;
             }
@@ -231,10 +251,8 @@ nes = {
             else{
                 //Set the cycles to 24.
                 cycles = 24;
-                //Set the cycles to halt to the apu if active.
-                if(this.apu.active){
-                    this.apu.clockFrameCounter(8);
-                }
+                //Set the cycles to halt to the apu.
+                this.apu.clockFrameCounter(8);
                 //Remove 8 from the cycles to halt counter.
                 this.cpu.cyclesToHalt -= 8;
             }
@@ -275,6 +293,8 @@ nes = {
         var frameDifference = this.lastFrameTime-now;
         this.fps = -1000/frameDifference;
         this.lastFrameTime = now;
+        //Set the status.
+        this.status = 'Running at '+this.fps.toFixed(2)+' FPS.';
     },
 
     /**
@@ -295,110 +315,118 @@ nes = {
 
     loadRom:function nes_loadRom(src){
         //Stop the emulator if running.
-        if(this.active){
-            this.stop();
-        }
+        this.stop();
         //Create a new http request.
         var request = new XMLHttpRequest();
         request.open('GET',src,false);
         //Set the mime type to binary.
         request.overrideMimeType('text/plain; charset=x-user-defined');
-        //Send the request.
-        request.send(null);
+        //Try to send the request.
+        try{
+            request.send(null);
+        }
+        catch(error){
+            //Error retrieving file, set the status.
+            this.status = 'Error loading rom('+src+'), error retrieving rom file.';
+            //Return false.
+            return false;
+        }
         //Cache the rom data.
         var data = request.responseText;
-        //Check the rom validity.
-        if(data.indexOf('NES\x1a') !== -1){
+        //Check the rom validity, determined by whether or not the rom file begins with the string "NES\x1a".
+        if(data.indexOf('NES\x1a') === 0){
             //Create a blank object for the rom data.
-            this.rom = {};
-            //Reset the header.
-            this.rom.header = new Array(16);
+            var rom = {};
+            //Create an array holding information about the rom.
+            rom.header = new Array(16);
             //Load the header.
             for(var i=0;i<16;i++){
-                this.rom.header[i] = data.charCodeAt(i)&0xFF;
+                rom.header[i] = data.charCodeAt(i)&0xFF;
             }
             //Get the rom count.
-            this.rom.romCount = this.rom.header[4];
+            rom.romCount = rom.header[4];
             //Get the number of 4kb vrom banks, not 8kb.
-            this.rom.vromCount = this.rom.header[5]*2;
+            rom.vromCount = rom.header[5]*2;
             //Get the mirroring type.
-            this.rom.mirroring = (this.rom.header[6]&1);
+            rom.mirroring = (rom.header[6]&1);
             //Check whether the rom has battery ram.
-            this.rom.hasBatteryRam = (this.rom.header[6]&2) !== 0;
+            rom.hasBatteryRam = (rom.header[6]&2) !== 0;
             //Get the trainer flag.
-            this.rom.trainer = (this.rom.header[6]&4) !== 0;
+            rom.trainer = (rom.header[6]&4) !== 0;
             //Get the four screen flag.
-            this.rom.fourScreen = (this.rom.header[6]&8) !== 0;
+            rom.fourScreen = (rom.header[6]&8) !== 0;
             //Get the mapper needed.
-            this.rom.mapperType = (this.rom.header[6]>>4)|(this.rom.header[7]&0xF0);
+            rom.mapperType = (rom.header[6]>>4)|(rom.header[7]&0xF0);
             //Check whether any byte 8-15 is not a zero.
             for(var i=8;i<16;i++){
-                if(this.rom.header[i] !== 0){
-                    //Ignore byte 7.
-                    this.rom.mapperType &= 0xF;
+                if(rom.header[i] !== 0){
+                    //If so ignore byte 7.
+                    rom.mapperType &= 0xF;
                 }
             }
             //Load PRG-ROM banks.
-            this.rom.rom = new Array(this.rom.romCount);
+            rom.rom = new Array(rom.romCount);
             var offset = 16;
-            for(var i=0;i<this.rom.romCount;i++){
-                this.rom.rom[i] = new Array(16384);
+            for(var i=0;i<rom.romCount;i++){
+                rom.rom[i] = new Array(16384);
                 for(var j=0;j<16384;j++){
                     if(offset+j >= data.length){
                         break;
                     }
-                    this.rom.rom[i][j] = data.charCodeAt(offset+j)&0xFF;
+                    rom.rom[i][j] = data.charCodeAt(offset+j)&0xFF;
                 }
                 offset += 16384;
             }
             //Reset the vrom and vrom tiles.
-            this.rom.vrom = new Array(this.rom.vromCount);
-            this.rom.vromTile = new Array(this.rom.vromCount);
+            rom.vrom = new Array(rom.vromCount);
+            rom.vromTile = new Array(rom.vromCount);
             //Loop through the vrom banks.
-            for(var i=0;i<this.rom.vromCount;i++){
+            for(var i=0;i<rom.vromCount;i++){
                 //Create the tiles.
-                this.rom.vromTile[i] = new Array(256);
+                rom.vromTile[i] = new Array(256);
                 for(var j=0;j<256;j++){
-                    this.rom.vromTile[i][j] = new Tile();
+                    rom.vromTile[i][j] = new Tile();
                 }
                 //Load the bank.
-                this.rom.vrom[i] = new Array(4096);
+                rom.vrom[i] = new Array(4096);
                 for(var j=0;j<4096;j++){
                     if(offset+j >= data.length){
                         break;
                     }
-                    this.rom.vrom[i][j] = data.charCodeAt(offset+j)&0xFF;
+                    rom.vrom[i][j] = data.charCodeAt(offset+j)&0xFF;
                 }
                 offset += 4096;
                 //Convert the bank to the tile.
                 for(var j=0;j<4096;j++){
                     if((j%16)<8){
-                        this.rom.vromTile[i][j>>4].setScanline(j%16,this.rom.vrom[i][j],this.rom.vrom[i][j+8]);
+                        rom.vromTile[i][j>>4].setScanline(j%16,rom.vrom[i][j],rom.vrom[i][j+8]);
                     }
                     else{
-                        this.rom.vromTile[i][j>>4].setScanline((j%16)-8,this.rom.vrom[i][j-8],this.rom.vrom[i][j]);
+                        rom.vromTile[i][j>>4].setScanline((j%16)-8,rom.vrom[i][j-8],rom.vrom[i][j]);
                     }
                 }
             }
             //Reset the nes.
             this.reset();
             //Check the mapper needed.
-            if(typeof this.mappers['mmc'+this.rom.mapperType] === 'object'){
+            if(typeof this.mappers['mmc'+rom.mapperType] === 'object'){
+                //Save the rom.
+                this.rom = rom;
                 //Save the rom's source.
-                this.romSource = src;
+                rom.source = src;
                 //Save the rom's filename, not including the extension.
-                this.romName = src.substring(src.lastIndexOf('/')+1);
-                this.romName = this.romName.substring(0,this.romName.lastIndexOf('.'));
+                rom.name = src.substring(src.lastIndexOf('/')+1);
+                rom.name = rom.name.substring(0,rom.name.lastIndexOf('.'));
                 //Get the mapper.
-                this.mmc = this.mappers['mmc'+this.rom.mapperType];
+                this.mmc = this.mappers['mmc'+rom.mapperType];
                 //Load the rom data.
                 this.mmc.loadROM();
                 //Set the ppu mirroring from the rom.
-                if(this.rom.fourScreen){
+                if(rom.fourScreen){
                     //Set fourscreen mirroring.
                     this.ppu.setMirroring(2);
                 }
-                else if(this.rom.mirroring === 0){
+                else if(rom.mirroring === 0){
                     //Set horizontal mirroring.
                     this.ppu.setMirroring(1);
                 }
@@ -406,24 +434,20 @@ nes = {
                     //Set vertical mirroring.
                     this.ppu.setMirroring(0);
                 }
-                //Write an error message.
-                this.status = 'ROM loaded, waiting to be started.';
-                //Rom was successfully loaded, return true.
+                //Start the emulator.
+                this.start();
+                //Return true.
                 return true;
             }
             //Rom requires an unknown mapper.
-            //Clear the rom.
-            this.rom = null;
-            //Write an error message.
-            this.status = 'ROM requires an unknown mapper, cannot load.';
+            //Set the status.
+            this.status = 'Error loading rom('+src+'), rom uses a mapper currently unsupported by jsnes.';
             //Return false.
             return false;
         }
         //Rom is not valid.
-        //Clear the rom.
-        this.rom = null;
-        //Write an error message.
-        this.status = 'ROM is not valid, cannot load.';
+        //Set the status.
+        this.status = 'Error loading rom('+src+'), rom file does not appear to be a valid NES rom.';
         //Return false.
         return false;
     },
@@ -437,9 +461,9 @@ nes = {
         //Check if the rom has batteryRAM.
         if(nes.rom.hasBatteryRam){
             //Check if the save file exists.
-            if(this.hasSave(this.romName)){
+            if(this.hasSave(this.rom.name)){
                 //Get the save data.
-                var data = this.getSave(this.romName);
+                var data = this.getSave(this.rom.name);
                 //Check the length of the data is valid.
                 if(data.length === 8192){
                     //Loop through the characters in the data.
@@ -469,7 +493,7 @@ nes = {
                 batteryRam += String.fromCharCode(nes.cpu.mem[i]+100);
             }
             //Set the save data.
-            this.setSave(this.romName,batteryRam);
+            this.setSave(this.rom.name,batteryRam);
         }
     },
 
@@ -661,22 +685,6 @@ nes = {
 
         buffer:null,
 
-        /**
-         * The x position of the emulator on the screen.
-         * @type number
-         * @default 22
-         */
-
-        emulatorXPos:22,
-
-        /**
-         * The y position of the emulator on the screen.
-         * @type number
-         * @default 38
-         */
-
-        emulatorYPos:68,
-
     //Methods
 
         /**
@@ -684,46 +692,27 @@ nes = {
          * @type void
          */
 
-        init:function nes_screen_init(){
-            //Get the canvas element.
-            this.canvas = document.getElementById('jsnes');
+        init:function nes_screen_init(container){
+            //Create the screen.
+            this.canvas = document.createElement('canvas');
+            //Add the screen into the container.
+            container.appendChild(this.canvas);
+            //Get the context.
+            this.context = this.canvas.getContext('2d');
             //Set the width and height.
-            this.canvas.width = 400;
-            this.canvas.height = 330;
+            this.canvas.width = 256;
+            this.canvas.height = 240;
             //Set the border.
             this.canvas.style.border = '1px solid black';
-            //Check the canvas.
-            if(typeof this.canvas.getContext === 'function'){
-                //Get the canvas context.
-                this.context = this.canvas.getContext('2d');
-                //Check the context.
-                if(typeof this.context === 'object'){
-                    //Fill the canvas gray.
-                    this.context.fillStyle = 'gray';
-                    this.context.fillRect(0,0,this.canvas.width,this.canvas.height);
-                    //Draw the title.
-                    this.context.fillStyle = 'black';
-                    this.context.font = '20px sans-serif';
-                    this.context.fillText('JSNES',230,24);
-                    //Draw a small divider.
-                    this.context.lineWidth = 1;
-                    this.context.fillRect(300,0,1,this.canvas.height);
-                    //Get the image data.
-                    this.imageData = this.context.getImageData(this.emulatorXPos,this.emulatorYPos,256,240);
-                    //Get the pixel data.
-                    this.pixelData = this.imageData.data;
-                    //Create a pixel buffer.
-                    this.buffer = new Array(61440);
-                }
-                else{
-                    //2d Context is unsupported, alert an error.
-                    alert('Your browser does not support the 2d Context for the Canvas element, cannot start the emulator.');
-                }
-            }
-            else{
-                //Canvas element is unsupported, alert an error.
-                alert('Your browser does not support the Canvas element, cannot start the emulator.');
-            }
+            //Fill the canvas black.
+            this.context.fillStyle = 'black';
+            this.context.fillRect(0,0,256,240);
+            //Get the image data.
+            this.imageData = this.context.getImageData(0,0,256,240);
+            //Get the pixel data.
+            this.pixelData = this.imageData.data;
+            //Create a pixel buffer.
+            this.buffer = new Array(61440);
         },
 
         /**
@@ -750,50 +739,7 @@ nes = {
                 }
             }
             //Place the image data onto the canvas.
-            this.context.putImageData(this.imageData,this.emulatorXPos,this.emulatorYPos);
-            //A workaround for a bug in chromium where it doesnt update the entire canvas when putting image data.
-            this.context.globalAlpha = 0;
-            //this.context.fillRect(0,0,this.canvas.width,this.canvas.height);
-            this.context.globalAlpha = 1;
-        },
-
-        /**
-         * Updates the user interface, such as the fps and status.
-         * @type void
-         */
-
-        update:function nes_screen_update(){
-            //Clear the fps area.
-            this.context.fillStyle = 'gray';
-            this.context.fillRect(7,7,82,14);
-            //Clear the status area.
-            this.context.fillRect(4,34,296,18);
-            //Draw the fps.
-            this.context.fillStyle = 'black';
-            this.context.font = '16px sans-serif';
-            this.context.fillText('FPS: '+nes.fps.toFixed(2),7,20);
-            //Draw the status.
-            this.context.font = '14px sans-serif';
-            this.context.fillText('Status: '+nes.status,6,48,295);
-        },
-
-        /**
-         * Draws the specified text onto the screen.
-         * @type void
-         * @param {string} text
-         */
-
-        setStatus:function nes_screen_setStatus(text,color){
-            //Set the fill color to white.
-            this.context.fillStyle = 'white';
-            //Clear out the top of the screen.
-            //this.context.fillRect(0,0,256,24);
-            //Set the fill color to black.
-            this.context.fillStyle = 'black';
-            //Set the font.
-            this.context.font = '16px sans-serif';
-            //Write the text to the top-left of the canvas.
-            //this.context.fillText(text+'',128,18,256);
+            this.context.putImageData(this.imageData,0,0);
         },
 
     },
@@ -878,6 +824,10 @@ nes = {
                         nes.controllers.state2[i] = 65;
                         break;
                     }
+                }
+                //Return false to interrupt the arrow keys scrolling the page.
+                if(event.keyCode >= 37 && event.keyCode <= 40){
+                    return false;
                 }
             }
             //Define the key up event handler.

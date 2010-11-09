@@ -1,8 +1,6 @@
 <html>
 <head>
-
     <title>JSNES: A JavaScript NES emulator</title>
-
     <script src="source/nes.js" type="text/javascript" charset="utf-8"></script>
     <script src="source/cpu.js" type="text/javascript" charset="utf-8"></script>
     <script src="source/apu.js" type="text/javascript" charset="utf-8"></script>
@@ -15,24 +13,24 @@
         initTime = new Date().getTime();
 
         init = function(){
-
-            nes.init('lib/dynamicaudio.js');
+            nes.init('lib/dynamicaudio.swf');
             nes.loadRom('roms/lj65.nes');
-            nes.start();
-
             console.log('Initiation time: '+(new Date().getTime()-initTime)+'ms');
-
         }
 
         test = function(){
             nes.loadRom('roms/test.nes');
-            nes.start();
         }
+
+        setInterval(function(){document.getElementById('jsnes-status').innerText = nes.status;},500);
 
     </script>
 
 </head>
 <body onload='init()'>
-<center><h1>JSNES</h1><canvas id='jsnes'></canvas></center>
+<center>
+    <div id='jsnes'></div>
+    <div id='jsnes-status'>Loading...</div>
+</center>
 </body>
 </html>
