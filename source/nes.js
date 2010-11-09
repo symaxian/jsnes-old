@@ -185,7 +185,7 @@ nes = {
         //Check if a valid rom is loaded.
         if(this.hasRom()){
             //Start the frame interval.
-            this.frameInterval = setInterval(function(){nes.frame()},1000/nes.frameRate);
+            this.frameInterval = setInterval(function(){nes.frame();},1000/nes.frameRate);
         }
     },
 
@@ -209,10 +209,12 @@ nes = {
     restart:function nes_restart(){
         //Stop the nes.
         this.stop();
+        //Save the rom source.
+        var romSource = this.rom.source;
         //Reset the nes.
         this.reset();
         //Load the rom.
-        this.loadRom(this.romSource);
+        this.loadRom(romSource);
         //Start the nes.
         this.start();
     },
