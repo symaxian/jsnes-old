@@ -14,7 +14,7 @@ nes.apu = {
     dynamicAudio:{writeInt:function(){}},
 
     //The Active Flag
-    active:false,
+    active:true,
 
     //Channels
     square1:null,
@@ -98,9 +98,6 @@ nes.apu = {
         if(typeof nes.dynamicAudioPath === 'string' && nes.dynamicAudioPath !== ''){
             //Initiate the dynamic audio wrapper.
             this.dynamicAudio = new DynamicAudio({swf:nes.dynamicAudioPath});
-            //Create two square channel instances.
-            this.square1 = new this.squareChannel(true);
-            this.square2 = new this.squareChannel(false);
             //Reset the channels.
             this.square1.reset();
             this.square2.reset();
@@ -1066,186 +1063,360 @@ nes.apu = {
 
     },
 
-};
+    //======================
+    //== Square Channel 1 ==
+    //======================
 
-//====================
-//== Square Channel ==
-//====================
+    square1:{
 
-nes.apu.squareChannel = function(square1){
+    //Properties
 
-    this.dutyLookup = [0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,1,0,0,1,1,1,1,1];
+        dutyLookup:[0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,1,0,0,1,1,1,1,1],
 
-    this.impLookup = [1,-1,0,0,0,0,0,0,1,0,-1,0,0,0,0,0,1,0,0,0,-1,0,0,0,-1,0,1,0,0,0,0,0];
+        impLookup:[1,-1,0,0,0,0,0,0,1,0,-1,0,0,0,0,0,1,0,0,0,-1,0,0,0,-1,0,1,0,0,0,0,0],
 
-    this.sqr1 = square1;
-    this.isEnabled = null;
-    this.lengthCounterEnable = null;
-    this.sweepActive = null;
-    this.envDecayDisable = null;
-    this.envDecayLoopEnable = null;
-    this.envReset = null;
-    this.updateSweepPeriod = null;
+        isEnabled:null,
+        lengthCounterEnable:null,
+        sweepActive:null,
+        envDecayDisable:null,
+        envDecayLoopEnable:null,
+        envReset:null,
+        updateSweepPeriod:null,
 
-    this.progTimerCount = null;
-    this.progTimerMax = null;
-    this.lengthCounter = null;
-    this.squareCounter = null;
-    this.sweepCounter = null;
-    this.sweepCounterMax = null;
-    this.sweepMode = null;
-    this.sweepShiftAmount = null;
-    this.envDecayRate = null;
-    this.envDecayCounter = null;
-    this.envVolume = null;
-    this.masterVolume = null;
-    this.dutyMode = null;
-    this.sampleValue = null;
+        progTimerCount:null,
+        progTimerMax:null,
+        lengthCounter:null,
+        squareCounter:null,
+        sweepCounter:null,
+        sweepCounterMax:null,
+        sweepMode:null,
+        sweepShiftAmount:null,
+        envDecayRate:null,
+        envDecayCounter:null,
+        envVolume:null,
+        masterVolume:null,
+        dutyMode:null,
+        sampleValue:null,
 
-    this.reset();
+    //Methods
 
-};
+        reset:function(){
+            //Reset...numbers?
+            this.progTimerCount = 0;
+            this.progTimerMax = 0;
+            this.lengthCounter = 0;
+            this.squareCounter = 0;
+            this.sweepCounter = 0;
+            this.sweepCounterMax = 0;
+            this.sweepMode = 0;
+            this.sweepShiftAmount = 0;
+            this.envDecayRate = 0;
+            this.envDecayCounter = 0;
+            this.envVolume = 0;
+            this.masterVolume = 0;
+            this.dutyMode = 0;
+            //Reset...booleans?
+            this.isEnabled = false;
+            this.lengthCounterEnable = false;
+            this.sweepActive = false;
+            this.envDecayDisable = false;
+            this.envDecayLoopEnable = false;
+        },
 
-nes.apu.squareChannel.prototype = {
-
-    reset:function(){
-        this.progTimerCount = 0;
-        this.progTimerMax = 0;
-        this.lengthCounter = 0;
-        this.squareCounter = 0;
-        this.sweepCounter = 0;
-        this.sweepCounterMax = 0;
-        this.sweepMode = 0;
-        this.sweepShiftAmount = 0;
-        this.envDecayRate = 0;
-        this.envDecayCounter = 0;
-        this.envVolume = 0;
-        this.masterVolume = 0;
-        this.dutyMode = 0;
-
-        this.isEnabled = false;
-        this.lengthCounterEnable = false;
-        this.sweepActive = false;
-        this.envDecayDisable = false;
-        this.envDecayLoopEnable = false;
-    },
-
-    clockLengthCounter:function(){
-        if(this.lengthCounterEnable && this.lengthCounter > 0){
-            this.lengthCounter--;
-            if(this.lengthCounter === 0){
-                this.updateSampleValue();
+        clockLengthCounter:function(){
+            //???
+            if(this.lengthCounterEnable && this.lengthCounter > 0){
+                this.lengthCounter--;
+                if(this.lengthCounter === 0){
+                    this.updateSampleValue();
+                }
             }
-        }
-    },
+        },
 
-    clockEnvDecay:function(){
-        if(this.envReset){
-            //Reset envelope.
-            this.envReset = false;
-            this.envDecayCounter = this.envDecayRate+1;
-            this.envVolume = 0xF;
-        }
-        else if((--this.envDecayCounter) <= 0){
-            //Normal handling.
-            this.envDecayCounter = this.envDecayRate+1;
-            if(this.envVolume>0){
-                this.envVolume--;
+        clockEnvDecay:function(){
+            if(this.envReset){
+                //Reset envelope.
+                this.envReset = false;
+                this.envDecayCounter = this.envDecayRate+1;
+                this.envVolume = 0xF;
             }
-            else{
-                this.envVolume = this.envDecayLoopEnable?0xF:0;
-            }
-        }
-        //Set the master volume.
-        this.masterVolume = this.envDecayDisable?this.envDecayRate:this.envVolume;
-        //Update the sample value.
-        this.updateSampleValue();
-    },
-
-    clockSweep:function(){
-        if(--this.sweepCounter <= 0){
-
-            this.sweepCounter = this.sweepCounterMax + 1;
-            if(this.sweepActive && this.sweepShiftAmount>0 && this.progTimerMax>7){
-
-                //Calculate result from shifter.
-                if(this.sweepMode === 0){
-                    this.progTimerMax += (this.progTimerMax>>this.sweepShiftAmount);
-                    if(this.progTimerMax > 4095){
-                        this.progTimerMax = 4095;
-                    }
+            else if((--this.envDecayCounter) <= 0){
+                //Normal handling.
+                this.envDecayCounter = this.envDecayRate+1;
+                if(this.envVolume>0){
+                    this.envVolume--;
                 }
                 else{
-                    this.progTimerMax = this.progTimerMax-((this.progTimerMax>>this.sweepShiftAmount)-(this.sqr1?1:0));
+                    this.envVolume = this.envDecayLoopEnable?0xF:0;
                 }
             }
-        }
-
-        if(this.updateSweepPeriod){
-            this.updateSweepPeriod = false;
-            this.sweepCounter = this.sweepCounterMax+1;
-        }
-
-    },
-
-    updateSampleValue:function(){
-        if((this.isEnabled && this.lengthCounter > 0 && this.progTimerMax > 7) && !(this.sweepMode === 0 && (this.progTimerMax+(this.progTimerMax>>this.sweepShiftAmount)) > 4095)){
-            this.sampleValue = this.masterVolume*this.dutyLookup[(this.dutyMode<<3)+this.squareCounter];
-        }
-        else{
-            this.sampleValue = 0;
-        }
-    },
-
-    writeReg:function(address,value){
-        //If this is the second square channel then add 4 to the addresses.
-        var addrAdd = (this.sqr1?0:4);
-        //Switch between the registry addresses.
-        if(address === 0x4000+addrAdd){
-            // Volume/Envelope decay:
-            this.envDecayDisable = ((value&0x10) !== 0);
-            this.envDecayRate = value&0xF;
-            this.envDecayLoopEnable = ((value&0x20) !== 0);
-            this.dutyMode = (value>>6)&0x3;
-            this.lengthCounterEnable = ((value&0x20) === 0);
+            //Set the master volume.
             this.masterVolume = this.envDecayDisable?this.envDecayRate:this.envVolume;
+            //Update the sample value.
             this.updateSampleValue();
-        }
-        else if(address === 0x4001+addrAdd){
-            //Sweep
-            this.sweepActive = ((value&0x80) !== 0);
-            this.sweepCounterMax = ((value>>4)&7);
-            this.sweepMode = (value>>3)&1;
-            this.sweepShiftAmount = value&7;
-            this.updateSweepPeriod = true;
-        }
-        else if(address === 0x4002+addrAdd){
-            //Programmable Timer
-            this.progTimerMax &= 0x700;
-            this.progTimerMax |= value;
-        }
-        else if(address === 0x4003+addrAdd){
-            //Programmable Timer, Length Counter
-            this.progTimerMax &= 0xFF;
-            this.progTimerMax |= ((value&0x7)<<8);
+        },
+
+        clockSweep:function(){
             //???
-            if(this.isEnabled){
-                this.lengthCounter = nes.apu.getLengthMax(value&0xF8);
+            if(--this.sweepCounter <= 0){
+                this.sweepCounter = this.sweepCounterMax + 1;
+                if(this.sweepActive && this.sweepShiftAmount>0 && this.progTimerMax>7){
+                    //Calculate result from shifter.
+                    if(this.sweepMode === 0){
+                        this.progTimerMax += (this.progTimerMax>>this.sweepShiftAmount);
+                        if(this.progTimerMax > 4095){
+                            this.progTimerMax = 4095;
+                        }
+                    }
+                    else{
+                        this.progTimerMax = this.progTimerMax-((this.progTimerMax>>this.sweepShiftAmount)-(this.sqr1?1:0));
+                    }
+                }
             }
             //???
-            this.envReset = true;
-        }
+            if(this.updateSweepPeriod){
+                this.updateSweepPeriod = false;
+                this.sweepCounter = this.sweepCounterMax+1;
+            }
+        },
+
+        updateSampleValue:function(){
+            //???
+            if((this.isEnabled && this.lengthCounter > 0 && this.progTimerMax > 7) && !(this.sweepMode === 0 && (this.progTimerMax+(this.progTimerMax>>this.sweepShiftAmount)) > 4095)){
+                this.sampleValue = this.masterVolume*this.dutyLookup[(this.dutyMode<<3)+this.squareCounter];
+            }
+            else{
+                this.sampleValue = 0;
+            }
+        },
+
+        writeReg:function(address,value){
+            //Switch between the registry addresses.
+            if(address === 0x4000){
+                // Volume/Envelope decay:
+                this.envDecayDisable = ((value&0x10) !== 0);
+                this.envDecayRate = value&0xF;
+                this.envDecayLoopEnable = ((value&0x20) !== 0);
+                this.dutyMode = (value>>6)&0x3;
+                this.lengthCounterEnable = ((value&0x20) === 0);
+                this.masterVolume = this.envDecayDisable?this.envDecayRate:this.envVolume;
+                this.updateSampleValue();
+            }
+            else if(address === 0x4001){
+                //Sweep
+                this.sweepActive = ((value&0x80) !== 0);
+                this.sweepCounterMax = ((value>>4)&7);
+                this.sweepMode = (value>>3)&1;
+                this.sweepShiftAmount = value&7;
+                this.updateSweepPeriod = true;
+            }
+            else if(address === 0x4002){
+                //Programmable Timer
+                this.progTimerMax &= 0x700;
+                this.progTimerMax |= value;
+            }
+            else if(address === 0x4003){
+                //Programmable Timer, Length Counter
+                this.progTimerMax &= 0xFF;
+                this.progTimerMax |= ((value&0x7)<<8);
+                //???
+                if(this.isEnabled){
+                    this.lengthCounter = nes.apu.getLengthMax(value&0xF8);
+                }
+                //???
+                this.envReset = true;
+            }
+        },
+
+        setEnabled:function(value){
+            //Set the enabled flag.
+            this.isEnabled = value;
+            //If not enabled, set the length counter to 0.
+            if(!value){
+                this.lengthCounter = 0;
+            }
+            //Update the sample value.
+            this.updateSampleValue();
+        },
+
     },
 
-    setEnabled:function(value){
-        //Set the enabled flag.
-        this.isEnabled = value;
-        //If not enabled, set the length counter to 0.
-        if(!value){
+    //======================
+    //== Square Channel 2 ==
+    //======================
+
+    square2:{
+
+    //Properties
+
+        dutyLookup:[0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,1,0,0,1,1,1,1,1],
+
+        impLookup:[1,-1,0,0,0,0,0,0,1,0,-1,0,0,0,0,0,1,0,0,0,-1,0,0,0,-1,0,1,0,0,0,0,0],
+
+        isEnabled:null,
+        lengthCounterEnable:null,
+        sweepActive:null,
+        envDecayDisable:null,
+        envDecayLoopEnable:null,
+        envReset:null,
+        updateSweepPeriod:null,
+
+        progTimerCount:null,
+        progTimerMax:null,
+        lengthCounter:null,
+        squareCounter:null,
+        sweepCounter:null,
+        sweepCounterMax:null,
+        sweepMode:null,
+        sweepShiftAmount:null,
+        envDecayRate:null,
+        envDecayCounter:null,
+        envVolume:null,
+        masterVolume:null,
+        dutyMode:null,
+        sampleValue:null,
+
+    //Methods
+
+        reset:function(){
+            //Reset...numbers?
+            this.progTimerCount = 0;
+            this.progTimerMax = 0;
             this.lengthCounter = 0;
-        }
-        //Update the sample value.
-        this.updateSampleValue();
+            this.squareCounter = 0;
+            this.sweepCounter = 0;
+            this.sweepCounterMax = 0;
+            this.sweepMode = 0;
+            this.sweepShiftAmount = 0;
+            this.envDecayRate = 0;
+            this.envDecayCounter = 0;
+            this.envVolume = 0;
+            this.masterVolume = 0;
+            this.dutyMode = 0;
+            //Reset...booleans?
+            this.isEnabled = false;
+            this.lengthCounterEnable = false;
+            this.sweepActive = false;
+            this.envDecayDisable = false;
+            this.envDecayLoopEnable = false;
+        },
+
+        clockLengthCounter:function(){
+            //???
+            if(this.lengthCounterEnable && this.lengthCounter > 0){
+                this.lengthCounter--;
+                if(this.lengthCounter === 0){
+                    this.updateSampleValue();
+                }
+            }
+        },
+
+        clockEnvDecay:function(){
+            if(this.envReset){
+                //Reset envelope.
+                this.envReset = false;
+                this.envDecayCounter = this.envDecayRate+1;
+                this.envVolume = 0xF;
+            }
+            else if((--this.envDecayCounter) <= 0){
+                //Normal handling.
+                this.envDecayCounter = this.envDecayRate+1;
+                if(this.envVolume>0){
+                    this.envVolume--;
+                }
+                else{
+                    this.envVolume = this.envDecayLoopEnable?0xF:0;
+                }
+            }
+            //Set the master volume.
+            this.masterVolume = this.envDecayDisable?this.envDecayRate:this.envVolume;
+            //Update the sample value.
+            this.updateSampleValue();
+        },
+
+        clockSweep:function(){
+            //???
+            if(--this.sweepCounter <= 0){
+                this.sweepCounter = this.sweepCounterMax + 1;
+                if(this.sweepActive && this.sweepShiftAmount>0 && this.progTimerMax>7){
+                    //Calculate result from shifter.
+                    if(this.sweepMode === 0){
+                        this.progTimerMax += (this.progTimerMax>>this.sweepShiftAmount);
+                        if(this.progTimerMax > 4095){
+                            this.progTimerMax = 4095;
+                        }
+                    }
+                    else{
+                        this.progTimerMax = this.progTimerMax-((this.progTimerMax>>this.sweepShiftAmount)-(this.sqr1?1:0));
+                    }
+                }
+            }
+            //???
+            if(this.updateSweepPeriod){
+                this.updateSweepPeriod = false;
+                this.sweepCounter = this.sweepCounterMax+1;
+            }
+        },
+
+        updateSampleValue:function(){
+            //???
+            if((this.isEnabled && this.lengthCounter > 0 && this.progTimerMax > 7) && !(this.sweepMode === 0 && (this.progTimerMax+(this.progTimerMax>>this.sweepShiftAmount)) > 4095)){
+                this.sampleValue = this.masterVolume*this.dutyLookup[(this.dutyMode<<3)+this.squareCounter];
+            }
+            else{
+                this.sampleValue = 0;
+            }
+        },
+
+        writeReg:function(address,value){
+            //Switch between the registry addresses.
+            if(address === 0x4004){
+                // Volume/Envelope decay:
+                this.envDecayDisable = ((value&0x10) !== 0);
+                this.envDecayRate = value&0xF;
+                this.envDecayLoopEnable = ((value&0x20) !== 0);
+                this.dutyMode = (value>>6)&0x3;
+                this.lengthCounterEnable = ((value&0x20) === 0);
+                this.masterVolume = this.envDecayDisable?this.envDecayRate:this.envVolume;
+                this.updateSampleValue();
+            }
+            else if(address === 0x4005){
+                //Sweep
+                this.sweepActive = ((value&0x80) !== 0);
+                this.sweepCounterMax = ((value>>4)&7);
+                this.sweepMode = (value>>3)&1;
+                this.sweepShiftAmount = value&7;
+                this.updateSweepPeriod = true;
+            }
+            else if(address === 0x4006){
+                //Programmable Timer
+                this.progTimerMax &= 0x700;
+                this.progTimerMax |= value;
+            }
+            else if(address === 0x4007){
+                //Programmable Timer, Length Counter
+                this.progTimerMax &= 0xFF;
+                this.progTimerMax |= ((value&0x7)<<8);
+                //???
+                if(this.isEnabled){
+                    this.lengthCounter = nes.apu.getLengthMax(value&0xF8);
+                }
+                //???
+                this.envReset = true;
+            }
+        },
+
+        setEnabled:function(value){
+            //Set the enabled flag.
+            this.isEnabled = value;
+            //If not enabled, set the length counter to 0.
+            if(!value){
+                this.lengthCounter = 0;
+            }
+            //Update the sample value.
+            this.updateSampleValue();
+        },
+
     },
 
 };

@@ -2,14 +2,30 @@
 //== Nintendo Entertainment System ==
 //===================================
 
-//Todo
+//Todo List
 
-    //Document the apu.
-
-    //Optimization
+    //Optimization:
         //Compile the ppu color palette[s]?
+        //Clean up the ppu.
+        //Clean up the apu?
+
+    //More comments, remove all instances of "//???".
 
     //Fix saving the battery ram.
+
+    //Fix Mapper 1
+        //Null tiles occur on some games, Final Fantasy, Kid Icaurus
+
+    //Fix the Nintendo Zapper implementation.
+        //Used in place of the controller and it sets a certain number when the color white is shot at or in this case clicked on.
+
+    //Sound:
+        //Fix skipping/lagging?
+        //Research the error with the flash object not having the method "write".
+            //Just not loaded in time?
+        //Upgrade to Ben's newer dynamic audio wrapper?
+
+//Notes
 
     //Status flags:
         //Uninitialized.
@@ -21,10 +37,6 @@
             //Error loading rom(src), rom uses a mapper currently unsupported by jsnes.
         //Running at x FPS.
         //Stopped.
-
-    //MOAR MAPPERS
-
-//Notes
 
     //Mirroring Types
     //VERTICAL_MIRRORING:0,
@@ -195,10 +207,13 @@ nes = {
      */
 
     stop:function nes_stop(){
-        //Clear the frame interval.
-        clearInterval(this.frameInterval);
-        //Set the status.
-        this.status = 'Stopped.';
+        //Check if running.
+        if(this.running){
+            //Clear the frame interval.
+            clearInterval(this.frameInterval);
+            //Set the status.
+            this.status = 'Stopped.';
+        }
     },
 
     /**

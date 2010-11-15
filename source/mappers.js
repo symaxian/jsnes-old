@@ -1,6 +1,6 @@
 
 /**
- * @namespace An object holding the mappers.
+ * @namespace An object holding the rom memory mappers.
  */
 
 nes.mappers = {};
@@ -45,12 +45,12 @@ nes.mappers.mmc0 = {
      * @type void
      */
 
-    reset:function nes_mappers_mmc0reset(){
-        //Reset the controller strobes.
+    reset:function nes_mappers_mmc0_reset(){
+        //Reset the controller read strobes.
         this.joy1Strobe = 0;
         this.joy2Strobe = 0;
         this.joypadLastWrite = 0;
-        //Reset the mouse flags.
+        //Reset the mouse flags, used for the Nintendo Zapper implementation.
         //this.mousePressed = false;
         //this.mouseX = null;
         //this.mouseY = null;
@@ -62,7 +62,7 @@ nes.mappers.mmc0 = {
      * @param {integer} address
      */
 
-    load:function nes_mappers_mmc0load(address){
+    load:function nes_mappers_mmc0_load(address){
         //ROM
         if(address > 0x4017){
             return nes.cpu.mem[address];
@@ -81,7 +81,7 @@ nes.mappers.mmc0 = {
      * @param {integer} address
      */
 
-    load16bit:function nes_mappers_mmc0load16Bit(address){
+    load16bit:function nes_mappers_mmc0_load16Bit(address){
         //Load two addresses from memory and combine them.
         return this.load(address)|(this.load(address+1)<<8);
     },
@@ -93,7 +93,7 @@ nes.mappers.mmc0 = {
      * @param {integer} value
      */
 
-    write:function nes_mappers_mmc0write(address,value){
+    write:function nes_mappers_mmc0_write(address,value){
         //Check the address.
         if(address < 0x2000){
             //RAM
@@ -155,12 +155,11 @@ nes.mappers.mmc0 = {
      */
 
     regLoad:function nes_mappers_mmc0_regLoad(address){
-        //use fourth nibble (0xF000)
+        //The address sent should never be below 0x2000 or above 0x4017.
+        //Use fourth nibble (0xF000).
         switch(address>>12){
-            case 0:
-            case 1:
-                break;
             case 2:
+                //Fall through to PPU registers.
             case 3:
                 //PPU Registers
                 switch(address&7){
@@ -190,6 +189,7 @@ nes.mappers.mmc0 = {
 
                     //Read 0x2004, Sprite Memory
                     case 0x4:
+                        //Return the sprite memory at the previously set sprite ram address.
                         return nes.ppu.spriteMem[nes.ppu.sramAddress];
 
                     //Read 0x2005, Return 0
@@ -280,7 +280,6 @@ nes.mappers.mmc0 = {
                         //           //Check if a white pixel was clicked on.
                         //           if(nes.ppu.buffer[(y<<8)+x] === 0xFFFFFF){
                         //               w = 8;
-                        //               console.log('Clicked on white!');
                         //               break;
                         //           }
                         //       }
@@ -462,7 +461,7 @@ nes.mappers.mmc0 = {
      * Used by mmc2.
      */
      
-    latchAccess:function nes_mappers_mmc0latchAccess(address){},
+    latchAccess:function nes_mappers_mmc0_latchAccess(address){},
 
     /**
      * @ignore
