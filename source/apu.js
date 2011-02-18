@@ -14,14 +14,7 @@ nes.apu = {
     dynamicAudio:{writeInt:function(){}},
 
     //The Active Flag
-    active:true,
-
-    //Channels
-    square1:null,
-    square2:null,
-    triangle:null,
-    noise:null,
-    dmc:null,
+    active:false,
 
     //Frame Interrupt Variables
     frameIrqEnabled:null,

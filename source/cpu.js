@@ -12,42 +12,44 @@ nes.cpu = {
 
     /**
      * The nes' memory.
-     * @type array
+     * @type Array
      */
 
     mem:null,
 
     /**
      * The accumulator register.
-     * @type integer
+     * @type Number
      */
 
     REG_ACC:0,
 
     /**
      * The x register.
-     * @type integer
+     * @type Number
      */
 
     REG_X:0,
 
     /**
      * The y register.
-     * @type integer
+     * @type Number
      */
 
     REG_Y:0,
 
     /**
      * The stack pointer.
-     * @type integer
+     * @type Number
      */
 
     REG_SP:0,
 
     /**
      * The program counter.
-     * @type integer
+     * <br>
+     * A 16-bit register that holds the address of the next instruction to be executed.
+     * @type Number
      */
 
     REG_PC:0,
@@ -56,7 +58,7 @@ nes.cpu = {
      * The sign status flag.
      * <br>
      * Kept in the cpu status byte as the 8th bit.
-     * @type integer
+     * @type Number
      */
 
     F_SIGN:0,
@@ -65,7 +67,7 @@ nes.cpu = {
      * The overflow status flag.
      * <br>
      * Kept in the cpu status byte as the 7th bit.
-     * @type integer
+     * @type Number
      */
 
     F_OVERFLOW:0,
@@ -74,7 +76,7 @@ nes.cpu = {
      * The break status flag.
      * <br>
      * Kept in the cpu status byte as the 5th bit.
-     * @type integer
+     * @type Number
      */
 
     F_BRK:0,
@@ -83,7 +85,7 @@ nes.cpu = {
      * The decimal status flag.
      * <br>
      * Kept in the cpu status byte as the 4th bit.
-     * @type integer
+     * @type Number
      */
 
     F_DECIMAL:0,
@@ -92,7 +94,7 @@ nes.cpu = {
      * The interrupt status flag.
      * <br>
      * Kept in the cpu status byte as the 3rd bit.
-     * @type integer
+     * @type Number
      */
 
     F_INTERRUPT:0,
@@ -101,7 +103,7 @@ nes.cpu = {
      * The zero status flag.
      * <br>
      * Kept in the cpu status byte as the 2nd bit, inverted.
-     * @type integer
+     * @type Number
      */
 
     F_ZERO:0,
@@ -110,35 +112,35 @@ nes.cpu = {
      * The carry status flag.
      * <br>
      * Kept in the cpu status byte as the 1st bit.
-     * @type integer
+     * @type Number
      */
 
     F_CARRY:0,
 
     /**
      * A flag indicating whether or not an interrupt has been requested.
-     * @type boolean
+     * @type Boolean
      */
 
     interruptRequested:false,
 
     /**
      * The type of interrupt requested, 0:normal ,1:non-maskable, 2:reset.
-     * @type integer
+     * @type Number
      */
 
     interruptType:0,
 
     /**
      * The number of cpu cycles to halt.
-     * @type integer
+     * @type Number
      */
 
     cyclesToHalt:0,
 
     /**
      * A lookup table holding detailed(if cyptic) information on the cpu operations available.
-     * @type array
+     * @type Array
      */
 
     opInfo:[117506570,100796962,255,255,255,50462754,84017154,255,50397732,33686818,33620994,255,255,67306274,100860674,255,33685769,84020002,255,255,255,67241506,100795906,255,33620493,67307810,255,255,255,67307554,117639170,255,100860700,100796929,255,255,50462726,50462721,84017191,255,67174950,33686785,33621031,255,67306246,67306241,100860711,255,33685767,84019969,255,255,255,67241473,100795943,255,33620524,67307777,255,255,255,67307521,117639207,255,100729385,100796951,255,255,255,50462743,84017184,255,50397731,33686807,33621024,255,50529051,67306263,100860704,255,33685771,84019991,255,255,255,67241495,100795936,255,33620495,67307799,255,255,255,67307543,117639200,255,100729386,100796928,255,255,255,50462720,84017192,255,67174949,33686784,33621032,255,84085787,67306240,100860712,255,33685772,84019968,255,255,255,67241472,100795944,255,33620526,67307776,255,255,255,67307520,117639208,255,255,100796975,255,255,50462769,50462767,50462768,255,33620502,255,33620533,255,67306289,67306287,67306288,255,33685763,100797231,255,255,67241521,67241519,67241776,255,33620535,84085039,33620534,255,255,84084783,255,255,33686815,100796957,33686814,255,50462751,50462749,50462750,255,33620531,33686813,33620530,255,67306271,67306269,67306270,255,33685764,84019997,255,255,67241503,67241501,67241758,255,33620496,67307805,33620532,255,67307551,67307549,67307806,255,33686803,100796945,255,255,50462739,50462737,84017172,255,33620506,33686801,33620501,255,67306259,67306257,100860692,255,33685768,84019985,255,255,255,67241489,100795924,255,33620494,67307793,255,255,255,67307537,117639188,255,33686802,100796971,255,255,50462738,50462763,84017176,255,33620505,33686827,33620513,255,67306258,67306283,100860696,255,33685765,84020011,255,255,255,67241515,100795928,255,33620525,67307819,255,255,255,67307563,117639192,255],
@@ -147,7 +149,6 @@ nes.cpu = {
 
     /**
      * Resets the memory and cpu state.
-     * @type void
      */
 
     reset:function nes_cpu_reset(){
@@ -193,7 +194,6 @@ nes.cpu = {
 
     /**
      * Sets the specified interrupt type as having been requested.
-     * @type void
      * @param {intger} type
      */
 
@@ -208,8 +208,7 @@ nes.cpu = {
 
     /**
      * Sets the specified value in memory at the stack pointer.
-     * @type void
-     * @param {integer} value
+     * @param {Number} value
      */
 
     push:function nes_cpu_push(value){
@@ -221,7 +220,7 @@ nes.cpu = {
 
     /**
      * Returns the value in memory at the stack pointer.
-     * @type integer
+     * @type Number
      */
 
     pull:function nes_cpu_pull(){
@@ -233,7 +232,6 @@ nes.cpu = {
 
     /**
      * Sets the cpu state(made up of the 7 flags) in memory at the stack pointer.
-     * @type void
      */
 
     pushStatus:function nes_cpu_pushStatus(){
@@ -243,8 +241,7 @@ nes.cpu = {
 
     /**
      * Adds the specified number of cycles to be halted.
-     * @type void
-     * @param {integer} cylcles
+     * @param {Number} cycles
      */
 
     haltCycles:function nes_cpu_haltCycles(cycles){
@@ -254,12 +251,14 @@ nes.cpu = {
 
     /**
      * Emulates a single cpu instruction, returning the number of cycles it required.
-     * @type integer
+     * @returns {Number}
      */
 
     emulate:function nes_cpu_emulate(){
         //Check if an interrupt was requested.
         if(this.interruptRequested){
+            //Reset the interrupt requested flag.
+            this.interruptRequested = false;
             //Switch between the interrupt types.
             switch(this.interruptType){
                 //Normal Interrupt
@@ -300,8 +299,6 @@ nes.cpu = {
                     break;
                 }
             }
-            //Reset the interrupt requested flag.
-            this.interruptRequested = false;
         }
         //???
         var opinf = this.opInfo[this.mem[this.REG_PC+1]];

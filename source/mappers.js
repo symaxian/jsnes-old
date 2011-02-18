@@ -19,21 +19,21 @@ nes.mappers.mmc0 = {
 
     /**
      * The strobe index for the first controller.
-     * @type integer
+     * @type Number
      */
 
     joy1Strobe:0,
 
     /**
      * The strobe index for the second controller.
-     * @type integer
+     * @type Number
      */
 
     joy2Strobe:0,
 
     /**
      * A number used to remember the previous write to the joypad(controller) register.
-     * @type integer
+     * @type Number
      */
 
     joypadLastWrite:0,
@@ -42,7 +42,6 @@ nes.mappers.mmc0 = {
 
     /**
      * Resets the mapper.
-     * @type void
      */
 
     reset:function nes_mappers_mmc0_reset(){
@@ -58,8 +57,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Returns the value mapped to the specified address.
-     * @type integer
-     * @param {integer} address
+     * @type Number
+     * @param {Number} address
      */
 
     load:function nes_mappers_mmc0_load(address){
@@ -77,8 +76,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Returns the combined value from the specified address and the one after it.
-     * @type integer
-     * @param {integer} address
+     * @type Number
+     * @param {Number} address
      */
 
     load16bit:function nes_mappers_mmc0_load16Bit(address){
@@ -88,9 +87,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Writes the specified value to the specified address.
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      */
 
     write:function nes_mappers_mmc0_write(address,value){
@@ -150,8 +148,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Returns the value at the specified register address.
-     * @type integer
-     * @param {integer} address
+     * @type Number
+     * @param {Number} address
      */
 
     regLoad:function nes_mappers_mmc0_regLoad(address){
@@ -299,7 +297,6 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the data banks from the rom(nes.rom).
-     * @type void
      */
 
     loadROM:function nes_mappers_mmc0_loadROM(){
@@ -324,7 +321,6 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the character rom banks from the rom(nes.rom).
-     * @type void
      */
 
     loadCHRROM:function nes_mappers_mmc0_loadCHRROM(){
@@ -343,9 +339,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 8 kilobyte rom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load8kRomBank:function nes_mappers_mmc0_load8kRomBank(bank,address){
@@ -355,9 +350,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 16 kilobyte rom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load16kRomBank:function nes_mappers_mmc0_load16kRomBank(bank,address){
@@ -367,9 +361,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 32 kilobyte rom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load32kRomBank:function nes_mappers_mmc0_load32kRomBank(bank,address){
@@ -380,9 +373,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 1 kilobyte vrom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load1kVromBank:function nes_mappers_mmc0_load8kVromBank(bank,address){
@@ -402,9 +394,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 2 kilobyte vrom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load2kVromBank:function nes_mappers_mmc0_load2kVromBank(bank,address){
@@ -424,9 +415,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 4 kilobyte vrom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load4kVromBank:function nes_mappers_mmc0_load4kVromBank(bank,address){
@@ -441,9 +431,8 @@ nes.mappers.mmc0 = {
 
     /**
      * Loads the specified 8 kilobyte vrom bank into the specified address in memory.
-     * @type void
-     * @param {integer} bank
-     * @param {integer} address
+     * @param {Number} bank
+     * @param {Number} address
      */
 
     load8kVromBank:function nes_mappers_mmc0_load8kVromBank(bankStart,address){
@@ -489,7 +478,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -497,7 +486,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -505,7 +494,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -513,7 +502,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -521,7 +510,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -529,7 +518,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -537,7 +526,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -545,7 +534,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc1
      */
 
@@ -555,7 +544,6 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Resets the mapper.
-     * @type void
      * @memberOf nes.mappers.mmc1
      */
 
@@ -578,9 +566,8 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Similar to nes.mappers.mmc0.write(), but intercepts writes to mmc1 specific addresses.
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      * @memberOf nes.mappers.mmc1
      */
 
@@ -617,9 +604,8 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Similar to nes.mappers.mmc0.setReg(), but intercepts writes to mmc1 specific registers.
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      * @memberOf nes.mappers.mmc1
      */
 
@@ -721,8 +707,8 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Returns the the register number associated with the specified address.
-     * @type integer
-     * @param {integer} address
+     * @type Number
+     * @param {Number} address
      * @memberOf nes.mappers.mmc1
      */
 
@@ -742,7 +728,6 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Loads the data banks from the rom(nes.rom).
-     * @type void
      * @memberOf nes.mappers.mmc1
      */
 
@@ -782,9 +767,8 @@ nes.applyObject(nes.mappers.mmc2,{
     /**
      * Similar to nes.mappers.mmc0.write(), but intercepts writes to mmc2 specific addresses.
      * Member of nes.mappers.mmc2
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      */
 
     write:function nes_mappers_mmc2_write(address,value){
@@ -800,7 +784,6 @@ nes.applyObject(nes.mappers.mmc2,{
     /**
      * Loads the data banks from the rom(nes.rom).
      * Member of nes.mappers.mmc2
-     * @type void
      */
 
     loadROM:function nes_mappers_mmc2_loadROM(){
@@ -830,7 +813,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc4
      */
 
@@ -838,7 +821,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc4
      */
 
@@ -846,7 +829,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc4
      */
 
@@ -854,7 +837,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc4
      */
 
@@ -862,7 +845,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      * @memberOf nes.mappers.mmc4
      */
 
@@ -870,7 +853,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type boolean
+     * @type Boolean
      * @memberOf nes.mappers.mmc4
      */
 
@@ -878,7 +861,7 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Unknown
-     * @type boolean
+     * @type Boolean
      * @memberOf nes.mappers.mmc4
      */
 
@@ -886,9 +869,8 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Similar to nes.mappers.mmc0.write(), but intercepts writes to mmc4 specific addresses.
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      * @memberOf nes.mappers.mmc4
      */
 
@@ -970,9 +952,8 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Runs the specified command with the passed argument.
-     * @type void
-     * @param {integer} command
-     * @param {integer} argument
+     * @param {Number} command
+     * @param {Number} argument
      * @memberOf nes.mappers.mmc4
      */
 
@@ -1048,7 +1029,6 @@ nes.applyObject(nes.mappers.mmc4,{
 
     /**
      * Loads the data banks from the rom(nes.rom).
-     * @type void
      * @memberOf nes.mappers.mmc4
      */
 

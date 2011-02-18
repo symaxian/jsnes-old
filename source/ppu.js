@@ -14,14 +14,14 @@ nes.ppu = {
 
     /**
      * The video ram memory.
-     * @type array
+     * @type Array
      */
 
     vramMem:null,
 
     /**
      * The sprite ram memory.
-     * @type array
+     * @type Array
      */
 
     spriteMem:null,
@@ -30,35 +30,35 @@ nes.ppu = {
 
     /**
      * A flag indicating whether this is the first or second vram write.
-     * @type boolean
+     * @type Boolean
      */
 
     firstWrite:null,
 
     /**
      * The currently indexed video ram element.
-     * @type integer
+     * @type Number
      */
 
     vramAddress:null,
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      */
 
     vramTmpAddress:null,
 
     /**
      * Unknown
-     * @type integer
+     * @type Number
      */
 
     vramBufferedReadValue:null,
 
     /**
      * The currently indexed sprite memory element.
-     * @type integer
+     * @type Number
      */
 
     sramAddress:null,
@@ -69,7 +69,7 @@ nes.ppu = {
      * Non-Maskable Interrupt on vertical blank flag.
      * 0 - Disabled
      * 1 - Enabled
-     * @type integer
+     * @type Number
      */
 
     f_nmiOnVblank:null,
@@ -80,7 +80,7 @@ nes.ppu = {
      * 0 - 8x8
      * <br>
      * 1 - 8x16
-     * @type integer
+     * @type Number
      */
 
     f_spriteSize:null,
@@ -91,7 +91,7 @@ nes.ppu = {
      * 0 - 0x0000
      * <br>
      * 1 - 0x1000
-     * @type integer
+     * @type Number
      */
 
     f_bgPatternTable:null,
@@ -102,7 +102,7 @@ nes.ppu = {
      * 0 - 0x0000
      * <br>
      * 1 - 0x1000
-     * @type integer
+     * @type Number
      */
 
     f_spPatternTable:null,
@@ -113,7 +113,7 @@ nes.ppu = {
      * 0 - 1
      * <br>
      * 1 - 32
-     * @type integer
+     * @type Number
      */
 
     f_addrInc:null,
@@ -128,7 +128,7 @@ nes.ppu = {
      * 2 - 0x2800
      * <br>
      * 3 - 0x2C00
-     * @type integer
+     * @type Number
      */
 
     f_nTblAddress:null,
@@ -145,7 +145,7 @@ nes.ppu = {
      * 2 - green
      * <br>
      * 4 - red
-     * @type integer
+     * @type Number
      */
 
     f_color:null,
@@ -156,7 +156,7 @@ nes.ppu = {
      * 0 - Sprites are hidden
      * <br>
      * 1 - Sprites are visible
-     * @type integer
+     * @type Number
      */
 
     f_spVisibility:null,
@@ -167,7 +167,7 @@ nes.ppu = {
      * 0 - Background is hidden
      * <br>
      * 1 - Background is visible
-     * @type integer
+     * @type Number
      */
 
     f_bgVisibility:null,
@@ -180,7 +180,7 @@ nes.ppu = {
      * 1 - No Clipping
      * <br>
      * Poorly implemented, clips background as well.
-     * @type integer
+     * @type Number
      */
 
     f_spClipping:null,
@@ -193,7 +193,7 @@ nes.ppu = {
      * 1 - No Clipping
      * <br>
      * Poorly implemented, clips sprites as well.
-     * @type integer
+     * @type Number
      */
 
     f_bgClipping:null,
@@ -204,7 +204,7 @@ nes.ppu = {
      * 0 - Color
      * <br>
      * 1 - Monochrome
-     * @type integer
+     * @type Number
      */
 
     f_dispType:null,
@@ -214,7 +214,7 @@ nes.ppu = {
     /**
      * Unknown counter.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     cntFV:null,
@@ -222,7 +222,7 @@ nes.ppu = {
     /**
      * Unknown counter.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     cntVT:null,
@@ -230,7 +230,7 @@ nes.ppu = {
     /**
      * Unknown counter.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     cntHT:null,
@@ -238,7 +238,7 @@ nes.ppu = {
     /**
      * Unknown counter.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     cntV:null,
@@ -246,7 +246,7 @@ nes.ppu = {
     /**
      * Unknown counter.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     cntH:null,
@@ -258,7 +258,7 @@ nes.ppu = {
     /**
      * Unknown register.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     regV:null,
@@ -266,7 +266,7 @@ nes.ppu = {
     /**
      * Unknown register.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     regH:null,
@@ -274,7 +274,7 @@ nes.ppu = {
     /**
      * Unknown register.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     regVT:null,
@@ -282,7 +282,7 @@ nes.ppu = {
     /**
      * Unknown register.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     regHT:null,
@@ -290,7 +290,7 @@ nes.ppu = {
     /**
      * Unknown register.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     regFH:null,
@@ -298,7 +298,7 @@ nes.ppu = {
     /**
      * Unknown register.
      * Somehow tied into screen scrolling and the control/masking register.
-     * @type integer
+     * @type Number
      */
 
     regS:null,
@@ -319,14 +319,14 @@ nes.ppu = {
      * Scanlines 0-20 and 241-261 are not visible.
      * <br>
      * Scanline 19 is the "dummy" scanline.
-     * @type integer
+     * @type Number
      */
 
     scanline:null,
 
     /**
      * The last rendered scanline.
-     * @type integer
+     * @type Number
      */
 
     lastRenderedScanline:null,
@@ -335,28 +335,28 @@ nes.ppu = {
      * A horizontal pixel counter.
      * <br>
      * Goes from 0 to 341 before ending the current scanline, even though scanlines are only 256 pixels wide.
-     * @type integer
+     * @type Number
      */
 
     curX:null,
 
     /**
      * Set to true when the ppu has drawn the last scanline.
-     * @type boolean
+     * @type Boolean
      */
 
     requestEndFrame:null,
 
     /**
      * Non-Maskable Interrupt counter.
-     * @type integer
+     * @type Number
      */
 
     nmiCounter:null,
 
     /**
      * True when internally buffered tile data is valid.
-     * @type boolean
+     * @type Boolean
      */
 
     validTileData:null,
@@ -365,49 +365,49 @@ nes.ppu = {
 
     /**
      * Sprite x values.
-     * @type array
+     * @type Array
      */
 
     sprX:null,
 
     /**
      * Sprite y values.
-     * @type array
+     * @type Array
      */
 
     sprY:null,
 
     /**
      * Sprite tile indexes, indexes the pattern table.
-     * @type array
+     * @type Array
      */
 
     sprTile:null,
 
     /**
-     * Upper two bites of sprite color.
-     * @type array
+     * Upper two bytes of sprite color.
+     * @type Array
      */
 
     sprCol:null,
 
     /**
      * Sprite vertically flipped flags.
-     * @type array
+     * @type Array
      */
 
     vertFlip:null,
 
     /**
      * Sprite horizontally flipped flags.
-     * @type array
+     * @type Array
      */
 
     horiFlip:null,
 
     /**
      * Sprite background priority.
-     * @type array
+     * @type Array
      */
 
     bgPriority:null,
@@ -416,21 +416,21 @@ nes.ppu = {
 
     /**
      * True or false depending on whether there has been a sprite 0 hit.
-     * @type boolean
+     * @type Boolean
      */
 
     hitSpr0:null,
 
     /**
      * The x position of the sprite 0 hit.
-     * @type integer
+     * @type Number
      */
 
     spr0HitX:null,
 
     /**
      * The y position of the sprite 0 hit.
-     * @type integer
+     * @type Number
      */
 
     spr0HitY:null,
@@ -445,7 +445,7 @@ nes.ppu = {
      * The first entry is used as the background color in color mode.
      * <br>
      * If in monochrome mode these colors are saturated.
-     * @type array
+     * @type Array
      */
 
     imgPalette:null,
@@ -456,7 +456,7 @@ nes.ppu = {
      * Holds 16 color values that come from color indexes at vram 0x3f10 to 0x3f20.
      * <br>
      * If in monochrome mode these colors are saturated.
-     * @type array
+     * @type Array
      */
 
     sprPalette:null,
@@ -465,7 +465,7 @@ nes.ppu = {
 
     /**
      * Pattern table tile buffer.
-     * @type array
+     * @type Array
      */
 
     ptTile:null,
@@ -474,14 +474,14 @@ nes.ppu = {
 
     /**
      * First nametable?
-     * @type array
+     * @type Array
      */
 
     ntable1:null,
 
     /**
      * Nametable?
-     * @type array
+     * @type Array
      */
 
     nameTable:null,
@@ -490,7 +490,7 @@ nes.ppu = {
 
     /**
      * Vram mirror table.
-     * @type array
+     * @type Array
      */
 
     vramMirrorTable:null,
@@ -499,7 +499,7 @@ nes.ppu = {
 
     /**
      * Whether or not to clip the image to the tv size.
-     * @type boolean
+     * @type Boolean
      */
 
     clipToTvSize:true,
@@ -508,18 +508,17 @@ nes.ppu = {
 
     /**
      * Resets the ppu.
-     * @type void
      */
 
     reset:function ppu_reset(){
         //Reset the video ram.
         this.vramMem = new Array(0x8000);
-        for(var i=0;i<this.vramMem.length;i++){
+        for(var i=0;i<0x8000;i++){
             this.vramMem[i] = 0;
         }
         //Reset the sprite memory.
         this.spriteMem = new Array(0x100);
-        for(var i=0;i<this.spriteMem.length;i++){
+        for(var i=0;i<0x100;i++){
             this.spriteMem[i] = 0;
         }
         //VRAM I/O
@@ -560,7 +559,11 @@ nes.ppu = {
         this.regS = 0;
         //Variables used when rendering.
         this.attrib = new Array(32);
-        this.buffer = new Array(61440);
+
+        this.redBuffer = new Array(61440);
+        this.greenBuffer = new Array(61440);
+        this.blueBuffer = new Array(61440);
+
         this.bgbuffer = new Array(61440);
         this.pixRendered = new Array(61440);
         //???
@@ -611,8 +614,7 @@ nes.ppu = {
 
     /**
      * Sets the specified vram mirroring.
-     * @type void
-     * @param {integer} mirroring
+     * @param {Number} mirroring
      */
 
     setMirroring:function ppu_setMirroring(mirroring){
@@ -670,10 +672,9 @@ nes.ppu = {
 
     /**
      * Defines a mirrored area in the vram address lookup table.
-     * @type void
-     * @param {integer} from The area of memory to redirect.
-     * @param {integer} to The physical memory.
-     * @param {integer} size The size of the mirrored section.
+     * @param {Number} from The area of memory to redirect.
+     * @param {Number} to The physical memory.
+     * @param {Number} size The size of the mirrored section.
      */
 
     defineMirrorRegion:function ppu_defineMirrorRegion(from,to,size){
@@ -684,38 +685,44 @@ nes.ppu = {
 
     /**
      * Clears the screen buffer.
-     * @type void
      */
 
     startFrame:function ppu_startFrame(){
-        //Default the background color to black.
-        var bgColor = 0x000000;
         //Check if monochrome.
         if(this.f_dispType === 0){
-            //No, use first entry of image palette as bg color.
-            bgColor = this.imgPalette[0];
+            //No, use first entry of image palette as the bg color.
+            var bgColorRedComponent = this.imgPalette[0]&0xFF;
+            var bgColorGreenComponent = (this.imgPalette[0]>>8)&0xFF;
+            var bgColorBlueComponent = (this.imgPalette[0]>>16)&0xFF;
         }
         else{
             //Yes, color emphasis determines the bg color.
+            //Default the background color to black.
+            var bgColorRedComponent = 0;
+            var bgColorGreenComponent = 0;
+            var bgColorBlueComponent = 0;
+            //Change the bg color depending on the color emphasis flag.
             switch(this.f_color){
                 //Green
                 case 1:
-                    bgColor = 0x00FF00;
+                    bgColorGreenComponent = 255;
                     break;
                 //Blue
                 case 2:
-                    bgColor = 0xFF0000;
+                    bgColorBlueComponent = 255;
                     break;
                 //Red
                 case 4:
-                    bgColor = 0x0000FF;
+                    bgColorRedComponent = 255;
                     break;
             }
         }
         //Loop through each pixel.
         for(var i=0;i<61440;i++){
             //Set the bg color.
-            this.buffer[i] = bgColor;
+            this.redBuffer[i] = bgColorRedComponent;
+            this.greenBuffer[i] = bgColorGreenComponent;
+            this.blueBuffer[i] = bgColorBlueComponent;
             //???
             this.pixRendered[i] = 65;
         }
@@ -723,7 +730,6 @@ nes.ppu = {
 
     /**
      * Starts the non-maskable interrupt, ensures that every scanline is rendered, and draws the pixel buffer to the screen.
-     * @type void
      */
 
     endFrame:function ppu_endFrame(){
@@ -760,18 +766,26 @@ nes.ppu = {
             for(var y=0;y<240;y++){
                 for(var x=0;x<8;x++){
                     //Left
-                    this.buffer[(y<<8)+x] = 0;
+                    this.redBuffer[(y<<8)+x] = 0;
+                    this.blueBuffer[(y<<8)+x] = 0;
+                    this.greenBuffer[(y<<8)+x] = 0;
                     //Right
-                    this.buffer[(y<<8)+255-x] = 0;
+                    this.redBuffer[(y<<8)+255-x] = 0;
+                    this.blueBuffer[(y<<8)+255-x] = 0;
+                    this.greenBuffer[(y<<8)+255-x] = 0;
                 }
             }
             //Clip the top and bottom pixels.
             for(var y=0;y<8;y++){
                 for(var x=0;x<256;x++){
                     //Top
-                    this.buffer[(y<<8)+x] = 0;
+                    this.redBuffer[(y<<8)+x] = 0;
+                    this.blueBuffer[(y<<8)+x] = 0;
+                    this.greenBuffer[(y<<8)+x] = 0;
                     //Bottom
-                    this.buffer[((239-y)<<8)+x] = 0;
+                    this.redBuffer[((239-y)<<8)+x] = 0;
+                    this.blueBuffer[((239-y)<<8)+x] = 0;
+                    this.greenBuffer[((239-y)<<8)+x] = 0;
                 }
             }
         }
@@ -781,12 +795,16 @@ nes.ppu = {
             //Clip left 8 pixels column.
             for(var y=0;y<240;y++){
                 for(var x=0;x<8;x++){
-                    this.buffer[(y<<8)+x] = 0;
+                    //Set the color to black.
+                    this.redBuffer[(y<<8)+x] = 0;
+                    this.blueBuffer[(y<<8)+x] = 0;
+                    this.greenBuffer[(y<<8)+x] = 0;
+
                 }
             }
         }
         //Write the buffer to the screen.
-        nes.screen.writeFrame(this.buffer);
+        nes.screen.writeFrame();
         //Reset the last rendered scanline counter.
         this.lastRenderedScanline = 19;
     },
@@ -799,7 +817,6 @@ nes.ppu = {
      * Normal scanline(20-260): Render, update scrolling, check for sprite 0 hit.
      * <br>
      * Last Scanline(261): Set vertical blank flag, set requestEndFrame flag, reset scanline counter.
-     * @type void
      */
 
     endScanline:function ppu_endScanline(){
@@ -810,7 +827,7 @@ nes.ppu = {
                 //Update scroll.
                 this.cntHT = this.regHT;
                 this.cntH = this.regH;
-                this.renderBgScanline(this.bgbuffer,this.scanline);
+                this.renderBgScanlineOntoBgBuffer(this.scanline);
                 //Check for sprite 0 hit on next scanline.
                 if(!this.hitSpr0 && this.f_spVisibility === 1){
                     if(this.checkSprite0()){
@@ -846,7 +863,7 @@ nes.ppu = {
                 //Check if the bg is visible.
                 if(this.f_bgVisibility === 1){
                     //Render dummy scanline.
-                    this.renderBgScanline(this.buffer,20);
+                    this.renderBgScanlineOntoBuffer(20);
                 }
                 //Check sprite 0 hit on the first visible scanline.
                 this.checkSprite0();
@@ -874,9 +891,8 @@ nes.ppu = {
 
     /**
      * Writes the passed value to the specified register.
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      */
 
     writeRegister:function(address,value){
@@ -1008,10 +1024,10 @@ nes.ppu = {
                     this.vramMem[this.vramAddress] = value;
                     //???
                     if(this.vramAddress%16 < 8){
-                        this.ptTile[parseInt(this.vramAddress/16)].setScanline(this.vramAddress%16,value,this.vramMem[this.vramAddress+8]);
+                        this.ptTile[Math.floor(this.vramAddress/16)].setScanline(this.vramAddress%16,value,this.vramMem[this.vramAddress+8]);
                     }
                     else{
-                        this.ptTile[parseInt(this.vramAddress/16)].setScanline((this.vramAddress%16)-8,this.vramMem[this.vramAddress-8],value);
+                        this.ptTile[Math.floor(this.vramAddress/16)].setScanline((this.vramAddress%16)-8,this.vramMem[this.vramAddress-8],value);
                     }
                     //Invoke mapper latch.
                     nes.mmc.latchAccess(this.vramAddress);
@@ -1106,7 +1122,6 @@ nes.ppu = {
 
     /**
      * Converts the scroll registers to a temporary vram address.
-     * @type void
      */
 
     regsToAddress:function(){
@@ -1115,7 +1130,6 @@ nes.ppu = {
 
     /**
      * Converts the scroll counters to the vram address.
-     * @type void
      */
 
     cntsToAddress:function(){
@@ -1124,7 +1138,6 @@ nes.ppu = {
 
     /**
      * Updates the scroll registers from the temporary vram address created by regsToAddress().
-     * @type void
      */
 
     regsFromAddress:function(){
@@ -1142,7 +1155,6 @@ nes.ppu = {
 
     /**
      * Updates the scroll counters from the current vram address.
-     * @type void
      */
 
     cntsFromAddress:function(){
@@ -1160,7 +1172,6 @@ nes.ppu = {
 
     /**
      * Renders scanlines up to the current one?
-     * @type void
      */
 
     triggerRendering:function(){
@@ -1175,8 +1186,7 @@ nes.ppu = {
 
     /**
      * Renders the specified number of scanlines.
-     * @type void
-     * @param {integer} scanCount
+     * @param {Number} scanCount
      */
 
     renderFramePartially:function(scanCount){
@@ -1192,8 +1202,10 @@ nes.ppu = {
             for(var destIndex=startScan<<8;destIndex<endIndex;destIndex++){
                 //???
                 if(this.pixRendered[destIndex] > 0xFF){
-                    //Set the pixel from the background buffer.
-                    this.buffer[destIndex] = this.bgbuffer[destIndex];
+                    //Set the pixel color from the background buffer.
+                    this.redBuffer[destIndex] = this.bgbuffer[destIndex]&0xFF;
+                    this.greenBuffer[destIndex] = (this.bgbuffer[destIndex]>>8)&0xFF;
+                    this.blueBuffer[destIndex] = (this.bgbuffer[destIndex]>>16)&0xFF;
                 }
             }
         }
@@ -1203,14 +1215,7 @@ nes.ppu = {
         this.validTileData = false;
     },
 
-    /**
-     * Renders the background of the specified scanline onto the passed buffer.
-     * @type void
-     * @param {array} buffer
-     * @param {integer} scanline
-     */
-
-    renderBgScanline:function(buffer,scanline){
+    renderBgScanlineOntoBuffer:function(scanline){
         //Reduce the scanline value to the previous scale, -20 to 241 instead of 0 to 261.
         scanline -= 20;
         //???
@@ -1251,7 +1256,11 @@ nes.ppu = {
                         //???
                         if(t.opaque[this.cntFV]){
                             for(;sx<8;sx++){
-                                this.buffer[destIndex] = this.imgPalette[t.pixelColor[tscanoffset+sx]+att];
+
+                                this.redBuffer[destIndex] = buffer[destIndex]&0xFF;
+                                this.greenBuffer[destIndex] = (buffer[destIndex]>>8)&0xFF;
+                                this.blueBuffer[destIndex] = (buffer[destIndex]>>16)&0xFF;
+
                                 this.pixRendered[destIndex] |= 256;
                                 destIndex++;
                             }
@@ -1260,7 +1269,99 @@ nes.ppu = {
                             for(;sx<8;sx++){
                                 var col = t.pixelColor[tscanoffset+sx];
                                 if(col !== 0){
-                                    buffer[destIndex] = this.imgPalette[col+att];
+
+                                    this.redBuffer[destIndex] = buffer[destIndex]&0xFF;
+                                    this.greenBuffer[destIndex] = (buffer[destIndex]>>8)&0xFF;
+                                    this.blueBuffer[destIndex] = (buffer[destIndex]>>16)&0xFF;
+
+                                    this.pixRendered[destIndex] |= 256;
+                                }
+                                destIndex++;
+                            }
+                        }
+                    }
+                }
+                //Increment the horizontal tile counter.
+                this.cntHT++;
+                //Check to reset the horizontal tile counter.
+                if(this.cntHT === 32){
+                    this.cntHT = 0;
+                    this.cntH++;
+                    this.cntH %= 2;
+                }
+            }
+            //Tile data for one row should now have been fetched, so the data in the array is valid.
+            this.validTileData = true;
+        }
+        //Update vertical scroll.
+        this.cntFV++;
+        if(this.cntFV === 8){
+            this.cntFV = 0;
+            this.cntVT++;
+            if(this.cntVT === 30){
+                this.cntVT = 0;
+                this.cntV++;
+                this.cntV %= 2;
+            }
+            else if(this.cntVT === 32){
+                this.cntVT = 0;
+            }
+            //Invalidate tile data, for what reason who knows?
+            this.validTileData = false;
+        }
+    },
+
+    renderBgScanlineOntoBgBuffer:function(scanline){
+        //Reduce the scanline value to the previous scale, -20 to 241 instead of 0 to 261.
+        scanline -= 20;
+        //???
+        var destIndex = (scanline<<8)-this.regFH;
+        //???
+        this.cntHT = this.regHT;
+        this.cntH = this.regH;
+        //???
+        if(scanline < 240 && (scanline-this.cntFV) >= 0){
+            //Cache the curent name table index.
+            var curNt = this.ntable1[2*this.cntV+this.cntH];
+            //???
+            var tscanoffset = this.cntFV<<3;
+            //Loop through the 32 tiles.
+            for(var tile=0;tile<32;tile++){
+                //Check if the scanline is visible.
+                if(scanline >= 0){
+                    //Check if the tile and attribute data is not cached.
+                    if(!this.validTileData){
+                        //If not cache it.
+                        this.scantile[tile] = this.ptTile[this.regS*256+this.nameTable[curNt].getTileIndex(this.cntHT,this.cntVT)];
+                        this.attrib[tile] = this.nameTable[curNt].getAttrib(this.cntHT,this.cntVT);
+                    }
+                    //Get the tile and its attributes.
+                    var t = this.scantile[tile];
+                    var att = this.attrib[tile];
+                    //Render tile scanline.
+                    var x = (tile<<3)-this.regFH;
+                    if(x > -8){
+                        //???
+                        if(x < 0){
+                            destIndex -= x;
+                            var sx = -x;
+                        }
+                        else{
+                            var sx = 0;
+                        }
+                        //???
+                        if(t.opaque[this.cntFV]){
+                            for(;sx<8;sx++){
+                                this.bgbuffer[destIndex] = this.imgPalette[t.pixelColor[tscanoffset+sx]+att];
+                                this.pixRendered[destIndex] |= 256;
+                                destIndex++;
+                            }
+                        }
+                        else{
+                            for(;sx<8;sx++){
+                                var col = t.pixelColor[tscanoffset+sx];
+                                if(col !== 0){
+                                    this.bgbuffer[destIndex] = this.imgPalette[col+att];
                                     this.pixRendered[destIndex] |= 256;
                                 }
                                 destIndex++;
@@ -1300,8 +1401,7 @@ nes.ppu = {
 
     /**
      * Renders sprites onto the specified scanline, provided they match the specified bg priority.
-     * @type void
-     * @param {integer} scancount
+     * @param {Number} scancount
      * @param {boolean} bgPri
      */
 
@@ -1392,8 +1492,7 @@ nes.ppu = {
 
     /**
      * Checks for a sprite 0 hit on the specified scanline.
-     * @type void
-     * @param {integer} scanline
+     * @param {Number} scanline
      */
 
     checkSprite0:function(){
@@ -1535,7 +1634,6 @@ nes.ppu = {
 
     /**
      * Updates the internally buffered image and sprite color palettes.
-     * @type void
      */
 
     updatePalettes:function(){
@@ -1559,16 +1657,15 @@ nes.ppu = {
 
     /**
      * Writes the passed value into sprite memory at the specified address and updates the internal buffers accordingly.
-     * @type void
-     * @param {integer} address
-     * @param {integer} value
+     * @param {Number} address
+     * @param {Number} value
      */
 
     writeSpriteMem:function(address,value){
         //Write the value into the sprite memory.
         this.spriteMem[address] = value;
         //???
-        var tIndex = parseInt(address/4);
+        var tIndex = Math.floor(address/4);
         //???
         if(tIndex === 0){
             //Check sprite 0 for a hit.
@@ -1662,7 +1759,7 @@ nes.ppu = {
                     //Cache the color.
                     var color = palette[i];
                     //Add the color with modified rgb values into the emphasis array.
-                    this.emphTable[emph][i] = (parseInt(((color>>16)&0xFF)*rFactor)<<16)|(parseInt(((color>>8)&0xFF)*gFactor)<<8)|parseInt((color&0xFF)*bFactor);
+                    this.emphTable[emph][i] = (Math.floor(((color>>16)&0xFF)*rFactor)<<16)|(Math.floor(((color>>8)&0xFF)*gFactor)<<8)|Math.floor((color&0xFF)*bFactor);
                 }
             }
         },
@@ -1683,8 +1780,8 @@ nes.ppu = {
 /**
  * Holds tiles and their attributes in a psuedo two-dimensional array.
  * @constructor
- * @param {integer} width
- * @param {integer} height
+ * @param {Number} width
+ * @param {Number} height
  */
 
 nes.ppu.NameTable = function nes_ppu_NameTable(width,height){
@@ -1700,8 +1797,8 @@ nes.ppu.NameTable.prototype = {
     /**
      * Returns the tile at the specified index.
      * @type Tile
-     * @param {integer} x
-     * @param {integer} y
+     * @param {Number} x
+     * @param {Number} y
      */
 
     getTileIndex:function nes_ppu_NameTable_getTileIndex(x,y){
@@ -1711,9 +1808,9 @@ nes.ppu.NameTable.prototype = {
 
     /**
      * Returns the tile attributes at the specified index.
-     * @type integer
-     * @param {integer} x
-     * @param {integer} y
+     * @type Number
+     * @param {Number} x
+     * @param {Number} y
      */
 
     getAttrib:function nes_ppu_NameTable_getAttrib(x,y){
@@ -1723,15 +1820,14 @@ nes.ppu.NameTable.prototype = {
 
     /**
      * Sets the tile attributes at the specified index.
-     * @type void
-     * @param {integer} index
-     * @param {integer} value
+     * @param {Number} index
+     * @param {Number} value
      */
 
     writeAttrib:function nes_ppu_NameTable_writeAttrib(index,value){
         //Get the x and y position of the index.
         var basex = (index%8)*4;
-        var basey = parseInt(index/8)*4;
+        var basey = Math.floor(index/8)*4;
         //???
         for(var sqy=0;sqy<2;sqy++){
             for(var sqx=0;sqx<2;sqx++){
@@ -1770,10 +1866,9 @@ Tile.prototype = {
 
     /**
      * Sets the pixel color/transparency to the specified scanline?
-     * @type void
-     * @param {integer} scanline
-     * @param {integer} b1
-     * @param {integer} b2
+     * @param {Number} scanline
+     * @param {Number} b1
+     * @param {Number} b2
      */
 
     setScanline:function(scanline,b1,b2){
@@ -1793,11 +1888,10 @@ Tile.prototype = {
 
     /**
      * Renders the tile using the sprite data from the specified index.
-     * @type void
-     * @param {integer} srcy1 The top bound for the tile.
-     * @param {integer} srcy2 The bottom bound for the tile.
-     * @param {integer} yAdd Amount of pixels the tile is rendered below the sprY value.
-     * @param {integer} spriteIndex The sprite that is being rendered for.
+     * @param {Number} srcy1 The top bound for the tile.
+     * @param {Number} srcy2 The bottom bound for the tile.
+     * @param {Number} yAdd Amount of pixels the tile is rendered below the sprY value.
+     * @param {Number} spriteIndex The sprite that is being rendered for.
      */
 
     render:function(srcy1,srcy2,yAdd,spriteIndex){
@@ -1845,7 +1939,10 @@ Tile.prototype = {
                             var tpri = nes.ppu.pixRendered[screenIndex];
                             if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
                                 //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                                nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                                nes.ppu.redBuffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]&0xFF;
+                                nes.ppu.greenBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>8)&0xFF;
+                                nes.ppu.blueBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>16)&0xFF;
+
                                 nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                             }
                         }
@@ -1871,7 +1968,10 @@ Tile.prototype = {
                             var tpri = nes.ppu.pixRendered[screenIndex];
                             if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
                                 //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                                nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                                nes.ppu.redBuffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]&0xFF;
+                                nes.ppu.greenBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>8)&0xFF;
+                                nes.ppu.blueBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>16)&0xFF;
+
                                 nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                             }
                         }
@@ -1901,7 +2001,10 @@ Tile.prototype = {
                         var tpri = nes.ppu.pixRendered[screenIndex];
                         if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
                             //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                            nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                            nes.ppu.redBuffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]&0xFF;
+                            nes.ppu.greenBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>8)&0xFF;
+                            nes.ppu.blueBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>16)&0xFF;
+
                             nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                         }
                     }
@@ -1930,7 +2033,10 @@ Tile.prototype = {
                         var tpri = nes.ppu.pixRendered[screenIndex];
                         if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
                             //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                            nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                            nes.ppu.redBuffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]&0xFF;
+                            nes.ppu.greenBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>8)&0xFF;
+                            nes.ppu.blueBuffer[screenIndex] = (nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]>>16)&0xFF;
+
                             nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                         }
                     }
@@ -1943,6 +2049,6 @@ Tile.prototype = {
                 screenIndex += 248;
             }
         }
-    },
+    }
 
 };

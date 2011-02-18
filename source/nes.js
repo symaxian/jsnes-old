@@ -61,7 +61,7 @@ nes = {
 
     /**
      * The desired framerate for the nes to run at.
-     * @type integer
+     * @type Number
      * @default 60
      */
 
@@ -69,21 +69,21 @@ nes = {
 
     /**
      * A placeholder for the interval to run the nes at.
-     * @type unknown
+     * @type Interval
      */
 
     frameInterval:null,
 
     /**
      * The framerate that the nes is running at.
-     * @type float
+     * @type Number
      */
 
     fps:0,
 
     /**
      * The current status of the nes.
-     * @type string
+     * @type String
      * @default "Uninitialized."
      */
 
@@ -91,21 +91,21 @@ nes = {
 
     /**
      * A placeholder for the memory mapper needed by the loaded rom file.
-     * @type object
+     * @type Object
      */
 
     mmc:null,
 
     /**
      * The rom data.
-     * @type object
+     * @type Object
      */
 
     rom:null,
 
     /**
      * The path to the dynamic audio flash object(lib/dynamicaudio.swf).
-     * @type string
+     * @type String
      */
 
     dynamicAudioPath:'',
@@ -114,7 +114,7 @@ nes = {
 
     /**
      * Returns whether or not the browser supports the canvas element.
-     * @type boolean
+     * @type Boolean
      */
 
     browserSupportsCanvas:function nes_browserSupportsCanvas(){
@@ -136,7 +136,6 @@ nes = {
 
     /**
      * Initiates the nes.
-     * @type void
      */
 
     init:function nes_init(dynamicAudioPath){
@@ -168,7 +167,6 @@ nes = {
 
     /**
      * Resets the nes.
-     * @type void
      */
 
     reset:function nes_reset(){
@@ -190,20 +188,18 @@ nes = {
 
     /**
      * Starts the nes if a valid rom is loaded.
-     * @type void
      */
 
     start:function nes_start(){
         //Check if a valid rom is loaded.
         if(this.hasRom()){
             //Start the frame interval.
-            this.frameInterval = setInterval(function(){nes.frame();},1000/nes.frameRate);
+            this.frameInterval = setInterval(function frameWrapper(){nes.frame();},1000/nes.frameRate);
         }
     },
 
     /**
      * Stops the nes if running.
-     * @type void
      */
 
     stop:function nes_stop(){
@@ -218,7 +214,6 @@ nes = {
 
     /**
      * Stops then starts the nes.
-     * @type void
      */
 
     restart:function nes_restart(){
@@ -236,7 +231,6 @@ nes = {
 
     /**
      * Emulates one frame for the nes.
-     * @type void
      */
 
     frame:function nes_frame(){
@@ -316,7 +310,7 @@ nes = {
 
     /**
      * Returns whether a valid rom is currently loaded.
-     * @type boolean
+     * @type Boolean
      */
 
     hasRom:function nes_hasRom(){
@@ -326,8 +320,8 @@ nes = {
 
     /**
      * Loads the specified rom file, returns true if succesfully loaded.
-     * @type boolean
-     * @param {string} src The source of the rom file.
+     * @type Boolean
+     * @param {String} src The source of the rom file.
      */
 
     loadRom:function nes_loadRom(src){
@@ -471,7 +465,6 @@ nes = {
 
     /**
      * Loads the save file for the current rom if it exists.
-     * @type void
      */
 
     loadBatteryRam:function nes_loadBatteryRam(){
@@ -495,7 +488,6 @@ nes = {
 
     /**
      * Saves the save file for the current rom.
-     * @type void
      */
 
     saveBatteryRam:function nes_saveBatteryRam(){
@@ -516,8 +508,8 @@ nes = {
 
     /**
      * Returns whether or not save data exists for the specified name.
-     * @type boolean
-     * @param {string} name
+     * @type Boolean
+     * @param {String} name
      */
 
     hasSave:function nes_hasSave(name){
@@ -527,9 +519,8 @@ nes = {
 
     /**
      * Sets the sent data to the name in the browser's window.name property, overwriting the old save data if it exists.
-     * @type void
-     * @param {string} name
-     * @param {string} value
+     * @param {String} name
+     * @param {String} value
      */
 
     setSave:function nes_setSave(name,value){
@@ -556,8 +547,8 @@ nes = {
 
     /**
      * Returns the save data associated with the specified name
-     * @type string
-     * @param {string} name
+     * @returns String
+     * @param {String} name
      */
 
     getSave:function nes_getSave(name){
@@ -574,8 +565,7 @@ nes = {
 
     /**
      * Clears the save data associated with the specified name.
-     * @type void
-     * @param {string} name
+     * @param {String} name
      */
 
     clearSave:function nes_clearSave(name){
@@ -596,7 +586,6 @@ nes = {
 
     /**
      * Clears the browser's window.name property, deleting all the save data.
-     * @type void
      */
 
     clearSaves:function nes_clearSaves(){
@@ -606,12 +595,11 @@ nes = {
 
     /**
      * Copies a variable number of elements from one array into another.
-     * @type void
-     * @param {array} srcArray The array to copy the elements from.
-     * @param {integer} srcPos The position in the source array to start copying elements from.
-     * @param {array} destArray The array to copy the elements into.
-     * @param {integer} destPos The position in the destination array to start copying elements into.
-     * @param {integer} length The number of elements to copy.
+     * @param {Array} srcArray The array to copy the elements from.
+     * @param {Number} srcPos The position in the source array to start copying elements from.
+     * @param {Array} destArray The array to copy the elements into.
+     * @param {Number} destPos The position in the destination array to start copying elements into.
+     * @param {Number} length The number of elements to copy.
      */
 
     copyArrayElements:function nes_copyArrayElements(srcArray,srcPos,destArray,destPos,length){
@@ -624,8 +612,8 @@ nes = {
 
     /**
      * Returns a shallow copy of the specified object, used with mapper inheritance.
-     * @type object
-     * @param {object} object
+     * @returns {Object}
+     * @param {Object} object
      */
 
     copyObject:function nes_copyObject(object){
@@ -642,9 +630,8 @@ nes = {
 
     /**
      * Copies the members of the first object into the second one, used with mapper inheritance.
-     * @type void
-     * @param {object} destObject
-     * @param {object} srcObject
+     * @param {Object} destObject
+     * @param {Object} srcObject
      */
 
     applyObject:function nes_applyObject(destObject,srcObject){
@@ -669,35 +656,35 @@ nes = {
 
         /**
          * The canvas element.
-         * @type object
+         * @type Object
          */
 
         canvas:null,
 
         /**
          * The canvas' 2d context interface.
-         * @type object
+         * @type Object
          */
 
         context:null,
 
         /**
          * A copy of the canvas' image data for manipulation.
-         * @type object
+         * @type Object
          */
 
         imageData:null,
 
         /**
          * A copy of the canvas' pixel data for manipulation.
-         * @type array
+         * @type Array
          */
 
         pixelData:null,
 
         /**
          * A copy of the previous frame's pixel buffer.
-         * @type array
+         * @type Array
          */
 
         buffer:null,
@@ -706,7 +693,6 @@ nes = {
 
         /**
          * Initiates the nes' screen, called by nes.init().
-         * @type void
          */
 
         init:function nes_screen_init(container){
@@ -728,32 +714,24 @@ nes = {
             this.imageData = this.context.getImageData(0,0,256,240);
             //Get the pixel data.
             this.pixelData = this.imageData.data;
-            //Create a pixel buffer.
-            this.buffer = new Array(61440);
         },
 
         /**
          * Writes the sent pixel buffer to the screen
-         * @type void
-         * @param {array} buffer The pixel buffer to write to the screen, holds color values in hexadecimal integers.
+         * @param {Array} buffer The pixel buffer to write to the screen, holds color values in hexadecimal integers.
          */
 
-        writeFrame:function nes_screen_writeFrame(buffer){
+        writeFrame:function nes_screen_writeFrame(){
+            //Cache the ppu buffer.
+            var buffer = nes.ppu.buffer;
             //Loop through each pixel.
             for(var i=0;i<61440;i++){
-                //Check if the new and old colors are different.
-                if(buffer[i] !== this.buffer[i]){
-                    //Cache the new color.
-                    var pixel = buffer[i];
-                    //Set the red color component.
-                    this.pixelData[i*4] = pixel&0xFF;
-                    //Set the green color component.
-                    this.pixelData[i*4+1] = (pixel>>8)&0xFF;
-                    //Set the blue color component.
-                    this.pixelData[i*4+2] = (pixel>>16)&0xFF;
-                    //Set the new color in the buffer.
-                    this.buffer[i] = pixel;
-                }
+                //Set the red color component.
+                this.pixelData[i*4] = nes.ppu.redBuffer[i];
+                //Set the green color component.
+                this.pixelData[i*4+1] = nes.ppu.greenBuffer[i];
+                //Set the blue color component.
+                this.pixelData[i*4+2] = nes.ppu.blueBuffer[i];
             }
             //Place the image data onto the canvas.
             this.context.putImageData(this.imageData,0,0);
@@ -775,21 +753,21 @@ nes = {
 
         /**
          * The state of the first controller.
-         * @type array
+         * @type Array
          */
 
         state1:[64,64,64,64,64,64,64,64,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
 
         /**
          * The state of the second controller.
-         * @type array
+         * @type Array
          */
 
         state2:[64,64,64,64,64,64,64,64,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
 
         /**
          * The key bindings associated with the first controller's buttons.
-         * @type array
+         * @type Array
          */
 
         keys1:[
@@ -805,7 +783,7 @@ nes = {
 
         /**
          * The key bindings associated with the second controller's buttons.
-         * @type array
+         * @type Array
          */
 
         keys2:[
@@ -822,8 +800,7 @@ nes = {
     //Methods
 
         /**
-         * Defines the document event handlers, called by nes.init().
-         * @type void
+         * Defines the keyboard event handlers needed to detect keystrokes.
          */
 
         init:function nes_controller(){
