@@ -1,6 +1,6 @@
-//===========================
-//== Audio Processing Unit ==
-//===========================
+//
+//  Audio Processing Unit
+//_________________________//
 
 /**
  * @namespace The audio processing unit for the nes.
@@ -8,7 +8,9 @@
 
 nes.apu = {
 
-//Properties
+    //
+    //  Properties
+    //______________//
 
     //Dynamic Audio Layer
     dynamicAudio:{writeInt:function(){}},
@@ -617,9 +619,13 @@ nes.apu = {
         return ((channel.lengthCounter === 0 || !channel.isEnabled)?0:1);
     },
 
-    //================
-    //== DM Channel ==
-    //================
+    //
+    //  DM Channel
+    //______________//
+
+    /**
+     * @namespace The dm channel on the apu.
+     */
 
     dmc:{
 
@@ -800,9 +806,13 @@ nes.apu = {
 
     },
 
-    //===================
-    //== Noise Channel ==
-    //===================
+    //
+    //  Noise Channel
+    //_________________//
+
+    /**
+     * @namespace The noise channel on the apu.
+     */
 
     noise:{
 
@@ -927,9 +937,13 @@ nes.apu = {
 
     },
 
-    //======================
-    //== Triangle Channel ==
-    //======================
+    //
+    //  Triangle Channel
+    //____________________//
+
+    /**
+     * @namespace The triangle channel on the apu.
+     */
 
     triangle:{
 
@@ -1056,9 +1070,13 @@ nes.apu = {
 
     },
 
-    //======================
-    //== Square Channel 1 ==
-    //======================
+    //
+    //  Square Channel 1
+    //____________________//
+
+    /**
+     * @namespace The square channel 1 on the apu.
+     */
 
     square1:{
 
@@ -1234,9 +1252,13 @@ nes.apu = {
 
     },
 
-    //======================
-    //== Square Channel 2 ==
-    //======================
+    //
+    //  Square Channel 1
+    //____________________//
+
+    /**
+     * @namespace The square channel 2 on the apu.
+     */
 
     square2:{
 
@@ -1408,8 +1430,8 @@ nes.apu = {
             }
             //Update the sample value.
             this.updateSampleValue();
-        },
+        }
 
-    },
+    }
 
 };

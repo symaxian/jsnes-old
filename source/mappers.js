@@ -57,7 +57,7 @@ nes.mappers.mmc0 = {
 
     /**
      * Returns the value mapped to the specified address.
-     * @type Number
+     * @returns {Number}
      * @param {Number} address
      */
 
@@ -76,7 +76,7 @@ nes.mappers.mmc0 = {
 
     /**
      * Returns the combined value from the specified address and the one after it.
-     * @type Number
+     * @returns {Number}
      * @param {Number} address
      */
 
@@ -707,7 +707,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Returns the the register number associated with the specified address.
-     * @type Number
+     * @returns {Number}
      * @param {Number} address
      * @memberOf nes.mappers.mmc1
      */
@@ -766,6 +766,7 @@ nes.applyObject(nes.mappers.mmc2,{
 
     /**
      * Similar to nes.mappers.mmc0.write(), but intercepts writes to mmc2 specific addresses.
+     * <br>
      * Member of nes.mappers.mmc2
      * @param {Number} address
      * @param {Number} value
@@ -1045,6 +1046,6 @@ nes.applyObject(nes.mappers.mmc4,{
         nes.loadBatteryRam();
         //Do Reset-Interrupt.
         nes.cpu.requestInterrupt(2);
-    },
+    }
 
 });

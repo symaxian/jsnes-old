@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>JSNES: A JavaScript NES emulator</title>
+    <title>jsnes</title>
     <script src="source/nes.js" type="text/javascript" charset="utf-8"></script>
     <script src="source/cpu.js" type="text/javascript" charset="utf-8"></script>
     <script src="source/apu.js" type="text/javascript" charset="utf-8"></script>
@@ -19,7 +19,7 @@
         }
 
         test = function(){
-            nes.loadRom('roms/test.nes');
+            nes.loadRom('roms/Test.nes');
         }
 
         setInterval(function(){document.getElementById('jsnes-status').innerHTML = nes.status;},500);
@@ -28,9 +28,72 @@
 
 </head>
 <body onload='init()'>
-<center>
-    <div id='jsnes'></div>
-    <div id='jsnes-status'>Loading...</div>
-</center>
+    <div align="center">
+
+        <h1>jsnes</h1>
+
+        <div id='jsnes'></div>
+        <div id='jsnes-status'>Loading...</div>
+
+								<input type="button" value="Start" onclick="nes.start()"> 
+								<br> 
+								<input type="button" value="Stop" onclick="nes.stop()"> 
+								<br> 
+								<input type="button" value="Restart" onclick="nes.restart()"> 
+								<p align="left"> 
+									Load:
+									<input type="button" value="Lj65" onclick="nes.loadRom('roms/lj65.nes')"> 
+									<input type="button" value="Zelda" onclick="nes.loadRom('roms/The_Legend_Of_Zelda.nes')"> 
+									<input type="button" value="Mario" onclick="nes.loadRom('roms/mario.nes')"> 
+									<input type="button" value="Pacman" onclick="nes.loadRom('roms/pacman.nes')"> 
+									<input type="button" value="Emulator Test" onclick="nes.loadRom('roms/test.nes')"> 
+								</p> 
+
+        <blockquote>
+
+            <h3>Key Bindings:</h3>
+
+            <table>
+                <tr>
+                    <th>Controller</th>
+                    <th>Keyboard</th>
+                </tr>
+                <tr>
+                    <td>Start</td>
+                    <td>Enter</td>
+                </tr>
+                <tr>
+                    <td>Select</td>
+                    <td>Right Ctrl</td>
+                </tr>
+                <tr>
+                    <td>A</td>
+                    <td>Z</td>
+                </tr>
+                <tr>
+                    <td>B</td>
+                    <td>X</td>
+                </tr>
+                <tr>
+                    <td>Up</td>
+                    <td>Up Arrow</td>
+                </tr>
+                <tr>
+                    <td>Down</td>
+                    <td>Down Arrow</td>
+                </tr>
+                <tr>
+                    <td>Left</td>
+                    <td>Left Arrow</td>
+                </tr>
+                <tr>
+                    <td>Right</td>
+                    <td>Right Arrow</td>
+                </tr>
+            </table>
+
+        </blockquote>
+
+    </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
-//===================================
-//== Nintendo Entertainment System ==
-//===================================
+//
+//  Nintendo Entertainment System
+//_________________________________//
 
 //Todo List
 
@@ -9,6 +9,10 @@
         //Clean up the ppu.
         //Clean up the apu?
 
+    //Move to typed arrays.
+
+    //Move more towards using canvas, less javascript.
+
     //More comments, remove all instances of "//???".
 
     //Fix saving the battery ram.
@@ -16,7 +20,7 @@
     //Fix Mapper 1
         //Null tiles occur on some games, Final Fantasy, Kid Icaurus
 
-    //Fix the Nintendo Zapper implementation.
+    //Fix the Nintendo Zapper implementation?
         //Used in place of the controller and it sets a certain number when the color white is shot at or in this case clicked on.
 
     //Sound:
@@ -38,7 +42,7 @@
         //Running at x FPS.
         //Stopped.
 
-    //Mirroring Types
+    //PPU Mirroring Types
     //VERTICAL_MIRRORING:0,
     //HORIZONTAL_MIRRORING:1,
     //FOURSCREEN_MIRRORING:2,
@@ -58,6 +62,13 @@
 nes = {
 
 //Properties
+
+    /**
+     * A flag indicating whether the nes is running or not.
+     * @type Boolean
+     */
+
+    running:false,
 
     /**
      * The desired framerate for the nes to run at.
@@ -114,7 +125,7 @@ nes = {
 
     /**
      * Returns whether or not the browser supports the canvas element.
-     * @type Boolean
+     * @returns {Boolean}
      */
 
     browserSupportsCanvas:function nes_browserSupportsCanvas(){
@@ -135,11 +146,12 @@ nes = {
     },
 
     /**
-     * Initiates the nes.
+     * Initiates the nes, returning whether it could be initiated or not.
+     * @returns {Boolean}
      */
 
     init:function nes_init(dynamicAudioPath){
-        //Get the jsnes division.
+        //Get the jsnes screen division.
         var screenDiv = document.getElementById('jsnes');
         //Check the division.
         if(screenDiv !== null){
@@ -153,16 +165,15 @@ nes = {
                 this.controllers.init();
                 //Reset the system.
                 this.reset();
+                return true;
             }
-            else{
-                //Browser does not support canvas, set the status.
-                this.status = 'Error initializing emulator, your browser does not adequately support the canvas element needed for emulation.';
-            }
+            //Browser does not support canvas, set the status.
+            this.status = 'Error initializing emulator, your browser does not adequately support the canvas element needed for emulation.';
+            return false;
         }
-        else{
-            //Required division not found on web page, set the status.
-            this.status = 'Error initializing emulator, division with id "jsnes" not found on the web page.';
-        }
+        //Required division not found on web page, set the status.
+        this.status = 'Error initializing emulator, division with id "jsnes" not found on the web page.';
+        return false;
     },
 
     /**
@@ -193,8 +204,10 @@ nes = {
     start:function nes_start(){
         //Check if a valid rom is loaded.
         if(this.hasRom()){
+            //Set the running flag.
+            this.running = true;
             //Start the frame interval.
-            this.frameInterval = setInterval(function frameWrapper(){nes.frame();},1000/nes.frameRate);
+            this.frameInterval = setInterval(function(){nes.frame();},1000/nes.frameRate);
         }
     },
 
@@ -203,13 +216,12 @@ nes = {
      */
 
     stop:function nes_stop(){
-        //Check if running.
-        if(this.running){
-            //Clear the frame interval.
-            clearInterval(this.frameInterval);
-            //Set the status.
-            this.status = 'Stopped.';
-        }
+        //Set the running flag.
+        this.running = false;
+        //Set the status.
+        this.status = 'Stopped.';
+        //Clear the frame interval.
+        clearInterval(this.frameInterval);
     },
 
     /**
@@ -234,83 +246,88 @@ nes = {
      */
 
     frame:function nes_frame(){
-        //Clear the ppu buffer.
-        this.ppu.startFrame();
-        //Reset the cycle count to 0.
-        var cycles = 0;
-        //Start the frame loop.
-        FRAMELOOP:for(;;){
-            //Check if no cycles are to be halted.
-            if(this.cpu.cyclesToHalt === 0){
-                //Execute a CPU instruction.
-                cycles = this.cpu.emulate();
-                //Set the cycles to the apu.
-                this.apu.clockFrameCounter(cycles);
-                //???
-                cycles *= 3;
-            }
-            //Else check if the number of cycles to halt is less than or equal to 8.
-            else if(this.cpu.cyclesToHalt < 9){
-                //???
-                cycles = this.cpu.cyclesToHalt*3;
-                //Set the cycles to halt to the apu.
-                this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
-                //Set the cycles to halt to 0.
-                this.cpu.cyclesToHalt = 0;
-            }
-            //Else the number of cycles to halt is greater than 8.
-            else{
-                //Set the cycles to 24.
-                cycles = 24;
-                //Set the cycles to halt to the apu.
-                this.apu.clockFrameCounter(8);
-                //Remove 8 from the cycles to halt counter.
-                this.cpu.cyclesToHalt -= 8;
-            }
-            //Loop for every cycle executed by the cpu.
-            for(;cycles>0;cycles--){
-                //Check for a sprite 0 hit.
-                if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline-21 === this.ppu.spr0HitY){
-                    //Set the sprite 0 hit flag.
-                    nes.cpu.mem[0x2002] |= 64;
-                }
-                //Check if the ppu is done rendering.
-                if(this.ppu.requestEndFrame){
-                    //Decrement the non-maskable interrupt counter.
-                    this.ppu.nmiCounter--;
+        //Check if running.
+        if(this.running){
+            //Clear the ppu buffer.
+            this.ppu.startFrame();
+            //Reset the cycle count to 0.
+            var cycles = 0;
+            //Set the inFrameLoop flag.
+            var inFrameLoop = true;
+            //Start the frame loop.
+            while(inFrameLoop){
+                //Check if no cycles are to be halted.
+                if(this.cpu.cyclesToHalt === 0){
+                    //Execute a CPU instruction.
+                    cycles = this.cpu.emulate();
+                    //Set the cycles to the apu.
+                    this.apu.clockFrameCounter(cycles);
                     //???
-                    if(this.ppu.nmiCounter === 0){
-                        //Reset the end of frame flag.
-                        this.ppu.requestEndFrame = false;
-                        //Draw the frame and start the vBlank period.
-                        this.ppu.endFrame();
-                        //Break the frame loop.
-                        break FRAMELOOP;
+                    cycles *= 3;
+                }
+                //Else check if the number of cycles to halt is less than or equal to 8.
+                else if(this.cpu.cyclesToHalt < 9){
+                    //???
+                    cycles = this.cpu.cyclesToHalt*3;
+                    //Set the cycles to halt to the apu.
+                    this.apu.clockFrameCounter(this.cpu.cyclesToHalt);
+                    //Set the cycles to halt to 0.
+                    this.cpu.cyclesToHalt = 0;
+                }
+                //Else the number of cycles to halt is greater than 8.
+                else{
+                    //Set the cycles to 24.
+                    cycles = 24;
+                    //Set the cycles to halt to the apu.
+                    this.apu.clockFrameCounter(8);
+                    //Remove 8 from the cycles to halt counter.
+                    this.cpu.cyclesToHalt -= 8;
+                }
+                //Loop for every cycle executed by the cpu.
+                for(;cycles>0;cycles--){
+                    //Check for a sprite 0 hit.
+                    if(this.ppu.curX === this.ppu.spr0HitX && this.ppu.f_spVisibility === 1 && this.ppu.scanline-21 === this.ppu.spr0HitY){
+                        //Set the sprite 0 hit flag.
+                        nes.cpu.mem[0x2002] |= 64;
+                    }
+                    //Check if the ppu is done rendering.
+                    if(this.ppu.requestEndFrame){
+                        //Decrement the non-maskable interrupt counter.
+                        this.ppu.nmiCounter--;
+                        //???
+                        if(this.ppu.nmiCounter === 0){
+                            //Reset the end of frame flag.
+                            this.ppu.requestEndFrame = false;
+                            //Draw the frame and start the vBlank period.
+                            this.ppu.endFrame();
+                            //Break the frame loop.
+                            inFrameLoop = false;
+                        }
+                    }
+                    //Increment the horizontal pixel counter for every cycle.
+                    this.ppu.curX++;
+                    //Check if 341 pixels have been accounted for, even though the scanlines are only 256 pixels wide.
+                    if(this.ppu.curX === 341){
+                        //Reset the horizontal pixel counter.
+                        this.ppu.curX = 0;
+                        //Have the ppu end the scanline.
+                        this.ppu.endScanline();
                     }
                 }
-                //Increment the horizontal pixel counter for every cycle.
-                this.ppu.curX++;
-                //Check if 341 pixels have been accounted for, even though the scanlines are only 256 pixels wide.
-                if(this.ppu.curX === 341){
-                    //Reset the horizontal pixel counter.
-                    this.ppu.curX = 0;
-                    //Have the ppu end the scanline.
-                    this.ppu.endScanline();
-                }
             }
+            //Calculate the fps.
+            var now = new Date().getTime();
+            var frameDifference = this.lastFrameTime-now;
+            this.fps = -1000/frameDifference;
+            this.lastFrameTime = now;
+            //Set the status.
+            this.status = 'Running at '+this.fps.toFixed(2)+' FPS.';
         }
-        //Calculate the fps.
-        var now = new Date().getTime();
-        var frameDifference = this.lastFrameTime-now;
-        this.fps = -1000/frameDifference;
-        this.lastFrameTime = now;
-        //Set the status.
-        this.status = 'Running at '+this.fps.toFixed(2)+' FPS.';
     },
 
     /**
      * Returns whether a valid rom is currently loaded.
-     * @type Boolean
+     * @returns {Boolean}
      */
 
     hasRom:function nes_hasRom(){
@@ -320,8 +337,8 @@ nes = {
 
     /**
      * Loads the specified rom file, returns true if succesfully loaded.
-     * @type Boolean
-     * @param {String} src The source of the rom file.
+     * @returns {Boolean}
+     * @param {string} src The source of the rom file.
      */
 
     loadRom:function nes_loadRom(src){
@@ -509,7 +526,7 @@ nes = {
     /**
      * Returns whether or not save data exists for the specified name.
      * @type Boolean
-     * @param {String} name
+     * @param {string} name
      */
 
     hasSave:function nes_hasSave(name){
@@ -519,8 +536,8 @@ nes = {
 
     /**
      * Sets the sent data to the name in the browser's window.name property, overwriting the old save data if it exists.
-     * @param {String} name
-     * @param {String} value
+     * @param {string} name
+     * @param {string} value
      */
 
     setSave:function nes_setSave(name,value){
@@ -547,8 +564,8 @@ nes = {
 
     /**
      * Returns the save data associated with the specified name
-     * @returns String
-     * @param {String} name
+     * @returns {String}
+     * @param {string} name
      */
 
     getSave:function nes_getSave(name){
@@ -565,7 +582,7 @@ nes = {
 
     /**
      * Clears the save data associated with the specified name.
-     * @param {String} name
+     * @param {string} name
      */
 
     clearSave:function nes_clearSave(name){
@@ -596,10 +613,10 @@ nes = {
     /**
      * Copies a variable number of elements from one array into another.
      * @param {Array} srcArray The array to copy the elements from.
-     * @param {Number} srcPos The position in the source array to start copying elements from.
+     * @param {integer} srcPos The position in the source array to start copying elements from.
      * @param {Array} destArray The array to copy the elements into.
-     * @param {Number} destPos The position in the destination array to start copying elements into.
-     * @param {Number} length The number of elements to copy.
+     * @param {integer} destPos The position in the destination array to start copying elements into.
+     * @param {integer} length The number of elements to copy.
      */
 
     copyArrayElements:function nes_copyArrayElements(srcArray,srcPos,destArray,destPos,length){
@@ -613,7 +630,7 @@ nes = {
     /**
      * Returns a shallow copy of the specified object, used with mapper inheritance.
      * @returns {Object}
-     * @param {Object} object
+     * @param {object} object
      */
 
     copyObject:function nes_copyObject(object){
@@ -630,8 +647,8 @@ nes = {
 
     /**
      * Copies the members of the first object into the second one, used with mapper inheritance.
-     * @param {Object} destObject
-     * @param {Object} srcObject
+     * @param {object} destObject
+     * @param {object} srcObject
      */
 
     applyObject:function nes_applyObject(destObject,srcObject){
@@ -642,9 +659,9 @@ nes = {
         }
     },
 
-    //============
-    //== Screen ==
-    //============
+    //
+    //  Screen
+    //__________//
 
     /**
      * @namespace An abstraction of the HTML5 Canvas element to use as the screen.
@@ -714,6 +731,8 @@ nes = {
             this.imageData = this.context.getImageData(0,0,256,240);
             //Get the pixel data.
             this.pixelData = this.imageData.data;
+            //Create a pixel buffer.
+            this.buffer = new Array(61440);
         },
 
         /**
@@ -721,17 +740,22 @@ nes = {
          * @param {Array} buffer The pixel buffer to write to the screen, holds color values in hexadecimal integers.
          */
 
-        writeFrame:function nes_screen_writeFrame(){
-            //Cache the ppu buffer.
-            var buffer = nes.ppu.buffer;
+        writeFrame:function nes_screen_writeFrame(buffer){
             //Loop through each pixel.
             for(var i=0;i<61440;i++){
-                //Set the red color component.
-                this.pixelData[i*4] = nes.ppu.redBuffer[i];
-                //Set the green color component.
-                this.pixelData[i*4+1] = nes.ppu.greenBuffer[i];
-                //Set the blue color component.
-                this.pixelData[i*4+2] = nes.ppu.blueBuffer[i];
+                //Check if the new and old colors are different.
+                if(buffer[i] !== this.buffer[i]){
+                    //Cache the new color.
+                    var pixel = buffer[i];
+                    //Set the red color component.
+                    this.pixelData[i*4] = pixel&0xFF;
+                    //Set the green color component.
+                    this.pixelData[i*4+1] = (pixel>>8)&0xFF;
+                    //Set the blue color component.
+                    this.pixelData[i*4+2] = (pixel>>16)&0xFF;
+                    //Set the new color in the buffer.
+                    this.buffer[i] = pixel;
+                }
             }
             //Place the image data onto the canvas.
             this.context.putImageData(this.imageData,0,0);
@@ -739,9 +763,9 @@ nes = {
 
     },
 
-    //=================
-    //== Controllers ==
-    //=================
+    //
+    //  Controllers
+    //_______________//
 
     /**
      * @namespace Holds interface's for the controllers.
@@ -752,14 +776,14 @@ nes = {
     //Properties
 
         /**
-         * The state of the first controller.
+         * The state(as if in memory) of the first controller.
          * @type Array
          */
 
         state1:[64,64,64,64,64,64,64,64,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
 
         /**
-         * The state of the second controller.
+         * The state(as if in memory) of the second controller.
          * @type Array
          */
 
@@ -800,48 +824,63 @@ nes = {
     //Methods
 
         /**
-         * Defines the keyboard event handlers needed to detect keystrokes.
+         * Defines the document event handlers, called by nes.init().
          */
 
         init:function nes_controller(){
+
+            /**
+             * @ignore
+             */
+
             //Define the key down event handler.
             document.onkeydown = function document_onkeydown(event){
                 //Loop through the key codes.
-                for(var i=0;i<nes.controllers.keys1.length;i++){
+                for(var i=0;i<8;i++){
                     //Check the controller 1 code.
                     if(event.keyCode === nes.controllers.keys1[i]){
+                        //Set the controller state at that key.
                         nes.controllers.state1[i] = 65;
-                        break;
+                        //Return false to interrupt the default key behavior.
+                        return false;
                     }
                     //Else check the controller 2 code.
-                    else if(event.keyCode === nes.controllers.keys2[i]){
+                    if(event.keyCode === nes.controllers.keys2[i]){
+                        //Set the controller state at that key.
                         nes.controllers.state2[i] = 65;
-                        break;
+                        //Return false to interrupt the default key behavior.
+                        return false;
                     }
                 }
-                //Return false to interrupt the arrow keys scrolling the page.
-                if(event.keyCode >= 37 && event.keyCode <= 40){
-                    return false;
-                }
             }
+
+            /**
+             * @ignore
+             */
+
             //Define the key up event handler.
             document.onkeyup = function document_onkeyup(event){
                 //Loop through the key codes.
-                for(var i=0;i<nes.controllers.keys1.length;i++){
+                for(var i=0;i<8;i++){
                     //Check the controller 1 code.
                     if(event.keyCode === nes.controllers.keys1[i]){
+                        //Set the controller state at that key.
                         nes.controllers.state1[i] = 64;
-                        break;
+                        //Return false to interrupt the default key behavior.
+                        return false;
                     }
                     //Else check the controller 2 code.
-                    else if(event.keyCode === nes.controllers.keys2[i]){
+                    if(event.keyCode === nes.controllers.keys2[i]){
+                        //Set the controller state at that key.
                         nes.controllers.state2[i] = 64;
-                        break;
+                        //Return false to interrupt the default key behavior.
+                        return false;
                     }
                 }
             }
-        },
 
-    },
+        }
+
+    }
 
 };

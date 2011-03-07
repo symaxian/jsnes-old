@@ -139,7 +139,7 @@ nes.cpu = {
     cyclesToHalt:0,
 
     /**
-     * A lookup table holding detailed(if cyptic) information on the cpu operations available.
+     * A lookup table holding cyptic information on the cpu operations.
      * @type Array
      */
 
@@ -220,7 +220,7 @@ nes.cpu = {
 
     /**
      * Returns the value in memory at the stack pointer.
-     * @type Number
+     * @returns {Number}
      */
 
     pull:function nes_cpu_pull(){
@@ -1002,6 +1002,6 @@ nes.cpu = {
         }
         //Return the number of cycles.
         return cycleCount;
-    },
+    }
 
 };
