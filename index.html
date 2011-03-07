@@ -18,10 +18,6 @@
             console.log('Initiation time: '+(new Date().getTime()-initTime)+'ms');
         }
 
-        test = function(){
-            nes.loadRom('roms/Test.nes');
-        }
-
         setInterval(function(){document.getElementById('jsnes-status').innerHTML = nes.status;},500);
 
     </script>
@@ -35,24 +31,118 @@
         <div id='jsnes'></div>
         <div id='jsnes-status'>Loading...</div>
 
-								<input type="button" value="Start" onclick="nes.start()"> 
-								<br> 
-								<input type="button" value="Stop" onclick="nes.stop()"> 
-								<br> 
-								<input type="button" value="Restart" onclick="nes.restart()"> 
-								<p> 
-									Load:
-									<input type="button" value="Lj65" onclick="nes.loadRom('roms/lj65.nes')"> 
-									<input type="button" value="Zelda" onclick="nes.loadRom('roms/The_Legend_Of_Zelda.nes')"> 
-									<input type="button" value="Mario" onclick="nes.loadRom('roms/Mario_Bros.nes')"> 
-									<input type="button" value="Pacman" onclick="nes.loadRom('roms/Pac-Man.nes')"> 
-									<input type="button" value="Emulator Test" onclick="nes.loadRom('roms/Test.nes')"> 
-								</p> 
+        <p>
+            <input type="button" value="Start" onclick="nes.start()">
+            <br>
+            <input type="button" value="Stop" onclick="nes.stop()">
+            <br>
+            <input type="button" value="Restart" onclick="nes.restart()">
+        </p>
 
-        <blockquote>
+        <p>
+            <h3>Games:</h3>
+            <table>
+                <tr>
+                    <th>ROM</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Bubble Bobble" onclick="nes.loadRom('roms/Bubble_Bobble.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Contra" onclick="nes.loadRom('roms/Contra.nes')"></td>
+                    <td>Weird map scrolling issues, uses mapper 2.</td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Concentration Room" onclick="nes.loadRom('roms/croom.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Donkey Kong" onclick="nes.loadRom('roms/Donkey_Kong.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Dr Mario" onclick="nes.loadRom('roms/Dr_Mario.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Final Fantasy" onclick="nes.loadRom('roms/Final_Fantasy.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Golf" onclick="nes.loadRom('roms/Golf.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Kid Icarus" onclick="nes.loadRom('roms/Kid_Icarus.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Kung Fu" onclick="nes.loadRom('roms/Kung_Fu.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Lemmings" onclick="nes.loadRom('roms/Lemmings.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Lifeforce" onclick="nes.loadRom('roms/Lifeforce.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Lj65" onclick="nes.loadRom('roms/lj65.nes')"></td>
+                    <td>Tetris clone</td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Mario Bros" onclick="nes.loadRom('roms/Mario_Bros.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Mega Man" onclick="nes.loadRom('roms/Mega_Man.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Pac-Man" onclick="nes.loadRom('roms/Pac-Man.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Super Mario Bros" onclick="nes.loadRom('roms/Super_Mario_Bros.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Super Mario Bros 3" onclick="nes.loadRom('roms/Super_Mario_Bros_3.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Tennis" onclick="nes.loadRom('roms/Tennis.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Test" onclick="nes.loadRom('roms/Test.nes')"></td>
+                    <td>Can run some tests on the emulator.</td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Tetris" onclick="nes.loadRom('roms/Tetris.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Tetris 2" onclick="nes.loadRom('roms/Tetris_2.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="The Legend Of Zelda" onclick="nes.loadRom('roms/The_Legend_Of_Zelda.nes')"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="The Legend Of Zelda 2 - The Adventure Of Link" onclick="nes.loadRom('roms/Zelda_2_The_Adventure_of_Link.nes')"></td>
+                    <td>Weird map scrolling issues, uses mapper 1.</td>
+                </tr>
+            </table>
+        </p>
 
+        <p>
             <h3>Key Bindings:</h3>
-
             <table>
                 <tr>
                     <th>Controller</th>
@@ -91,8 +181,7 @@
                     <td>Right Arrow</td>
                 </tr>
             </table>
-
-        </blockquote>
+        </p>
 
     </div>
 </body>

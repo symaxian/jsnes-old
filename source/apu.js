@@ -13,9 +13,19 @@ nes.apu = {
     //______________//
 
     //Dynamic Audio Layer
-    dynamicAudio:{writeInt:function(){}},
+
+    dynamicAudio:{
+
+        /**
+         * @ignore
+         */
+
+        writeInt:function(){}
+
+    },
 
     //The Active Flag
+
     active:false,
 
     //Frame Interrupt Variables

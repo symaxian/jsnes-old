@@ -21,6 +21,8 @@
     //Fix Mapper 1
         //Null tiles occur on some games, Final Fantasy, Kid Icaurus
 
+    //Fix errors showing from the test rom?
+
     //Fix the Nintendo Zapper implementation?
         //Used in place of the controller and it sets a certain number when the color white is shot at or in this case clicked on.
 

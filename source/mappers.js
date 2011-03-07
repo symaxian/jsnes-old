@@ -614,7 +614,7 @@ nes.applyObject(nes.mappers.mmc1,{
 
     setReg:function nes_mappers_mmc1_setReg(reg,value){
         switch(reg){
-    
+
             //Register 0, PPU Mirroring, ROM loading flags.
             case 0:
                 //Check if the ppu mirroring specified is different than the current.
@@ -641,7 +641,7 @@ nes.applyObject(nes.mappers.mmc1,{
                 //Set the VROM switching size.
                 this.vromSwitchingSize = (value>>4)&1;
                 break;
-    
+
             //Register 1
             case 1:
                 //Set the ROM selection register 0 flag.
@@ -659,7 +659,7 @@ nes.applyObject(nes.mappers.mmc1,{
                     }
                 }
                 break;
-    
+
             //Register 2
             case 2:
                 //Set the ROM selection register 1 flag.
@@ -673,7 +673,7 @@ nes.applyObject(nes.mappers.mmc1,{
                     }
                 }
                 break;
-    
+
             //Register 3, ROM bank select.
             default:
                 //Initiate the base bank as 0.
@@ -704,7 +704,7 @@ nes.applyObject(nes.mappers.mmc1,{
                     //Load the rom bank.
                     this.load16kRomBank(baseBank*2+(value&0xF),0xC000-(this.prgSwitchingArea*0x4000));
                 }
-    
+
         }
     },
 
