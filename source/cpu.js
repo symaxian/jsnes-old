@@ -11,7 +11,7 @@ nes.cpu = {
 //Properties
 
     /**
-     * The nes' memory.
+     * The nes' memory, representing each byte as a number.
      * @type Array
      */
 

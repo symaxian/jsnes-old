@@ -12,6 +12,7 @@
     //Move to typed arrays.
 
     //Move more towards using canvas, less javascript.
+        //Move from rendering to the buffer to rendering directly onto the canvas.
 
     //More comments, remove all instances of "//???".
 
@@ -128,7 +129,7 @@ nes = {
      * @returns {Boolean}
      */
 
-    browserSupportsCanvas:function nes_browserSupportsCanvas(){
+    doesBrowserSupportCanvas:function nes_doesBrowserSupportCanvas(){
         //Create the screen.
         var canvas = document.createElement('canvas');
         //Check the canvas.
@@ -156,7 +157,7 @@ nes = {
         //Check the division.
         if(screenDiv !== null){
             //Check if canvas is supported.
-            if(this.browserSupportsCanvas()){
+            if(this.doesBrowserSupportCanvas()){
                 //Initiate the screen.
                 this.screen.init(screenDiv);
                 //Set the dynamic audio flash object path.
@@ -177,7 +178,7 @@ nes = {
     },
 
     /**
-     * Resets the nes.
+     * Resets the nes, clearing the current rom.
      */
 
     reset:function nes_reset(){
@@ -736,17 +737,16 @@ nes = {
         },
 
         /**
-         * Writes the sent pixel buffer to the screen
-         * @param {Array} buffer The pixel buffer to write to the screen, holds color values in hexadecimal integers.
+         * Writes the pixel buffer in the ppu to the screen
          */
 
-        writeFrame:function nes_screen_writeFrame(buffer){
+        writeFrame:function nes_screen_writeFrame(){
             //Loop through each pixel.
             for(var i=0;i<61440;i++){
                 //Check if the new and old colors are different.
-                if(buffer[i] !== this.buffer[i]){
+                if(nes.ppu.buffer[i] !== this.buffer[i]){
                     //Cache the new color.
-                    var pixel = buffer[i];
+                    var pixel = nes.ppu.buffer[i];
                     //Set the red color component.
                     this.pixelData[i*4] = pixel&0xFF;
                     //Set the green color component.

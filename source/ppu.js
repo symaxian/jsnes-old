@@ -710,7 +710,7 @@ nes.ppu = {
         }
         //Loop through each pixel.
         for(var i=0;i<61440;i++){
-            //Set the bg color.
+            //Set the bg color, if not then colors from the previous frame will leak to the new one.
             this.buffer[i] = bgColor;
             //???
             this.pixRendered[i] = 65;
@@ -722,12 +722,15 @@ nes.ppu = {
      */
 
     endFrame:function ppu_endFrame(){
+
         //Do the non-maskable interrupt.
         nes.cpu.requestInterrupt(1);
+
         //Make sure everything is rendered.
         if(this.lastRenderedScanline < 259){
             this.renderFramePartially(260-this.lastRenderedScanline);
         }
+
         //Draw spr0 hit coordinates.
         //if(this.showSpr0Hit){
         //   //Spr 0 position
@@ -749,41 +752,32 @@ nes.ppu = {
         //       }
         //   }
         //}
-        //Check to clip the buffer to the tv size.
-        if(this.clipToTvSize){
-            //Clip the left and right pixels.
-            for(var y=0;y<240;y++){
-                for(var x=0;x<8;x++){
-                    //Left
-                    this.buffer[(y<<8)+x] = 0;
-                    //Right
-                    this.buffer[(y<<8)+255-x] = 0;
-                }
-            }
-            //Clip the top and bottom pixels.
-            for(var y=0;y<8;y++){
-                for(var x=0;x<256;x++){
-                    //Top
-                    this.buffer[(y<<8)+x] = 0;
-                    //Bottom
-                    this.buffer[((239-y)<<8)+x] = 0;
-                }
-            }
-        }
-        //Else check to clip the sprites or background.
-        //FIXME, does not selectively clip the sprites or background.
-        else if(this.f_bgClipping === 0 || this.f_spClipping === 0){
-            //Clip left 8 pixels column.
-            for(var y=0;y<240;y++){
-                for(var x=0;x<8;x++){
-                    this.buffer[(y<<8)+x] = 0;
-                }
-            }
-        }
+
         //Write the buffer to the screen.
-        nes.screen.writeFrame(this.buffer);
+        nes.screen.writeFrame();
+
         //Reset the last rendered scanline counter.
         this.lastRenderedScanline = 19;
+
+        //Check to clip the screen to the tv size.
+        if(this.clipToTvSize){
+            //Clip the left 8 pixels.
+            nes.screen.context.fillRect(0,0,8,240);
+            //Clip the right 8 pixels.
+            nes.screen.context.fillRect(248,0,8,240);
+            //Clip the top 8 pixels.
+            nes.screen.context.fillRect(0,0,256,8);
+            //Clip the bottom 8 pixels.
+            nes.screen.context.fillRect(0,232,256,8);
+        }
+
+        //Else check to clip the sprites or background.
+            //FIXME, does not selectively clip the sprites or background.
+        else if(this.f_bgClipping === 0 || this.f_spClipping === 0){
+            //Clip the left 8 pixels.
+            nes.screen.context.fillRect(0,0,8,240);
+        }
+
     },
 
     /**
@@ -804,7 +798,7 @@ nes.ppu = {
                 //Update scroll.
                 this.cntHT = this.regHT;
                 this.cntH = this.regH;
-                this.renderBgScanline(this.bgbuffer,this.scanline);
+                this.renderBgScanlineOntoBgBuffer(this.scanline);
                 //Check for sprite 0 hit on next scanline.
                 if(!this.hitSpr0 && this.f_spVisibility === 1){
                     if(this.checkSprite0()){
@@ -840,7 +834,7 @@ nes.ppu = {
                 //Check if the bg is visible.
                 if(this.f_bgVisibility === 1){
                     //Render dummy scanline.
-                    this.renderBgScanline(this.buffer,20);
+                    this.renderBgScanlineOntoBuffer(20);
                 }
                 //Check sprite 0 hit on the first visible scanline.
                 this.checkSprite0();
@@ -1192,11 +1186,98 @@ nes.ppu = {
 
     /**
      * Renders the background of the specified scanline onto the passed buffer.
-     * @param {Array} buffer
      * @param {Number} scanline
      */
 
-    renderBgScanline:function(buffer,scanline){
+    renderBgScanlineOntoBgBuffer:function(scanline){
+        //Reduce the scanline value to the previous scale, -20 to 241 instead of 0 to 261.
+        scanline -= 20;
+        //???
+        var destIndex = (scanline<<8)-this.regFH;
+        //???
+        this.cntHT = this.regHT;
+        this.cntH = this.regH;
+        //???
+        if(scanline < 240 && (scanline-this.cntFV) >= 0){
+            //Cache the curent name table index.
+            var curNt = this.ntable1[2*this.cntV+this.cntH];
+            //???
+            var tscanoffset = this.cntFV<<3;
+            //Loop through the 32 tiles.
+            for(var tile=0;tile<32;tile++){
+                //Check if the scanline is visible.
+                if(scanline >= 0){
+                    //Check if the tile and attribute data is not cached.
+                    if(!this.validTileData){
+                        //If not cache it.
+                        this.scantile[tile] = this.ptTile[this.regS*256+this.nameTable[curNt].getTileIndex(this.cntHT,this.cntVT)];
+                        this.attrib[tile] = this.nameTable[curNt].getAttrib(this.cntHT,this.cntVT);
+                    }
+                    //Get the tile and its attributes.
+                    var t = this.scantile[tile];
+                    var att = this.attrib[tile];
+                    //Render tile scanline.
+                    var x = (tile<<3)-this.regFH;
+                    if(x > -8){
+                        //???
+                        if(x < 0){
+                            destIndex -= x;
+                            var sx = -x;
+                        }
+                        else{
+                            var sx = 0;
+                        }
+                        //???
+                        if(t.opaque[this.cntFV]){
+                            for(;sx<8;sx++){
+                                this.bgbuffer[destIndex] = this.imgPalette[t.pixelColor[tscanoffset+sx]+att];
+                                this.pixRendered[destIndex] |= 256;
+                                destIndex++;
+                            }
+                        }
+                        else{
+                            for(;sx<8;sx++){
+                                var col = t.pixelColor[tscanoffset+sx];
+                                if(col !== 0){
+                                    this.bgbuffer[destIndex] = this.imgPalette[col+att];
+                                    this.pixRendered[destIndex] |= 256;
+                                }
+                                destIndex++;
+                            }
+                        }
+                    }
+                }
+                //Increment the horizontal tile counter.
+                this.cntHT++;
+                //Check to reset the horizontal tile counter.
+                if(this.cntHT === 32){
+                    this.cntHT = 0;
+                    this.cntH++;
+                    this.cntH %= 2;
+                }
+            }
+            //Tile data for one row should now have been fetched, so the data in the array is valid.
+            this.validTileData = true;
+        }
+        //Update vertical scroll.
+        this.cntFV++;
+        if(this.cntFV === 8){
+            this.cntFV = 0;
+            this.cntVT++;
+            if(this.cntVT === 30){
+                this.cntVT = 0;
+                this.cntV++;
+                this.cntV %= 2;
+            }
+            else if(this.cntVT === 32){
+                this.cntVT = 0;
+            }
+            //Invalidate tile data, for what reason who knows?
+            this.validTileData = false;
+        }
+    },
+
+    renderBgScanlineOntoBuffer:function(scanline){
         //Reduce the scanline value to the previous scale, -20 to 241 instead of 0 to 261.
         scanline -= 20;
         //???
@@ -1246,7 +1327,7 @@ nes.ppu = {
                             for(;sx<8;sx++){
                                 var col = t.pixelColor[tscanoffset+sx];
                                 if(col !== 0){
-                                    buffer[destIndex] = this.imgPalette[col+att];
+                                    this.buffer[destIndex] = this.imgPalette[col+att];
                                     this.pixRendered[destIndex] |= 256;
                                 }
                                 destIndex++;
@@ -1592,10 +1673,25 @@ nes.ppu = {
 
     //Properties
 
-        curTable:[],
+        /**
+         * The color emphasis tables for the background color settings, set with loadNTSCPalette() or loadDefaultPalette().
+         * @type Array
+         */
+
         emphTable:[],
 
+        /**
+         * The current emphasis table, set with setEmphasis().
+         * @type Array
+         */
+
+        curTable:[],
+
     //Methods
+
+        /**
+         * Loads and sets the ntsc color palette emphasis tables.
+         */
 
         loadNTSCPalette:function nes_ppu_colorPalette_loadNTSCPalette(){
             //Construct the color emphasis tables from these colors.
@@ -1604,15 +1700,9 @@ nes.ppu = {
             this.setEmphasis(0);
         },
 
-        //emphTable:[
-        //    [5395026,11796480,10485760,11599933,7602281,91,95,6208,12048,543240,26368,1196544,7153664,0,0,0,12899815,16728064,14421538,16729963,14090399,6818519,6588,21681,27227,35843,43776,2918400,10777088,0,0,0,16316664,16755516,16742785,16735173,16730354,14633471,4681215,46327,57599,58229,259115,7911470,15065624,7895160,0,0,16777215,16773822,16300216,16300248,16758527,16761855,13095423,10148607,8973816,8650717,12122296,16119980,16777136,16308472,0,0],
-        //    [4018749,8847360,7864320,8650797,5701710,68,71,6192,12044,412166,26368,868864,5318656,0,0,0,9688493,12533760,10817049,12535632,10551415,5114529,6541,21636,27204,35842,43776,2197504,8090112,0,0,0,12253370,12561197,12548448,12540819,12535989,10963391,3501503,46265,57535,58199,193568,5945378,11264530,5929050,0,0,12582847,12579470,12236938,12236962,12564159,12567487,9818559,7592639,6745530,6487973,9107594,12056705,12582788,12245178,0,0],
-        //    [4013394,8847360,7864320,8650813,5701737,91,95,4672,8976,407304,19712,864512,5316096,0,0,0,9674727,12529664,10816034,12531051,10551455,5113815,4796,16305,20315,26883,32768,2188800,8082688,0,0,0,12237560,12550204,12540545,12534981,12531442,10958591,3494399,34807,43263,43637,177963,5933614,11249944,5921400,0,0,12566527,12563902,12225208,12225240,12552447,12555007,9805055,7578623,6730232,6471645,9091768,12040876,12566448,12231416,0,0],
-        //    [4013373,8847360,7864320,8650797,5701710,68,71,4656,8972,407302,19712,864512,5316096,0,0,0,9674669,12529664,10816025,12531024,10551415,5113761,4749,16260,20292,26882,32768,2188800,8082688,0,0,0,12237498,12550189,12540512,12534931,12531381,10958527,3494335,34745,43199,43607,177952,5933602,11249938,5921370,0,0,12566463,12563854,12225162,12225186,12552383,12554943,9804991,7578559,6730170,6471589,9091722,12040833,12566404,12231354,0,0],
-        //    [4013373,8847360,7864320,8650797,5701710,68,71,4656,8972,407302,19712,864512,5316096,0,0,0,9674669,12529664,10816025,12531024,10551415,5113761,4749,16260,20292,26882,32768,2188800,8082688,0,0,0,12237498,12550189,12540512,12534931,12531381,10958527,3494335,34745,43199,43607,177952,5933602,11249938,5921370,0,0,12566463,12563854,12225162,12225186,12552383,12554943,9804991,7578559,6730170,6471589,9091722,12040833,12566404,12231354,0,0],
-        //    [4013373,8847360,7864320,8650797,5701710,68,71,4656,8972,407302,19712,864512,5316096,0,0,0,9674669,12529664,10816025,12531024,10551415,5113761,4749,16260,20292,26882,32768,2188800,8082688,0,0,0,12237498,12550189,12540512,12534931,12531381,10958527,3494335,34745,43199,43607,177952,5933602,11249938,5921370,0,0,12566463,12563854,12225162,12225186,12552383,12554943,9804991,7578559,6730170,6471589,9091722,12040833,12566404,12231354,0,0],
-        //    [4013373,8847360,7864320,8650797,5701710,68,71,4656,8972,407302,19712,864512,5316096,0,0,0,9674669,12529664,10816025,12531024,10551415,5113761,4749,16260,20292,26882,32768,2188800,8082688,0,0,0,12237498,12550189,12540512,12534931,12531381,10958527,3494335,34745,43199,43607,177952,5933602,11249938,5921370,0,0,12566463,12563854,12225162,12225186,12552383,12554943,9804991,7578559,6730170,6471589,9091722,12040833,12566404,12231354,0,0],
-        //],
+        /**
+         * Loads and sets the default color palette emphasis tables.
+         */
 
         loadDefaultPalette:function nes_ppu_colorPalette_loadDefaultPalette(){
             //Construct the color emphasis tables from these colors.
@@ -1620,6 +1710,11 @@ nes.ppu = {
             //Set the emphasis to 0, no emphasis.
             this.setEmphasis(0);
         },
+
+        /**
+         * Creates the emphasis tables from the given color palette.
+         * @param {Array} palete
+         */
 
         makeTables:function nes_ppu_colorPalette_makeTables(palette){
             //Calculate a table for each possible emphasis setting:
@@ -1653,9 +1748,14 @@ nes.ppu = {
             }
         },
 
-        setEmphasis:function nes_ppu_colorPalette_setEmphasis(emph){
+        /**
+         * Sets the active color emphasis.
+         * @param {Number} emphasisSetting
+         */
+
+        setEmphasis:function nes_ppu_colorPalette_setEmphasis(emphasisSetting){
             //Set the current color table from the emphasis tables.
-            this.curTable = this.emphTable[emph];
+            this.curTable = this.emphTable[emphasisSetting];
         }
 
     }

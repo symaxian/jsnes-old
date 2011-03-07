@@ -5,9 +5,9 @@
 
 nes.mappers = {};
 
-//==============
-//== Mapper 0 ==
-//==============
+//
+//  Mapper 0
+//____________//
 
 /**
  * @namespace Memory Mapper 0, Direct Access
@@ -457,13 +457,13 @@ nes.mappers.mmc0 = {
      * Used by mmc3.
      */
 
-    clockIrqCounter:function nes_mappers_mmc0_clockIrqCounter(){},
+    clockIrqCounter:function nes_mappers_mmc0_clockIrqCounter(){}
 
 };
 
-//==============
-//== Mapper 1 ==
-//==============
+//
+//  Mapper 1
+//____________//
 
 /**
  * @namespace Memory Mapper 1, Nintendo MMC1
@@ -555,6 +555,7 @@ nes.applyObject(nes.mappers.mmc1,{
         this.regBufferCounter = 0;
         //Register 0 Values
         this.mirroring = 0;
+        this.oneScreenMirroring = 0;//FromBF
         this.prgSwitchingArea = 1;
         this.prgSwitchingSize = 1;
         this.vromSwitchingSize = 0;
@@ -562,6 +563,8 @@ nes.applyObject(nes.mappers.mmc1,{
         this.romSelectionReg0 = 0;
         //Register 2 Values
         this.romSelectionReg1 = 0;
+        //Reguster 3
+        this.romBankSelect = 0;//FromBF
     },
 
     /**
@@ -604,14 +607,14 @@ nes.applyObject(nes.mappers.mmc1,{
 
     /**
      * Similar to nes.mappers.mmc0.setReg(), but intercepts writes to mmc1 specific registers.
-     * @param {Number} address
+     * @param {Number} reg
      * @param {Number} value
      * @memberOf nes.mappers.mmc1
      */
 
     setReg:function nes_mappers_mmc1_setReg(reg,value){
         switch(reg){
-
+    
             //Register 0, PPU Mirroring, ROM loading flags.
             case 0:
                 //Check if the ppu mirroring specified is different than the current.
@@ -638,7 +641,7 @@ nes.applyObject(nes.mappers.mmc1,{
                 //Set the VROM switching size.
                 this.vromSwitchingSize = (value>>4)&1;
                 break;
-
+    
             //Register 1
             case 1:
                 //Set the ROM selection register 0 flag.
@@ -656,7 +659,7 @@ nes.applyObject(nes.mappers.mmc1,{
                     }
                 }
                 break;
-
+    
             //Register 2
             case 2:
                 //Set the ROM selection register 1 flag.
@@ -670,7 +673,7 @@ nes.applyObject(nes.mappers.mmc1,{
                     }
                 }
                 break;
-
+    
             //Register 3, ROM bank select.
             default:
                 //Initiate the base bank as 0.
@@ -701,7 +704,7 @@ nes.applyObject(nes.mappers.mmc1,{
                     //Load the rom bank.
                     this.load16kRomBank(baseBank*2+(value&0xF),0xC000-(this.prgSwitchingArea*0x4000));
                 }
-
+    
         }
     },
 
@@ -751,9 +754,9 @@ nes.applyObject(nes.mappers.mmc1,{
 
 });
 
-//==============
-//== Mapper 2 ==
-//==============
+//
+//  Mapper 2
+//____________//
 
 /**
  * @namespace Memory Mapper 2, UNROM
@@ -799,9 +802,9 @@ nes.applyObject(nes.mappers.mmc2,{
 
 });
 
-//==============
-//== Mapper 4 ==
-//==============
+//
+//  Mapper 4
+//____________//
 
 /**
  * @namespace Memory Mapper 4, Nintendo MMC3
