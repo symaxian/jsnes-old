@@ -12,7 +12,10 @@ nes.apu = {
     //  Properties
     //______________//
 
-    //Dynamic Audio Layer
+    /**
+     * The dynamic audio object used to generate the audio.
+     * @type Object
+     */
 
     dynamicAudio:{
 
@@ -24,7 +27,10 @@ nes.apu = {
 
     },
 
-    //The Active Flag
+    /**
+     * Determines whether or not the apu is active.
+     * @type Boolean
+     */
 
     active:false,
 
@@ -1263,7 +1269,7 @@ nes.apu = {
     },
 
     //
-    //  Square Channel 1
+    //  Square Channel 2
     //____________________//
 
     /**

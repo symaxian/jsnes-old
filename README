@@ -1,18 +1,17 @@
 A JavaScript NES emulator.
+	by Jonathon Reesor
+	original from Ben Firshman
 
-
-Currently unsupported and untouched in months, might be picked up later.
+Hasn't really been maintained lately.
+Many improvements can still be made.
 Feel free to use however you like.
 
-
-Based off of Ben Firshman's jsNes, which is in turn based off of vNes.
-
+Based off of Ben Firshman's jsnes, which is in turn based off of vNes.
 
 Source Files:
 
 	nes.js
-		Must be included first, defines the nes object.
-		The main nes object holding components and most editable settings.
+		Defines the nes object.
 
 		Mostly functional.
 			Saving BatteryROM does not work and is disabled.
@@ -20,7 +19,7 @@ Source Files:
 		Cannot be improved.
 
 	cpu.js
-		Adds the cpu(central processing unit) object to the nes.
+		Defines the nes.cpu object.
 		Fully emulates the nes's cpu.
 
 		Fully functional.
@@ -28,7 +27,7 @@ Source Files:
 		Cannot be improved.
 
 	ppu.js
-		Adds the ppu(picture proccessing unit) object to the nes.
+		Defines the nes.ppu(picture proccessing unit) object.
 		Generates the frame, which is written to the canvas in the nes.screen object.
 
 		Fully functional, possibly buggy.
@@ -36,58 +35,27 @@ Source Files:
 		Can probably be improved.
 
 	apu.js
-		Adds the apu(audio processing unit) object to the nes.
+		Defines the nes.apu(audio processing unit) object.
 		Generates sound samples, which are then fed into the dynamic audio object.
-		Depends on lib/dynamicaudio.js
-			Depends on lib/jquery-1.4.2.min.js
-			Depends on lib/dynamicaudio.swf
 
-		Fully funtional, possibly buggy.
+		Depends on lib/dynamicaudio.js
+			Which depends on lib/jquery-1.4.2.min.js
+			Which depends on lib/dynamicaudio.swf
+
+		Fully funtional, somewhat buggy.
 			Sound can seem "skippy".
-			Dynamic audio object does not always load properly(rare).
+			Dynamic audio object does not always load properly(seems to be rare).
 		Features cannot be added.
 		Can probably be improved.
 
 	mappers.js
-		Adds the implemented mappers to the nes.
+		Defines the nes.mappers object.
 		Needed for loading roms, mappers 0,1,2,and 4 are fully/partially implemented.
 
-		Mostly functional, latter mappers have bugs.
+		Mostly functional, latter mappers might have bugs.
 		Features(the other mappers) can be added.
+			I think theres like maybe ~60 more mappers, some of which are very rare to find.
+			Can probably port other mappers over from vNes.
 		Cannot probably be improved.
 
-
-Sample Implementation:
-
-	<html>
-	<head>
-		<title>JSNES: A JavaScript NES emulator</title>
-		<script src="source/nes.js" type="text/javascript" charset="utf-8"></script>
-		<script src="source/cpu.js" type="text/javascript" charset="utf-8"></script>
-		<script src="source/apu.js" type="text/javascript" charset="utf-8"></script>
-		<script src="source/mappers.js" type="text/javascript" charset="utf-8"></script>
-		<script src="source/ppu.js" type="text/javascript" charset="utf-8"></script>
-		<script src="lib/dynamicaudio.js" type="text/javascript" charset="utf-8"></script>
-		<script src="lib/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
-		<script type="text/javascript" charset="utf-8">
-
-			init = function(){
-
-				fpsDiv = document.getElementById('fps');
-				fpsUpdateInterval = setInterval(function(){fpsDiv.innerHTML = nes.fps.toFixed(2)},200);
-
-				nes.init();
-				nes.loadRom('roms/lj65.nes');
-				nes.start();
-
-			}
-
-		</script>
-	</head>
-	<body onload='init()'>
-	<center><h1>JSNES</h1><canvas id='jsnes'></canvas><div id='fps'></div></center>
-	</body>
-	</html>
-
-
-For more information just consult the code, I'm unusually finicky about commenting quantity and quality.
+For more information just look at the code, I'm sure its not as dreadful as you imagine, I'm unusually finicky about commenting quantity and quality.

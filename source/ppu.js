@@ -1,6 +1,6 @@
-//=============================
-//== Picture Processing Unit ==
-//=============================
+//
+//  Picture Processing Unit
+//___________________________//
 
 /**
  * @namespace The picture processing unit for the nes.
@@ -253,6 +253,12 @@ nes.ppu = {
 
     //Registers
 
+    /**
+     * Unknown register.
+     * Somehow tied into screen scrolling and the control/masking register.
+     * @type Number
+     */
+
     regFV:null,
 
     /**
@@ -332,7 +338,7 @@ nes.ppu = {
     lastRenderedScanline:null,
 
     /**
-     * A horizontal pixel counter.
+     * Horizontal pixel counter used when rendering scanlines.
      * <br>
      * Goes from 0 to 341 before ending the current scanline, even though scanlines are only 256 pixels wide.
      * @type Number
@@ -341,7 +347,7 @@ nes.ppu = {
     curX:null,
 
     /**
-     * Set to true when the ppu has drawn the last scanline.
+     * Indicates when the ppu has drawn the last scanline.
      * @type Boolean
      */
 
@@ -355,7 +361,7 @@ nes.ppu = {
     nmiCounter:null,
 
     /**
-     * True when internally buffered tile data is valid.
+     * Indicates when internally buffered tile data is valid.
      * @type Boolean
      */
 
@@ -498,13 +504,19 @@ nes.ppu = {
     //Rendering Options
 
     /**
-     * Whether or not to clip the image to the tv size.
+     * Determines whether or not to clip the image to the tv size.
      * @type Boolean
      */
 
     clipToTvSize:true,
 
-//Methods
+    //
+    //  Methods
+    //___________//
+
+        //
+        //  Initialization
+        //__________________//
 
     /**
      * Resets the ppu.
@@ -678,6 +690,10 @@ nes.ppu = {
             this.vramMirrorTable[from+i] = to+i;
         }
     },
+
+    //
+    //  Frame Rendering
+    //___________________//
 
     /**
      * Clears the screen buffer.
@@ -858,6 +874,60 @@ nes.ppu = {
         //???
         this.regsToAddress();
         this.cntsToAddress();
+    },
+
+        //
+        //  Registers / Counters
+        //________________________//
+
+    /**
+     * Converts the scroll registers to a temporary vram address.
+     */
+
+    regsToAddress:function(){
+        this.vramTmpAddress = (((((this.regFV&7)<<4)|((this.regV&1)<<3)|((this.regH&1)<<2)|((this.regVT>>3)&3))<<8)|(((this.regVT&7)<<5)|(this.regHT&31)))&0x7FFF;
+    },
+
+    /**
+     * Converts the scroll counters to the vram address.
+     */
+
+    cntsToAddress:function(){
+        this.vramAddress = (((((this.cntFV&7)<<4)|((this.cntV&1)<<3)|((this.cntH&1)<<2)|((this.cntVT>>3)&3))<<8)|(((this.cntVT&7)<<5)|(this.cntHT&31)))&0x7FFF;
+    },
+
+    /**
+     * Updates the scroll registers from the temporary vram address created by regsToAddress().
+     */
+
+    regsFromAddress:function(){
+        //???
+        var address = (this.vramTmpAddress>>8)&0xFF;
+        this.regFV = (address>>4)&7;
+        this.regV = (address>>3)&1;
+        this.regH = (address>>2)&1;
+        this.regVT = (this.regVT&7)|((address&3)<<3);
+        //???
+        var address = this.vramTmpAddress&0xFF;
+        this.regVT = (this.regVT&24)|((address>>5)&7);
+        this.regHT = address&31;
+    },
+
+    /**
+     * Updates the scroll counters from the current vram address.
+     */
+
+    cntsFromAddress:function(){
+        //???
+        var address = (this.vramAddress>>8)&0xFF;
+        this.cntFV = (address>>4)&3;
+        this.cntV = (address>>3)&1;
+        this.cntH = (address>>2)&1;
+        this.cntVT = (this.cntVT&7)|((address&3)<<3);
+        //???
+        var address = this.vramAddress&0xFF;
+        this.cntVT = (this.cntVT&24)|((address>>5)&7);
+        this.cntHT = address&31;
     },
 
     /**
@@ -1091,55 +1161,9 @@ nes.ppu = {
         }
     },
 
-    /**
-     * Converts the scroll registers to a temporary vram address.
-     */
-
-    regsToAddress:function(){
-        this.vramTmpAddress = (((((this.regFV&7)<<4)|((this.regV&1)<<3)|((this.regH&1)<<2)|((this.regVT>>3)&3))<<8)|(((this.regVT&7)<<5)|(this.regHT&31)))&0x7FFF;
-    },
-
-    /**
-     * Converts the scroll counters to the vram address.
-     */
-
-    cntsToAddress:function(){
-        this.vramAddress = (((((this.cntFV&7)<<4)|((this.cntV&1)<<3)|((this.cntH&1)<<2)|((this.cntVT>>3)&3))<<8)|(((this.cntVT&7)<<5)|(this.cntHT&31)))&0x7FFF;
-    },
-
-    /**
-     * Updates the scroll registers from the temporary vram address created by regsToAddress().
-     */
-
-    regsFromAddress:function(){
-        //???
-        var address = (this.vramTmpAddress>>8)&0xFF;
-        this.regFV = (address>>4)&7;
-        this.regV = (address>>3)&1;
-        this.regH = (address>>2)&1;
-        this.regVT = (this.regVT&7)|((address&3)<<3);
-        //???
-        var address = this.vramTmpAddress&0xFF;
-        this.regVT = (this.regVT&24)|((address>>5)&7);
-        this.regHT = address&31;
-    },
-
-    /**
-     * Updates the scroll counters from the current vram address.
-     */
-
-    cntsFromAddress:function(){
-        //???
-        var address = (this.vramAddress>>8)&0xFF;
-        this.cntFV = (address>>4)&3;
-        this.cntV = (address>>3)&1;
-        this.cntH = (address>>2)&1;
-        this.cntVT = (this.cntVT&7)|((address&3)<<3);
-        //???
-        var address = this.vramAddress&0xFF;
-        this.cntVT = (this.cntVT&24)|((address>>5)&7);
-        this.cntHT = address&31;
-    },
+        //
+        //  Rendering
+        //_____________//
 
     /**
      * Renders scanlines up to the current one?
@@ -1597,6 +1621,10 @@ nes.ppu = {
         //No collisions detected, return false.
         return false;
     },
+
+        //
+        //  Memory
+        //__________//
 
     /**
      * Updates the internally buffered image and sprite color palettes.

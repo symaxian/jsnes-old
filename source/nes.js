@@ -9,7 +9,10 @@
         //Clean up the ppu.
         //Clean up the apu?
 
-    //Move to typed arrays.
+    //Move to typed arrays...eventually, very browser specific.
+
+    //Abstract 64 sprite objects out of the currently used arrays?
+        //Might make it easier to move more towards canvas.
 
     //Move more towards using canvas, less javascript.
         //Move from rendering to the buffer to rendering directly onto the canvas.
