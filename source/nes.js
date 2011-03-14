@@ -213,7 +213,7 @@ nes = {
             //Set the running flag.
             this.running = true;
             //Start the frame interval.
-            this.frameInterval = setInterval(function(){nes.frame();},1000/nes.frameRate);
+            this.frameInterval = setInterval(function frameInterval(){nes.frame();},1000/nes.frameRate);
         }
     },
 
@@ -705,13 +705,6 @@ nes = {
 
         pixelData:null,
 
-        /**
-         * A copy of the previous frame's pixel buffer.
-         * @type Array
-         */
-
-        buffer:null,
-
     //Methods
 
         /**
@@ -730,41 +723,7 @@ nes = {
             this.canvas.height = 240;
             //Set the border.
             this.canvas.style.border = '1px solid black';
-            //Fill the canvas black.
-            this.context.fillStyle = 'black';
-            this.context.fillRect(0,0,256,240);
-            //Get the image data.
-            this.imageData = this.context.getImageData(0,0,256,240);
-            //Get the pixel data.
-            this.pixelData = this.imageData.data;
-            //Create a pixel buffer.
-            this.buffer = new Array(61440);
-        },
-
-        /**
-         * Writes the pixel buffer in the ppu to the screen
-         */
-
-        writeFrame:function nes_screen_writeFrame(){
-            //Loop through each pixel.
-            for(var i=0;i<61440;i++){
-                //Check if the new and old colors are different.
-                if(nes.ppu.buffer[i] !== this.buffer[i]){
-                    //Cache the new color.
-                    var pixel = nes.ppu.buffer[i];
-                    //Set the red color component.
-                    this.pixelData[i*4] = pixel&0xFF;
-                    //Set the green color component.
-                    this.pixelData[i*4+1] = (pixel>>8)&0xFF;
-                    //Set the blue color component.
-                    this.pixelData[i*4+2] = (pixel>>16)&0xFF;
-                    //Set the new color in the buffer.
-                    this.buffer[i] = pixel;
-                }
-            }
-            //Place the image data onto the canvas.
-            this.context.putImageData(this.imageData,0,0);
-        },
+        }
 
     },
 

@@ -571,7 +571,6 @@ nes.ppu = {
         this.regS = 0;
         //Variables used when rendering.
         this.attrib = new Array(32);
-        this.buffer = new Array(61440);
         this.bgbuffer = new Array(61440);
         this.pixRendered = new Array(61440);
         //???
@@ -618,6 +617,13 @@ nes.ppu = {
         }
         //Set the color palette.
         this.colorPalette.loadNTSCPalette();
+        //Intermediate Canvas Buffer
+        this.frameCanvas = document.createElement('canvas');
+        this.frameCanvas.width = 256;
+        this.frameCanvas.height = 240;
+        this.frameCanvasContext = this.frameCanvas.getContext('2d');
+        //Create a fresh buffer to draw onto for the first frame.
+        this.frameBuffer = this.frameCanvasContext.createImageData(256,240);
     },
 
     /**
@@ -700,37 +706,49 @@ nes.ppu = {
      */
 
     startFrame:function ppu_startFrame(){
-        //Default the background color to black.
-        var bgColor = 0x000000;
-        //Check if monochrome.
-        if(this.f_dispType === 0){
-            //No, use first entry of image palette as bg color.
-            bgColor = this.imgPalette[0];
+        //Get the new background color.
+        var newBgColor = this.getBackgroundColor();
+        //Check if different.
+        if(this.bgColor !== newBgColor){
+            //Set the new background color.
+            this.bgColor = newBgColor;
         }
-        else{
-            //Yes, color emphasis determines the bg color.
-            switch(this.f_color){
-                //Green
-                case 1:
-                    bgColor = 0x00FF00;
-                    break;
-                //Blue
-                case 2:
-                    bgColor = 0xFF0000;
-                    break;
-                //Red
-                case 4:
-                    bgColor = 0x0000FF;
-                    break;
-            }
-        }
+        //Clear the pixels rendered array.
+        this.resetPixRenderedArray();
+    },
+
+    resetPixRenderedArray:function(){
         //Loop through each pixel.
+            //FIXME, big lag from this.
         for(var i=0;i<61440;i++){
-            //Set the bg color, if not then colors from the previous frame will leak to the new one.
-            this.buffer[i] = bgColor;
             //???
             this.pixRendered[i] = 65;
         }
+    },
+
+    getBackgroundColor:function nes_ppu_getBackgroundColor(){
+        //Check if monochrome.
+        if(this.f_dispType === 0){
+            //No, use first entry of image palette as bg color.
+            return this.getRGBStyleFrom24BitColor(this.imgPalette[0]);
+        }
+        //Yes, color emphasis determines the bg color.
+        switch(this.f_color){
+            //Black
+            case 0:
+                return 'black';
+            //Green
+            case 1:
+                return 'green';
+            //Blue
+            case 2:
+                return 'blue';
+            //Red
+            case 4:
+                return 'red';
+        }
+        //Some error ocurred, return pink for a heads up.
+        return 'pink';
     },
 
     /**
@@ -769,14 +787,27 @@ nes.ppu = {
         //   }
         //}
 
-        //Write the buffer to the screen.
-        nes.screen.writeFrame();
-
         //Reset the last rendered scanline counter.
         this.lastRenderedScanline = 19;
 
+        //Draw the background color onto the screen.
+        nes.screen.context.fillStyle = this.bgColor;
+        nes.screen.context.fillRect(0,0,256,240);
+
+        //Place the frame buffer onto the frame canvas.
+        this.frameCanvasContext.putImageData(this.frameBuffer,0,0);
+
+        //Create a fresh buffer to draw onto for the next frame.
+        this.frameBuffer = this.frameCanvasContext.createImageData(256,240);
+
+        //Draw the frame canvas onto the screen.
+            //drawImage() is used here because it abides by the alpha values when blitting pixels.
+        nes.screen.context.drawImage(this.frameCanvas,0,0);
+
         //Check to clip the screen to the tv size.
         if(this.clipToTvSize){
+            //Set the fillStyle to black.
+            nes.screen.context.fillStyle = 'black';
             //Clip the left 8 pixels.
             nes.screen.context.fillRect(0,0,8,240);
             //Clip the right 8 pixels.
@@ -790,10 +821,23 @@ nes.ppu = {
         //Else check to clip the sprites or background.
             //FIXME, does not selectively clip the sprites or background.
         else if(this.f_bgClipping === 0 || this.f_spClipping === 0){
+            //Set the fillStyle to black.
+            nes.screen.context.fillStyle = 'black';
             //Clip the left 8 pixels.
             nes.screen.context.fillRect(0,0,8,240);
         }
 
+    },
+
+    setPixelInBuffer:function(index,color){
+        //Set the red color component.
+        this.frameBuffer.data[index*4] = color&0xFF;
+        //Set the green color component.
+        this.frameBuffer.data[index*4+1] = (color>>8)&0xFF;
+        //Set the blue color component.
+        this.frameBuffer.data[index*4+2] = (color>>16)&0xFF;
+        //Set the pixel as visible.
+        this.frameBuffer.data[index*4+3] = 255;
     },
 
     /**
@@ -1165,6 +1209,22 @@ nes.ppu = {
         //  Rendering
         //_____________//
 
+    getRedFrom24BitColor:function(color){
+        return color&0xFF;
+    },
+
+    getGreenFrom24BitColor:function(color){
+        return (color>>8)&0xFF;
+    },
+
+    getBlueFrom24BitColor:function(color){
+        return (color>>16)&0xFF;
+    },
+
+    getRGBStyleFrom24BitColor:function(color){
+        return 'rgb('+(color&0xFF)+','+((color>>8)&0xFF)+','+((color>>16)&0xFF)+')';
+    },
+
     /**
      * Renders scanlines up to the current one?
      */
@@ -1197,8 +1257,8 @@ nes.ppu = {
             for(var destIndex=startScan<<8;destIndex<endIndex;destIndex++){
                 //???
                 if(this.pixRendered[destIndex] > 0xFF){
-                    //Set the pixel from the background buffer.
-                    this.buffer[destIndex] = this.bgbuffer[destIndex];
+                    //Set the pixel color from the background buffer.
+                    this.setPixelInBuffer(destIndex,this.bgbuffer[destIndex]);
                 }
             }
         }
@@ -1315,10 +1375,10 @@ nes.ppu = {
             var curNt = this.ntable1[2*this.cntV+this.cntH];
             //???
             var tscanoffset = this.cntFV<<3;
-            //Loop through the 32 tiles.
-            for(var tile=0;tile<32;tile++){
-                //Check if the scanline is visible.
-                if(scanline >= 0){
+            //Check if the scanline is visible.
+            if(scanline >= 0){
+                //Loop through the 32 tiles.
+                for(var tile=0;tile<32;tile++){
                     //Check if the tile and attribute data is not cached.
                     if(!this.validTileData){
                         //If not cache it.
@@ -1328,7 +1388,7 @@ nes.ppu = {
                     //Get the tile and its attributes.
                     var t = this.scantile[tile];
                     var att = this.attrib[tile];
-                    //Render tile scanline.
+                    //Render tile at this scanline.
                     var x = (tile<<3)-this.regFH;
                     if(x > -8){
                         //???
@@ -1342,7 +1402,8 @@ nes.ppu = {
                         //???
                         if(t.opaque[this.cntFV]){
                             for(;sx<8;sx++){
-                                this.buffer[destIndex] = this.imgPalette[t.pixelColor[tscanoffset+sx]+att];
+                                //Set the pixel to the buffer.
+                                this.setPixelInBuffer(destIndex,this.imgPalette[t.pixelColor[tscanoffset+sx]+att]);
                                 this.pixRendered[destIndex] |= 256;
                                 destIndex++;
                             }
@@ -1351,21 +1412,22 @@ nes.ppu = {
                             for(;sx<8;sx++){
                                 var col = t.pixelColor[tscanoffset+sx];
                                 if(col !== 0){
-                                    this.buffer[destIndex] = this.imgPalette[col+att];
+                                    //Set the pixel to the buffer.
+                                    this.setPixelInBuffer(destIndex,this.imgPalette[col+att]);
                                     this.pixRendered[destIndex] |= 256;
                                 }
                                 destIndex++;
                             }
                         }
                     }
-                }
-                //Increment the horizontal tile counter.
-                this.cntHT++;
-                //Check to reset the horizontal tile counter.
-                if(this.cntHT === 32){
-                    this.cntHT = 0;
-                    this.cntH++;
-                    this.cntH %= 2;
+                    //Increment the horizontal tile counter.
+                    this.cntHT++;
+                    //Check to reset the horizontal tile counter.
+                    if(this.cntHT === 32){
+                        this.cntHT = 0;
+                        this.cntH++;
+                        this.cntH %= 2;
+                    }
                 }
             }
             //Tile data for one row should now have been fetched, so the data in the array is valid.
@@ -1879,6 +1941,10 @@ Tile = function Tile(){
 
 Tile.prototype = {
 
+    isTransparent:function(x,y){
+        return (this.pixelColor[(y<<3)+x]==0);
+    },
+
     /**
      * Sets the pixel color/transparency to the specified scanline?
      * @param {Number} scanline
@@ -1953,8 +2019,8 @@ Tile.prototype = {
                             var colorIndex = this.pixelColor[pixelIndex];
                             var tpri = nes.ppu.pixRendered[screenIndex];
                             if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                                //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                                nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                                //Set the color from the nes.ppu.sprPalette to the frame buffer.
+                                nes.ppu.setPixelInBuffer(screenIndex,nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]);
                                 nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                             }
                         }
@@ -1979,8 +2045,8 @@ Tile.prototype = {
                             var colorIndex = this.pixelColor[pixelIndex];
                             var tpri = nes.ppu.pixRendered[screenIndex];
                             if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                                //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                                nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                                //Set the color from the nes.ppu.sprPalette to the frame buffer.
+                                nes.ppu.setPixelInBuffer(screenIndex,nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]);
                                 nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                             }
                         }
@@ -2009,8 +2075,8 @@ Tile.prototype = {
                         var colorIndex = this.pixelColor[pixelIndex];
                         var tpri = nes.ppu.pixRendered[screenIndex];
                         if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                            //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                            nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                            //Set the color from the nes.ppu.sprPalette to the frame buffer.
+                            nes.ppu.setPixelInBuffer(screenIndex,nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]);
                             nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                         }
                     }
@@ -2038,8 +2104,8 @@ Tile.prototype = {
                         var colorIndex = this.pixelColor[pixelIndex];
                         var tpri = nes.ppu.pixRendered[screenIndex];
                         if(colorIndex !== 0 && spriteIndex <= (tpri&0xFF)){
-                            //Set the color from the nes.ppu.sprPalette to the frame nes.ppu.nes.ppu.buffer.
-                            nes.ppu.buffer[screenIndex] = nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]];
+                            //Set the color from the nes.ppu.sprPalette to the frame buffer.
+                            nes.ppu.setPixelInBuffer(screenIndex,nes.ppu.sprPalette[colorIndex+nes.ppu.sprCol[spriteIndex]]);
                             nes.ppu.pixRendered[screenIndex] = (tpri&0xF00)|spriteIndex;
                         }
                     }

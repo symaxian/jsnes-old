@@ -82,7 +82,8 @@ nes.mappers.mmc0 = {
 
     load16bit:function nes_mappers_mmc0_load16Bit(address){
         //Load two addresses from memory and combine them.
-        return this.load(address)|(this.load(address+1)<<8);
+        return nes.cpu.mem[address]|(nes.cpu.mem[address+1]<<8);
+            //Previously used this.load(), which checked the address.
     },
 
     /**
