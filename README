@@ -1,22 +1,18 @@
-A JavaScript NES emulator.
-	by Jonathon Reesor
-	original from Ben Firshman
-
-Hasn't really been maintained lately.
-Many improvements can still be made.
-Feel free to use however you like.
+A JavaScript NES emulator forked from Ben Firshman's.
 
 Based off of Ben Firshman's jsnes, which is in turn based off of vNes.
+
+Hasn't been touched in a long time, I believe it still functions correctly though the sound might be disabled.
+Many improvements and bug-fixes can still be made, I believe Ben has greatly improved his original since I forked this version.
 
 Source Files:
 
 	nes.js
-		Defines the nes object.
+		Defines the main nes object.
 
 		Mostly functional.
 			Saving BatteryROM does not work and is disabled.
 		Features can be added.
-		Cannot be improved.
 
 	cpu.js
 		Defines the nes.cpu object.
@@ -24,7 +20,7 @@ Source Files:
 
 		Fully functional.
 		Features cannot be added.
-		Cannot be improved.
+		The memory array should be turned into a typed int array.
 
 	ppu.js
 		Defines the nes.ppu(picture proccessing unit) object.
@@ -32,30 +28,29 @@ Source Files:
 
 		Fully functional, possibly buggy.
 		Features cannot be added.
-		Can probably be improved.
+		Can probably be improved performance and memory-wise.
+		One idea was to cache the sprites as canvas elements rather than arrays of color indices.
+		This would greatly speed up rendering but slow down sprite loading.
 
 	apu.js
 		Defines the nes.apu(audio processing unit) object.
 		Generates sound samples, which are then fed into the dynamic audio object.
 
 		Depends on lib/dynamicaudio.js
-			Which depends on lib/jquery-1.4.2.min.js
-			Which depends on lib/dynamicaudio.swf
+			Which depends on lib/jquery-1.4.2.min.js and lib/dynamicaudio.swf
 
 		Fully funtional, somewhat buggy.
 			Sound can seem "skippy".
-			Dynamic audio object does not always load properly(seems to be rare).
-		Features cannot be added.
-		Can probably be improved.
+			Dynamic audio object does not always load properly(seems to be rare, possible a race condition).
+		Can probably be improved upon.
 
 	mappers.js
 		Defines the nes.mappers object.
 		Needed for loading roms, mappers 0,1,2,and 4 are fully/partially implemented.
 
-		Mostly functional, latter mappers might have bugs.
+		Mostly functional, the latter mappers might have bugs.
 		Features(the other mappers) can be added.
-			I think theres like maybe ~60 more mappers, some of which are very rare to find.
-			Can probably port other mappers over from vNes.
-		Cannot probably be improved.
+			There are around ~60 more mappers, some of which are very rare to find being used by a cartridge.
+			The other mappers could probably be ported over from vNes.
 
-For more information just look at the code, I'm sure its not as dreadful as you imagine, I'm unusually finicky about commenting quantity and quality.
+For more information just look at the code, I'm unusually finicky about comment quantity and quality.
